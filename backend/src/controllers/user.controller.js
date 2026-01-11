@@ -70,7 +70,8 @@ const login = (req, res) => {
                 token,
                 success: true,
                 message: `Valid login credentials`,
-                userId: result.rows[0].user_id,
+                userId: result.rows[0].id,
+                  role: result.rows[0].role_id,
               });
             } else {
               throw Error;

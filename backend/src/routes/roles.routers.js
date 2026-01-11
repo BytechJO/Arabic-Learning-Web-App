@@ -20,4 +20,5 @@ rolesRouter.get("/getRolePermission",GetALLRolePermission);
 rolesRouter.post("/createPermission", createNewPermission);
 rolesRouter.get("/getPermissions" ,getAllPermissions)
 rolesRouter.delete("/:id",DeleteRolePermissionById);
+
 module.exports = rolesRouter;

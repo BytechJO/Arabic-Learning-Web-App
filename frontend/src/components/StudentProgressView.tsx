@@ -1,0 +1,385 @@
+import { useState, useEffect } from 'react';
+import { TrendingUp, Award, Clock, Target, BookOpen, CheckCircle, BarChart3, Calendar, Star, Volume2, Edit3, Palette, ArrowRight } from 'lucide-react';
+import { User } from '../types';
+import { progressTracking, ACTIVITY_NAMES, getScoreColor, getScoreText } from '../utils/progressTracking';
+import { storage } from '../utils/storage';
+
+interface StudentProgressViewProps {
+  classroomId: string;
+  studentId?: string;
+  onBack?: () => void;
+}
+
+export function StudentProgressView({ classroomId, studentId, onBack }: StudentProgressViewProps) {
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(studentId || null);
+  const [students, setStudents] = useState<User[]>([]);
+
+  useEffect(() => {
+    // إذا كان studentId محدد من الخارج، استخدمه مباشرة
+    if (studentId) {
+      setSelectedStudentId(studentId);
+    }
+    
+    // الحصول على الصف
+    const classroom = storage.getClassrooms().find(c => c.id === classroomId);
+    if (!classroom) {
+      console.log('❌ لم يتم العثور على الصف:', classroomId);
+      return;
+    }
+
+    // الحصول على الطلاب
+    const classStudents = classroom.students
+      .map(studentId => storage.getUserById(studentId))
+      .filter((s): s is User => s !== null);
+    
+    console.log('📊 الطلاب في الصف:', classStudents.length);
+    classStudents.forEach(student => {
+      const stats = progressTracking.calculateStats(student.id);
+      console.log(`  - ${student.name}: ${stats.totalActivities} نشاط`);
+    });
+    
+    setStudents(classStudents);
+  }, [classroomId, studentId]);
+
+  // تنسيق التاريخ
+  const formatDate = (timestamp: number): string => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) return 'اليوم';
+    if (days === 1) return 'أمس';
+    if (days < 7) return `منذ ${days} أيام`;
+    return date.toLocaleDateString('ar-EG');
+  };
+
+  // أيقونة النشاط
+  const getActivityIcon = (activityType: string) => {
+    switch (activityType) {
+      case 'letter-sounds': return <Volume2 className="w-5 h-5" />;
+      case 'draw-letters': return <Edit3 className="w-5 h-5" />;
+      case 'letter-position': return <Target className="w-5 h-5" />;
+      case 'color-letters': return <Palette className="w-5 h-5" />;
+      default: return <BookOpen className="w-5 h-5" />;
+    }
+  };
+
+  // لون النشاط
+  const getActivityColor = (activityType: string) => {
+    switch (activityType) {
+      case 'letter-sounds': return '#10b981';
+      case 'draw-letters': return '#3b82f6';
+      case 'letter-position': return '#f59e0b';
+      case 'color-letters': return '#ec4899';
+      default: return '#164194';
+    }
+  };
+
+  // عرض قائمة الطلاب
+  if (!selectedStudentId) {
+    return (
+      <div className="space-y-6" dir="rtl">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 rounded-xl shadow-lg" style={{ backgroundColor: '#164194' }}>
+            <BarChart3 className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl" style={{ color: '#164194' }}>تقدم الطلاب</h2>
+            <p className="text-gray-600">اختر طالباً لعرض إنجازاته التفصيلية</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          {students.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-3xl shadow-lg">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ECEEEF' }}>
+                <Award className="w-10 h-10 text-gray-400" />
+              </div>
+              <p className="text-gray-500">لا يوجد طلاب في هذا الصف بعد</p>
+            </div>
+          ) : (
+            students.map(student => {
+              const stats = progressTracking.calculateStats(student.id);
+              const hasProgress = stats.totalActivities > 0;
+
+              return (
+                <button
+                  key={student.id}
+                  onClick={() => setSelectedStudentId(student.id)}
+                  className="bg-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-300 text-right"
+                >
+                  <div className="flex items-center gap-4">
+                    <div 
+                      className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl shadow-md"
+                      style={{ backgroundColor: '#164194' }}
+                    >
+                      {student.name.charAt(0)}
+                    </div>
+                    
+                    <div className="flex-1">
+                      <h3 className="text-xl mb-1" style={{ color: '#164194' }}>{student.name}</h3>
+                      <p className="text-sm text-gray-500">{student.email}</p>
+                    </div>
+
+                    {hasProgress ? (
+                      <div className="text-center px-6 py-3 rounded-2xl shadow-md" style={{ backgroundColor: getScoreColor(stats.averageScore) + '15' }}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Star className="w-5 h-5" style={{ color: getScoreColor(stats.averageScore), fill: getScoreColor(stats.averageScore) }} />
+                          <span className="text-2xl" style={{ color: getScoreColor(stats.averageScore) }}>
+                            {stats.averageScore}٪
+                          </span>
+                        </div>
+                        <span className="text-sm" style={{ color: getScoreColor(stats.averageScore) }}>
+                          {getScoreText(stats.averageScore)}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="text-center px-6 py-3 rounded-2xl bg-gray-100">
+                        <Award className="w-6 h-6 mx-auto mb-1 text-gray-400" />
+                        <span className="text-sm text-gray-500">لم يبدأ</span>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // عرض تفاصيل طالب محدد
+  const student = storage.getUserById(selectedStudentId);
+  if (!student) return null;
+
+  const stats = progressTracking.calculateStats(selectedStudentId);
+  const recentActivities = progressTracking.getRecentActivities(selectedStudentId);
+
+  return (
+    <div className="space-y-4" dir="rtl">
+      {/* رأس الصفحة */}
+      <div className="flex items-center gap-3 rounded-2xl p-3 border-2" style={{ background: 'linear-gradient(to bottom right, #652b8220, #fad65620)', borderColor: '#652b82' }}>
+        <div 
+          className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-md"
+          style={{ backgroundColor: '#164194' }}
+        >
+          {student.name.charAt(0)}
+        </div>
+        <div>
+          <h2 className="text-lg mb-1" style={{ color: '#164194' }}>{student.name}</h2>
+          <p className="text-xs text-gray-600">{student.email}</p>
+        </div>
+      </div>
+
+      {/* إحصائيات عامة */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {/* المعدل العام */}
+        <div className="rounded-2xl p-3 border-2" style={{ background: 'linear-gradient(to bottom right, #fad65620, #fad65610)', borderColor: '#fad656' }}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: getScoreColor(stats.averageScore) }}>
+              <Star className="w-4 h-4 text-white" />
+            </div>
+            <div className="text-xl" style={{ color: getScoreColor(stats.averageScore) }}>
+              {isNaN(stats.averageScore) ? 0 : stats.averageScore}%
+            </div>
+          </div>
+          <p className="text-xs text-gray-600">المعدل العام</p>
+        </div>
+
+        {/* عدد الأنشطة */}
+        <div className="rounded-2xl p-3 border-2" style={{ background: 'linear-gradient(to bottom right, #652b8220, #652b8210)', borderColor: '#652b82' }}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#3b82f6' }}>
+              <CheckCircle className="w-4 h-4 text-white" />
+            </div>
+            <div className="text-xl" style={{ color: '#3b82f6' }}>
+              {stats.totalActivities || 0}
+            </div>
+          </div>
+          <p className="text-xs text-gray-600">الأنشطة</p>
+        </div>
+
+        {/* الوقت الإجمالي */}
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-2xl border-2 border-purple-200">
+          <div className="flex items-center justify-between mb-2">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#a855f7' }}>
+              <Clock className="w-4 h-4 text-white" />
+            </div>
+            <div className="text-xl" style={{ color: '#a855f7' }}>
+              {Math.floor((stats.totalTimeSpent || 0) / 60)}
+            </div>
+          </div>
+          <p className="text-xs text-gray-600">دقيقة</p>
+        </div>
+
+        {/* الحروف المكتملة */}
+        <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-3 rounded-2xl border-2 border-orange-200">
+          <div className="flex items-center justify-between mb-2">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#f59e0b' }}>
+              <BookOpen className="w-4 h-4 text-white" />
+            </div>
+            <div className="text-xl" style={{ color: '#f59e0b' }}>
+              {stats.completedLetters?.length || 0}
+            </div>
+          </div>
+          <p className="text-xs text-gray-600">حرف</p>
+        </div>
+      </div>
+
+      {/* الأداء حسب النشاط */}
+      <div className="bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: '#164194' }}>
+            <Target className="w-4 h-4 text-white" />
+          </div>
+          <h3 className="text-base" style={{ color: '#164194' }}>الأداء حسب النشاط</h3>
+        </div>
+        
+        {stats.activityScores && Object.keys(stats.activityScores).length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Object.entries(stats.activityScores).map(([activityType, score]) => (
+              <div 
+                key={activityType} 
+                className="p-3 rounded-xl border-2"
+                style={{ 
+                  backgroundColor: getActivityColor(activityType) + '10',
+                  borderColor: getActivityColor(activityType) + '30'
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="p-1.5 rounded-lg text-white"
+                      style={{ backgroundColor: getActivityColor(activityType) }}
+                    >
+                      {getActivityIcon(activityType)}
+                    </div>
+                    <span className="text-sm text-gray-700">{ACTIVITY_NAMES[activityType as keyof typeof ACTIVITY_NAMES]}</span>
+                  </div>
+                  <div className="text-lg" style={{ color: getActivityColor(activityType) }}>
+                    {score}%
+                  </div>
+                </div>
+                
+                {/* شريط التقدم */}
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{ 
+                      width: `${score}%`,
+                      backgroundColor: getActivityColor(activityType)
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 rounded-xl" style={{ backgroundColor: '#ECEEEF' }}>
+            <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center bg-white">
+              <Target className="w-6 h-6 text-gray-400" />
+            </div>
+            <p className="text-sm text-gray-500">لا توجد أنشطة بعد</p>
+          </div>
+        )}
+      </div>
+
+      {/* النشاطات الأخيرة */}
+      <div className="bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: '#164194' }}>
+            <Calendar className="w-4 h-4 text-white" />
+          </div>
+          <h3 className="text-base" style={{ color: '#164194' }}>النشاطات الأخيرة</h3>
+        </div>
+
+        {recentActivities.length === 0 ? (
+          <div className="text-center py-8 rounded-xl" style={{ backgroundColor: '#ECEEEF' }}>
+            <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center bg-white">
+              <BookOpen className="w-6 h-6 text-gray-400" />
+            </div>
+            <p className="text-sm text-gray-500">لا توجد نشاطات بعد</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {recentActivities.map((activity, index) => (
+              <div
+                key={index}
+                className="p-3 rounded-xl border-2"
+                style={{ 
+                  backgroundColor: getActivityColor(activity.activityType) + '08',
+                  borderColor: getActivityColor(activity.activityType) + '20'
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  {/* أيقونة النشاط */}
+                  <div 
+                    className="p-2 rounded-lg text-white"
+                    style={{ backgroundColor: getActivityColor(activity.activityType) }}
+                  >
+                    {getActivityIcon(activity.activityType)}
+                  </div>
+
+                  {/* معلومات النشاط */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm text-gray-800">{ACTIVITY_NAMES[activity.activityType as keyof typeof ACTIVITY_NAMES]}</span>
+                      <span className="text-gray-400">-</span>
+                      <span className="text-base" style={{ color: '#164194' }}>حرف {activity.letter}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(activity.completedAt)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {Math.floor(activity.timeSpent / 60)} دقيقة
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* الدرجة */}
+                  <div 
+                    className="px-3 py-2 rounded-lg text-center"
+                    style={{ backgroundColor: getScoreColor(activity.score) }}
+                  >
+                    <div className="text-lg text-white">
+                      {activity.score}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* الحروف المكتملة */}
+      {stats.completedLetters.length > 0 && (
+        <div className="bg-white p-4 rounded-2xl shadow-lg border-2" style={{ borderColor: '#10b981' }}>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#10b981' }}>
+              <Award className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="text-base" style={{ color: '#10b981' }}>الحروف المدروسة ({stats.completedLetters.length} حرف)</h3>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {stats.completedLetters.map(letter => (
+              <div
+                key={letter}
+                className="w-12 h-12 rounded-xl shadow-md flex items-center justify-center text-xl text-white"
+                style={{ backgroundColor: '#10b981' }}
+              >
+                {letter}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -6,7 +6,10 @@ const {
   getClassById,
   updateClassName,
   deleteClass,
-  getClassByTeacherId
+  getClassByTeacherId,
+  addStudentToClass,
+  removeStudentFromClass,
+  getStudentClasses,
 } = require("../controllers/class.controller");
 const authentication = require("../middlewares/authentication");
 const authorization = require("../middlewares/authorization");
@@ -28,5 +31,7 @@ classRouter.get("/getClassById/:id", authentication, getClassById);
 classRouter.put("/updateClassName/:id", authentication, updateClassName);
 classRouter.delete("/deleteClass/:id", authentication, deleteClass);
 classRouter.get("/getClassByTeacherId", authentication, getClassByTeacherId);
-
+classRouter.post("/class/join", authentication, addStudentToClass);
+classRouter.put("/class/:id/student", removeStudentFromClass);
+classRouter.get("/student/:id", getStudentClasses);
 module.exports = classRouter;

@@ -8,20 +8,24 @@ require("./models/db");
 const usersRouter = require("./routes/user.routers");
 const rolesRouter = require("./routes/roles.routers");
 const classRouter = require("./routes/class.routers");
-
+const letterRouter = require("./routes/letter.routers");
+const lessonRouter = require("./routes/lesson.routers");
+const progressRouter = require("./routes/progress.routers");
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
 // router middleware
-
 app.use("/users", usersRouter);
 app.use("/roles", rolesRouter);
 app.use("/class", classRouter);
+app.use("/letters", letterRouter);
+app.use("/lessons", lessonRouter);
+app.use("/progress", progressRouter);
 
 // Handles any other endpoints [unassigned - endpoints]
-app.use(" ", (req, res) => {
+app.use((req, res) => {
   res.status(404).json("NO content at this path");
 });
 

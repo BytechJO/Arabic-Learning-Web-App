@@ -59,6 +59,7 @@ CREATE TABLE letters (
   symbol VARCHAR,
   name VARCHAR,
   emoji VARCHAR,
+  example VARCHAR
   order_index INTEGER
 );
 
@@ -78,7 +79,7 @@ CREATE TABLE video_lessons (
   letter_id INTEGER,
   lesson_id INTEGER,
   title VARCHAR,
-  youtub_url VARCHAR,
+  youtube_url VARCHAR,
   duration TIME,
   CONSTRAINT fk_video_lessons_letter
     FOREIGN KEY (letter_id) REFERENCES letters(id),
@@ -90,13 +91,39 @@ CREATE TABLE games_lessons (
   id SERIAL PRIMARY KEY,
   letter_id INTEGER,
   lesson_id INTEGER,
-  game_type VARCHAR,
-  score INTEGER,
-  duration TIME,
+  game_type VARCHAR, 
+  order_index INTEGER
   CONSTRAINT fk_games_lessons_letter
     FOREIGN KEY (letter_id) REFERENCES letters(id),
   CONSTRAINT fk_games_lessons_lesson
     FOREIGN KEY (lesson_id) REFERENCES letter_lessons(id)
+);
+
+
+CREATE TABLE game_configs (
+  id SERIAL PRIMARY KEY,
+  letter_id INTEGER,
+  lesson_id INTEGER,
+  game_type VARCHAR,
+  data JSONB NOT NULL,
+  CONSTRAINT fk_game_configs_letter
+    FOREIGN KEY (letter_id) REFERENCES letters(id),
+  CONSTRAINT fk_games_lessons_lesson
+    FOREIGN KEY (lesson_id) REFERENCES letter_lessons(id)
+);
+CREATE TABLE student_game_results (
+  id SERIAL PRIMARY KEY,
+  student_id INTEGER NOT NULL,
+  games_lessons_id INTEGER NOT NULL,
+  score INTEGER DEFAULT 0,
+  duration INTEGER, -- بالثواني (أفضل من TIME)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_student_game_results_student
+    FOREIGN KEY (student_id) REFERENCES users(id),
+  CONSTRAINT fk_student_game_results_lesson_game
+    FOREIGN KEY (games_lessons_id) REFERENCES games_lessons(id),
+  CONSTRAINT unique_student_game
+    UNIQUE (student_id, games_lessons_id)
 );
 
 CREATE TABLE questions_lessons (

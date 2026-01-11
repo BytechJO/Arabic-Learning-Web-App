@@ -210,24 +210,33 @@ const getClassByTeacherId = async (req, res) => {
 
 //=================== addStudentToClass   ======================//
 const addStudentToClass = async (req, res) => {
-  const class_id = req.params.id;
-  const { student_id } = req.body;
-
+  const { code } = req.body;
+  const student_id = req.token.userId;
   const query = `
-    INSERT INTO class_student (class_id, student_id)
-    VALUES ($1, $2)
-    RETURNING *;
+   INSERT INTO class_student (student_id, class_id)
+SELECT $1, id
+FROM "class"
+WHERE code = $2
+  AND is_deleted = 0
+RETURNING *;
+
   `;
 
   try {
-    const response = await client.query(query, [class_id, student_id]);
+    const response = await client.query(query, [student_id, code]);
 
-    res.status(201).json({
-      status: true,
-      message: "Student added to class successfully",
-      data: response.rows[0],
-    });
-
+    if (response.rowCount) {
+      res.status(201).json({
+        status: true,
+        message: "Student added to class successfully",
+        data: response.rows[0],
+      });
+    } else {
+      res.status(404).json({
+        status: false,
+        message: "Invalid class code",
+      });
+    }
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -237,12 +246,90 @@ const addStudentToClass = async (req, res) => {
   }
 };
 
+//=================== removeStudentFromClass for teacher ======================//
+const removeStudentFromClass = async (req, res) => {
+  const class_id = req.params.id;
+  const { student_id } = req.body;
+  const query = `
+   UPDATE class_student
+SET is_deleted = 1
+WHERE class_id = $1
+  AND student_id = $2
+  AND is_deleted = 0
+RETURNING *;
 
+
+  `;
+  try {
+    const response = await client.query(query, [class_id, student_id]);
+
+    if (response.rowCount) {
+      res.status(200).json({
+        status: true,
+        message: "Student removed from class successfully",
+        data: response.rows[0],
+      });
+    } else {
+      res.status(404).json({
+        status: false,
+        message: "Student not found in this class",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+//===================getStudentClasses ======================//
+const getStudentClasses = async (req, res) => {
+  const class_id = req.params.id;
+
+  const query = `
+SELECT 
+  s.id,
+  s.username,
+  s.email,cs.jouind_at
+FROM class_student cs
+INNER JOIN users s
+  ON cs.student_id = s.id
+WHERE cs.class_id = $1
+  AND cs.is_deleted = 0;
+`;
+  try {
+    const response = await client.query(query, [class_id]);
+
+    if (response.rowCount) {
+      res.status(200).json({
+        status: true,
+        message: "All student class successfully",
+        data: response.rows,
+      });
+    } else {
+      res.status(404).json({
+        status: false,
+        message: "No Student in this class",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   createNewClass,
   getAllClasses,
   getClassById,
   updateClassName,
   deleteClass,
-  getClassByTeacherId
+  getClassByTeacherId,
+  addStudentToClass,
+  removeStudentFromClass,
+  getStudentClasses,
 };

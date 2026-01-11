@@ -1,0 +1,292 @@
+import { useState } from 'react';
+import { motion } from 'motion/react';
+import { Star, Award, RotateCcw, X } from 'lucide-react';
+
+interface SortingGameProps {
+  onBack: () => void;
+}
+
+interface Item {
+  id: number;
+  word: string;
+  startsWithAlef: boolean;
+  placed: boolean;
+  position: 'left' | 'right' | null;
+}
+
+const gameWords = [
+  { word: 'أسد', startsWithAlef: true },
+  { word: 'بطة', startsWithAlef: false },
+  { word: 'أرنب', startsWithAlef: true },
+  { word: 'تفاح', startsWithAlef: false },
+  { word: 'أذن', startsWithAlef: true },
+  { word: 'جمل', startsWithAlef: false },
+  { word: 'إصبع', startsWithAlef: true },
+  { word: 'دب', startsWithAlef: false },
+  { word: 'أنف', startsWithAlef: true },
+  { word: 'حصان', startsWithAlef: false },
+];
+
+export function SortingGame({ onBack }: SortingGameProps) {
+  const [items, setItems] = useState<Item[]>(
+    gameWords.map((w, i) => ({
+      id: i,
+      ...w,
+      placed: false,
+      position: null
+    })).sort(() => Math.random() - 0.5)
+  );
+  const [score, setScore] = useState(0);
+  const [mistakes, setMistakes] = useState(0);
+  const [gameWon, setGameWon] = useState(false);
+  const [draggedItem, setDraggedItem] = useState<number | null>(null);
+
+  const handleDragStart = (itemId: number) => {
+    setDraggedItem(itemId);
+  };
+
+  const handleDrop = (side: 'left' | 'right') => {
+    if (draggedItem === null) return;
+
+    const item = items.find(i => i.id === draggedItem);
+    if (!item || item.placed) return;
+
+    const isCorrect = 
+      (side === 'right' && item.startsWithAlef) || 
+      (side === 'left' && !item.startsWithAlef);
+
+    if (isCorrect) {
+      setScore(prev => prev + 10);
+      setItems(prev => prev.map(i => 
+        i.id === draggedItem 
+          ? { ...i, placed: true, position: side }
+          : i
+      ));
+
+      // Check if all items are placed
+      const allPlaced = items.filter(i => i.id !== draggedItem).every(i => i.placed);
+      if (allPlaced) {
+        setTimeout(() => setGameWon(true), 500);
+      }
+    } else {
+      setMistakes(prev => prev + 1);
+    }
+
+    setDraggedItem(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const resetGame = () => {
+    setItems(
+      gameWords.map((w, i) => ({
+        id: i,
+        ...w,
+        placed: false,
+        position: null
+      })).sort(() => Math.random() - 0.5)
+    );
+    setScore(0);
+    setMistakes(0);
+    setGameWon(false);
+    setDraggedItem(null);
+  };
+
+  const unplacedItems = items.filter(i => !i.placed);
+  const leftItems = items.filter(i => i.placed && i.position === 'left');
+  const rightItems = items.filter(i => i.placed && i.position === 'right');
+
+  return (
+    <div className="h-screen relative overflow-hidden" dir="rtl" style={{ backgroundColor: '#faf9f6' }}>
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-30 px-6 py-4 border-b-4" style={{ borderColor: '#652b82', backgroundColor: '#ffffff' }}>
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <button
+            onClick={onBack}
+            className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+            style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg" style={{ backgroundColor: '#fad656' }}>
+              <Star className="w-6 h-6" style={{ color: '#652b82' }} />
+              <span className="text-xl" style={{ color: '#652b82' }}>{score}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg" style={{ backgroundColor: '#ffffff' }}>
+              <span className="text-xl" style={{ color: '#ef4444' }}>
+                أخطاء: {mistakes}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Game Area */}
+      <div className="absolute inset-0 pt-24 pb-8">
+        <div className="max-w-6xl mx-auto h-full px-6 flex flex-col">
+          <motion.div
+            className="text-center mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h2 className="text-3xl mb-2" style={{ color: '#652b82' }}>
+              صنف الكلمات
+            </h2>
+            <p className="text-xl text-gray-700">
+              اسحب الكلمات إلى المكان الصحيح
+            </p>
+          </motion.div>
+
+          {/* Unplaced Items */}
+          <div className="mb-6">
+            <div className="flex flex-wrap gap-3 justify-center min-h-[100px]">
+              {unplacedItems.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  draggable
+                  onDragStart={() => handleDragStart(item.id)}
+                  className="px-8 py-4 rounded-2xl shadow-xl border-4 cursor-move text-2xl"
+                  style={{
+                    backgroundColor: '#ffffff',
+                    borderColor: '#652b82',
+                    color: '#652b82'
+                  }}
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileDrag={{ scale: 1.1, rotate: 5 }}
+                >
+                  {item.word}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Drop Zones */}
+          <div className="flex-1 grid grid-cols-2 gap-6">
+            {/* Left Zone - Other letters */}
+            <motion.div
+              onDrop={() => handleDrop('left')}
+              onDragOver={handleDragOver}
+              className="rounded-3xl border-4 border-dashed p-6 flex flex-col"
+              style={{
+                borderColor: '#652b82',
+                backgroundColor: 'rgba(101, 43, 130, 0.05)'
+              }}
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              whileHover={{ backgroundColor: 'rgba(101, 43, 130, 0.1)' }}
+            >
+              <h3 className="text-2xl md:text-3xl mb-4 text-center" style={{ color: '#652b82' }}>
+                حروف أخرى
+              </h3>
+              <div className="flex-1 flex flex-col gap-3 overflow-y-auto">
+                {leftItems.map(item => (
+                  <div
+                    key={item.id}
+                    className="px-6 py-3 rounded-2xl shadow-lg border-4 text-xl text-center"
+                    style={{
+                      backgroundColor: '#ffffff',
+                      borderColor: '#652b82',
+                      color: '#652b82'
+                    }}
+                  >
+                    {item.word}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Right Zone - Alef */}
+            <motion.div
+              onDrop={() => handleDrop('right')}
+              onDragOver={handleDragOver}
+              className="rounded-3xl border-4 border-dashed p-6 flex flex-col"
+              style={{
+                borderColor: '#fad656',
+                backgroundColor: 'rgba(250, 214, 86, 0.1)'
+              }}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              whileHover={{ backgroundColor: 'rgba(250, 214, 86, 0.2)' }}
+            >
+              <h3 className="text-2xl md:text-3xl mb-4 text-center" style={{ color: '#652b82' }}>
+                حرف الألف (أ)
+              </h3>
+              <div className="flex-1 flex flex-col gap-3 overflow-y-auto">
+                {rightItems.map(item => (
+                  <div
+                    key={item.id}
+                    className="px-6 py-3 rounded-2xl shadow-lg border-4 text-xl text-center"
+                    style={{
+                      backgroundColor: '#ffffff',
+                      borderColor: '#fad656',
+                      color: '#652b82'
+                    }}
+                  >
+                    {item.word}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* Game Won Modal */}
+      {gameWon && (
+        <motion.div
+          className="fixed inset-0 z-40 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div
+            className="bg-white rounded-3xl p-12 shadow-2xl border-4 max-w-md mx-4 text-center"
+            style={{ borderColor: '#fad656' }}
+            initial={{ scale: 0, rotate: -10 }}
+            animate={{ scale: 1, rotate: 0 }}
+          >
+            <Award className="w-24 h-24 mx-auto mb-4" style={{ color: '#fad656' }} />
+            
+            <h2 className="text-4xl mb-3" style={{ color: '#652b82' }}>
+              ممتاز!
+            </h2>
+            
+            <p className="text-2xl text-gray-700 mb-2">
+              نقاطك: {score}
+            </p>
+            <p className="text-xl text-gray-600 mb-6">
+              عدد الأخطاء: {mistakes}
+            </p>
+            
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={resetGame}
+                className="flex items-center gap-2 px-8 py-4 rounded-2xl shadow-lg text-white text-xl"
+                style={{ backgroundColor: '#652b82' }}
+              >
+                <RotateCcw className="w-6 h-6" />
+                <span>العب مرة أخرى</span>
+              </button>
+              
+              <button
+                onClick={onBack}
+                className="px-8 py-4 rounded-2xl shadow-lg text-xl"
+                style={{ backgroundColor: '#fad656', color: '#652b82' }}
+              >
+                رجوع
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </div>
+  );
+}

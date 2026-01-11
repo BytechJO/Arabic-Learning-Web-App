@@ -36,7 +36,6 @@
 // deleteClass
 // getTeacherClasses
 
-
 // 👩‍🎓 ClassStudent Controller (Relation Table)
 
 // Functions:
@@ -58,11 +57,10 @@
 // 📚 LetterLessons Controller
 
 // Functions:
-
+//==========================
 // createLesson
 // getLessonsByLetter
 // getLessonById
-// updateLesson
 // deleteLesson
 
 // 🎥 VideoLessons Controller
@@ -72,8 +70,6 @@
 // addVideoLesson
 // getVideoLessonsByLetter
 // getVideoLessonById
-// updateVideoLesson
-// deleteVideoLesson
 
 // 🎮 GamesLessons Controller
 
@@ -82,8 +78,10 @@
 // addGameLesson
 // getGamesByLetter
 // getGameById
-// updateGame
-// deleteGame
+//  saveGameResult,
+//  getStudentGameResults,
+//  getStudentResultsByLetter,
+//  getStudentProgress,
 
 // ❓ QuestionsLessons Controller
 
@@ -98,19 +96,19 @@
 
 // Functions:
 
-// updateProgress
-// getUserProgress
-// markLessonCompleted
-// getUserLetterProgress
+//upsertUserProgress,
+//getUserProgressByLetter,
+//getUserProgressSummary,
 
 // ✍️ StudentAnswers Controller
 
 // Functions:
 
-// submitAnswer
-// getUserAnswersByLesson
-// getQuestionAnswers
-// deleteAnswer
+//addStudentAnswer,
+//getAnswersByLessonAndUser,
+//getLessonResult,
+//getLastAnswerByQuestion,
+// submitAnswer,
 
 // 🧮 StudentLessonResult Controller
 
