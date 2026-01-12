@@ -1,21 +1,23 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { User } from "../../types";
 
 type UserType = "teacher" | "student";
 
-interface AuthUser {
-  id: string;
-  name?: string; // ⬅️ optional
-  username: string;
-  email: string;
-  roleId: number; // ⬅️ رقم الدور (2 / 3)
-  type: UserType; // ⬅️ للاستخدام بالـ UI
-}
+// interface AuthUser {
+//   id: string;
+//   name?: string; // ⬅️ optional
+//   username: string;
+//   email: string;
+//   roleId: number; // ⬅️ رقم الدور (2 / 3)
+//   type: UserType; // ⬅️ للاستخدام بالـ UI
+// }
 
 interface AuthState {
-  user: AuthUser | null;
+  user: User | null;
   token: string | null;
   isLoggedIn: boolean;
 }
+export type AuthUser = User;
 
 const initialState: AuthState = {
   user: localStorage.getItem("user")

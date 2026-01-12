@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Star, Award, RotateCcw, X } from 'lucide-react';
-
-interface WordCatchGameProps {
-  onBack: () => void;
-}
+import { useParams, useNavigate } from "react-router-dom";
 
 interface FallingWord {
   id: number;
@@ -17,13 +14,14 @@ interface FallingWord {
 const alefWords = ['أسد', 'أرنب', 'أذن', 'أنف', 'إصبع', 'أزرق'];
 const otherWords = ['بطة', 'تفاح', 'جمل', 'دب', 'حصان', 'زهرة'];
 
-export function WordCatchGame({ onBack }: WordCatchGameProps) {
+export function WordCatchGame() {
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [words, setWords] = useState<FallingWord[]>([]);
   const [nextId, setNextId] = useState(0);
-
+const { letter } = useParams();
+  const navigate = useNavigate();
   useEffect(() => {
     const interval = setInterval(() => {
       if (gameOver) return;
@@ -92,7 +90,7 @@ export function WordCatchGame({ onBack }: WordCatchGameProps) {
       <div className="absolute top-0 left-0 right-0 z-30 px-6 py-4 border-b-4" style={{ borderColor: '#652b82', backgroundColor: '#ffffff' }}>
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <button
-            onClick={onBack}
+           onClick={() => navigate(`/letter/${letter}/games`)}
             className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
             style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
           >
@@ -190,7 +188,7 @@ export function WordCatchGame({ onBack }: WordCatchGameProps) {
               </button>
               
               <button
-                onClick={onBack}
+                onClick={() => navigate(`/letter/${letter}/games`)}
                 className="px-8 py-4 rounded-2xl shadow-lg text-xl"
                 style={{ backgroundColor: '#fad656', color: '#652b82' }}
               >

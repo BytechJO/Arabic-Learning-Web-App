@@ -2,14 +2,9 @@ import { Play, Clock, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react
 import { motion } from 'motion/react';
 import { ActivityFooter } from './ActivityFooter';
 import { useState } from 'react';
+import { useParams, useNavigate } from "react-router-dom";
 
 
-interface VideosSectionProps {
-  onBack: () => void;
-  currentLetter?: string;
-  letterName?: string;
-  onActivityChange?: (activity: string) => void;
-}
 
 // فيديوهات خاصة بحرف الألف
 const alifVideos = [
@@ -63,8 +58,13 @@ const alifVideos = [
   },
 ];
 
-export function VideosSection({ onBack, currentLetter, letterName, onActivityChange }: VideosSectionProps) {
+export function VideosSection() {
   const [currentPage, setCurrentPage] = useState(0);
+   const { letter } = useParams();
+  const navigate = useNavigate();
+
+  const currentLetter = letter;
+  const letterName = letter;
   const videosPerPage = 3;
   const totalPages = Math.ceil(alifVideos.length / videosPerPage);
 
@@ -104,7 +104,7 @@ export function VideosSection({ onBack, currentLetter, letterName, onActivityCha
       
       {/* زر الرجوع */}
       <motion.button
-        onClick={onBack}
+      onClick={() => navigate(`/letters`)}
         className="fixed top-4 right-4 md:top-6 md:right-6 z-30 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-xl"
         style={{ backgroundColor: '#fad656' }}
         whileHover={{ scale: 1.1, rotate: 5 }}
@@ -249,15 +249,13 @@ export function VideosSection({ onBack, currentLetter, letterName, onActivityCha
       </div>
 
       {/* Footer للأنشطة */}
-      {onActivityChange && currentLetter && letterName && (
+    
         <ActivityFooter
-          currentActivity="videos"
-          onActivityChange={onActivityChange}
-          onHomeClick={onBack}
+    
           currentLetter={currentLetter}
           letterName={letterName}
         />
-      )}
+      
     </div>
   );
 }

@@ -1,70 +1,69 @@
-import { motion } from 'motion/react';
-import { BookOpen, MapPin, Video, BookText, Gamepad2, Pen } from 'lucide-react';
-import tigerImg from 'figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png';
-
-interface LetterDetailsProps {
-  letter: string;
-  letterName: string;
-  onBack: () => void;
-  onSectionClick: (section: string) => void;
-}
+import { motion } from "motion/react";
+import { BookOpen, MapPin, Video, BookText, Gamepad2, Pen } from "lucide-react";
+import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
+import { useParams, useNavigate } from "react-router-dom";
 
 const sections = [
-  { 
-    id: 'learn', 
-    title: 'تعلم الحرف',
-    description: 'تعرف على الحرف',
-    bgColor: '#652b82',
+  {
+    id: "learn",
+    title: "تعلم الحرف",
+    description: "تعرف على الحرف",
+    bgColor: "#652b82",
     icon: BookOpen,
   },
-  { 
-    id: 'learn2', 
-    title: 'اكتب الحرف',
-    description: 'تعرف على الحرف',
-    bgColor: '#fad656',
+  {
+    id: "write",
+    title: "اكتب الحرف",
+    description: "تعرف على الحرف",
+    bgColor: "#fad656",
     icon: Pen,
   },
-  { 
-    id: 'position', 
-    title: 'مكان الحرف',
-    description: 'حدد موقع الحرف',
-    bgColor: '#fad656',
+  {
+    id: "position",
+    title: "مكان الحرف",
+    description: "حدد موقع الحرف",
+    bgColor: "#fad656",
     icon: MapPin,
   },
-  { 
-    id: 'tashkeel', 
-    title: 'تشكيل الحرف',
-    description: 'تعلم الحركات',
-    bgColor: '#652b82',
+  {
+    id: "tashkeel",
+    title: "تشكيل الحرف",
+    description: "تعلم الحركات",
+    bgColor: "#652b82",
     icon: BookText,
   },
-  { 
-    id: 'videos', 
-    title: 'فيديوهات',
-    description: 'شاهد وتعلم',
-    bgColor: '#fad656',
+  {
+    id: "videos",
+    title: "فيديوهات",
+    description: "شاهد وتعلم",
+    bgColor: "#fad656",
     icon: Video,
   },
-  { 
-    id: 'games', 
-    title: 'ألعاب',
-    description: 'العب وتعلم',
-    bgColor: '#652b82',
+  {
+    id: "games",
+    title: "ألعاب",
+    description: "العب وتعلم",
+    bgColor: "#652b82",
     icon: Gamepad2,
   },
 ];
 
-export function LetterDetails({ letter, letterName, onBack, onSectionClick }: LetterDetailsProps) {
+export function LetterDetails() {
+  const { letter } = useParams<{ letter: string }>();
+  const navigate = useNavigate();
+  const letterName = letter === "أ" ? "ألف" : "";
+console.log(letter);
+
   return (
     <div className="h-screen relative overflow-hidden" dir="rtl">
       {/* خلفية متدرجة */}
       <div className="fixed inset-0 bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50"></div>
-      
+
       {/* دوائر زخرفية */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-10"
-          style={{ backgroundColor: '#fad656' }}
+          style={{ backgroundColor: "#fad656" }}
           animate={{
             scale: [1, 1.1, 1],
             rotate: [0, 90, 0],
@@ -72,12 +71,12 @@ export function LetterDetails({ letter, letterName, onBack, onSectionClick }: Le
           transition={{
             duration: 20,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
         />
         <motion.div
           className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full opacity-10"
-          style={{ backgroundColor: '#652b82' }}
+          style={{ backgroundColor: "#652b82" }}
           animate={{
             scale: [1, 1.2, 1],
             rotate: [0, -90, 0],
@@ -85,19 +84,19 @@ export function LetterDetails({ letter, letterName, onBack, onSectionClick }: Le
           transition={{
             duration: 25,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
         />
         <motion.div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-5"
-          style={{ backgroundColor: '#fad656' }}
+          style={{ backgroundColor: "#fad656" }}
           animate={{
             scale: [1, 1.3, 1],
           }}
           transition={{
             duration: 15,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
         />
       </div>
@@ -105,7 +104,7 @@ export function LetterDetails({ letter, letterName, onBack, onSectionClick }: Le
       {/* المحتوى الرئيسي */}
       <div className="relative z-10 h-full flex flex-col pt-6">
         {/* العنوان والحرف */}
-        <motion.div 
+        <motion.div
           className="text-center mb-6"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -124,34 +123,36 @@ export function LetterDetails({ letter, letterName, onBack, onSectionClick }: Le
               transition={{ type: "spring", stiffness: 300 }}
             >
               {/* الظل الخارجي */}
-              <div 
+              <div
                 className="absolute inset-0 rounded-full blur-xl opacity-30"
-                style={{ backgroundColor: '#fad656' }}
+                style={{ backgroundColor: "#fad656" }}
               />
-              
+
               {/* الدائرة الرئيسية */}
-              <div 
+              <div
                 className="relative w-32 h-32 md:w-40 md:h-40 rounded-full shadow-2xl"
-                style={{ 
-                  background: 'linear-gradient(135deg, #fad656 0%, #f5c842 100%)',
+                style={{
+                  background:
+                    "linear-gradient(135deg, #fad656 0%, #f5c842 100%)",
                 }}
               >
                 {/* تأثير لمعة */}
-                <div 
+                <div
                   className="absolute inset-0 rounded-full opacity-30"
                   style={{
-                    background: 'radial-gradient(circle at 30% 30%, white 0%, transparent 60%)'
+                    background:
+                      "radial-gradient(circle at 30% 30%, white 0%, transparent 60%)",
                   }}
                 />
-                
+
                 {/* الحرف */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span 
+                  <span
                     className="text-7xl md:text-8xl leading-none"
-                    style={{ 
-                      color: '#652b82',
-                      textShadow: '0 2px 10px rgba(101, 43, 130, 0.3)',
-                      transform: 'translateY(12px)'
+                    style={{
+                      color: "#652b82",
+                      textShadow: "0 2px 10px rgba(101, 43, 130, 0.3)",
+                      transform: "translateY(12px)",
                     }}
                   >
                     {letter}
@@ -159,10 +160,13 @@ export function LetterDetails({ letter, letterName, onBack, onSectionClick }: Le
                 </div>
               </div>
             </motion.div>
-            
+
             {/* اسم الحرف */}
-            <h1 className="text-xl md:text-2xl mt-2" style={{ color: '#8B7355' }}>
-              حرف الألف
+            <h1
+              className="text-xl md:text-2xl mt-2"
+              style={{ color: "#8B7355" }}
+            >
+              حرف {letterName}
             </h1>
           </motion.div>
         </motion.div>
@@ -183,23 +187,26 @@ export function LetterDetails({ letter, letterName, onBack, onSectionClick }: Le
                     className="w-full max-w-[220px]"
                   >
                     <button
-                      onClick={() => onSectionClick(section.id)}
+                      onClick={() =>
+                        navigate(`/letter/${letter}/${section.id}`)
+                      }
                       className="w-full group"
                     >
                       <div className="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all bg-white aspect-square">
                         {/* خلفية ألوان ناعمة */}
-                        <div 
+                        <div
                           className="absolute inset-0"
-                          style={{ 
-                            background: 'linear-gradient(135deg, #fef9e7, #fffbf0)'
+                          style={{
+                            background:
+                              "linear-gradient(135deg, #fef9e7, #fffbf0)",
                           }}
                         />
-                        
+
                         {/* دائرة ديكورية خفيفة */}
-                        <div 
+                        <div
                           className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-20"
-                          style={{ 
-                            backgroundColor: '#fce8a3'
+                          style={{
+                            backgroundColor: "#fce8a3",
                           }}
                         />
 
@@ -207,42 +214,42 @@ export function LetterDetails({ letter, letterName, onBack, onSectionClick }: Le
                         <div className="relative h-full flex flex-col items-center justify-center text-center gap-3 p-4">
                           {/* دائرة الأيقونة */}
                           <motion.div
-                            whileHover={{ 
+                            whileHover={{
                               scale: 1.1,
-                              rotate: 5
+                              rotate: 5,
                             }}
                             transition={{ duration: 0.3 }}
                           >
-                            <div 
+                            <div
                               className="w-20 h-20 rounded-full flex items-center justify-center shadow-lg"
-                              style={{ 
-                                backgroundColor: '#ffe082'
+                              style={{
+                                backgroundColor: "#ffe082",
                               }}
                             >
-                              <section.icon 
+                              <section.icon
                                 className="w-10 h-10"
-                                style={{ 
-                                  color: '#652b82'
+                                style={{
+                                  color: "#652b82",
                                 }}
                               />
                             </div>
                           </motion.div>
 
                           {/* العنوان */}
-                          <h3 
+                          <h3
                             className="text-lg leading-tight"
-                            style={{ 
-                              color: '#652b82'
+                            style={{
+                              color: "#652b82",
                             }}
                           >
                             {section.title}
                           </h3>
 
                           {/* سهم متجه لليسار */}
-                          <div 
+                          <div
                             className="text-xl opacity-60"
-                            style={{ 
-                              color: '#652b82'
+                            style={{
+                              color: "#652b82",
                             }}
                           >
                             ←
@@ -263,25 +270,25 @@ export function LetterDetails({ letter, letterName, onBack, onSectionClick }: Le
         className="fixed bottom-2 left-2 md:bottom-3 md:left-3 z-10"
         initial={{ x: -200, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ 
+        transition={{
           type: "spring",
           stiffness: 100,
           damping: 15,
-          delay: 0.5
+          delay: 0.5,
         }}
       >
         <motion.img
           src={tigerImg}
           alt="نمر"
           className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl"
-          animate={{ 
+          animate={{
             y: [0, -8, 0],
-            rotate: [0, 3, -3, 0]
+            rotate: [0, 3, -3, 0],
           }}
           transition={{
             duration: 3,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
         />
       </motion.div>
@@ -291,15 +298,15 @@ export function LetterDetails({ letter, letterName, onBack, onSectionClick }: Le
         className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-20"
         initial={{ x: 200, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ 
+        transition={{
           type: "spring",
           stiffness: 100,
           damping: 15,
-          delay: 0.6
+          delay: 0.6,
         }}
       >
         <motion.button
-          onClick={onBack}
+          onClick={() => navigate("/letters")}
           whileHover={{ scale: 1.1, rotate: -5 }}
           whileTap={{ scale: 0.95 }}
           className="relative group"
@@ -307,56 +314,57 @@ export function LetterDetails({ letter, letterName, onBack, onSectionClick }: Le
           {/* توهج خارجي */}
           <motion.div
             className="absolute inset-0 rounded-full blur-xl opacity-60"
-            style={{ backgroundColor: '#fad656' }}
+            style={{ backgroundColor: "#fad656" }}
             animate={{
               scale: [1, 1.2, 1],
-              opacity: [0.4, 0.6, 0.4]
+              opacity: [0.4, 0.6, 0.4],
             }}
             transition={{
               duration: 2,
               repeat: Infinity,
-              ease: "easeInOut"
+              ease: "easeInOut",
             }}
           />
-          
+
           {/* الزر الرئيسي */}
-          <div 
+          <div
             className="relative flex flex-col items-center justify-center gap-2 w-24 h-24 md:w-28 md:h-28 rounded-full shadow-2xl overflow-hidden"
             style={{
-              background: 'linear-gradient(135deg, #fad656 0%, #f5c842 100%)',
+              background: "linear-gradient(135deg, #fad656 0%, #f5c842 100%)",
             }}
           >
             {/* تأثير لمعة متحركة */}
             <motion.div
               className="absolute inset-0 opacity-30"
               style={{
-                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)'
+                background:
+                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)",
               }}
               animate={{
-                x: ['-200%', '200%']
+                x: ["-200%", "200%"],
               }}
               transition={{
                 duration: 3,
                 repeat: Infinity,
-                ease: "linear"
+                ease: "linear",
               }}
             />
-            
+
             {/* الأيقونة */}
             <motion.div
               whileHover={{ scale: 1.1, rotate: 360 }}
               transition={{ duration: 0.5 }}
             >
-              <BookText 
-                className="w-8 h-8 relative" 
-                style={{ color: '#652b82' }}
+              <BookText
+                className="w-8 h-8 relative"
+                style={{ color: "#652b82" }}
               />
             </motion.div>
-            
+
             {/* النص */}
-            <span 
+            <span
               className="relative text-base md:text-lg"
-              style={{ color: '#652b82' }}
+              style={{ color: "#652b82" }}
             >
               الحروف
             </span>

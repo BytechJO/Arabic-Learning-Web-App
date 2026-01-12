@@ -208,6 +208,42 @@ const getClassByTeacherId = async (req, res) => {
   }
 };
 
+//=================== getMyClass   ======================//
+const getMyClass = async (req, res) => {
+  const student_id = req.token.userId;
+
+  const query = `
+    SELECT c.*
+    FROM class_student cs
+    INNER JOIN "class" c ON cs.class_id = c.id
+    WHERE cs.student_id = $1
+      AND cs.is_deleted = 0
+      AND c.is_deleted = 0
+    LIMIT 1;
+  `;
+
+  try {
+    const result = await client.query(query, [student_id]);
+
+    if (result.rowCount) {
+      res.status(200).json({
+        success: true,
+        data: result.rows[0],
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        data: null,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
 //=================== addStudentToClass   ======================//
 const addStudentToClass = async (req, res) => {
   const { code } = req.body;
@@ -331,5 +367,5 @@ module.exports = {
   getClassByTeacherId,
   addStudentToClass,
   removeStudentFromClass,
-  getStudentClasses,
+  getStudentClasses,getMyClass
 };

@@ -3,12 +3,12 @@ import { motion } from "framer-motion";
 import { User } from "../types";
 
 interface TeacherHomePageProps {
-  onNavigate: (section: string) => void;
+  // onNavigate: (section: string) => void;
   user: User;
   onLogout: () => void;
 }
 
-export function TeacherHomePage({ onNavigate, user, onLogout }: TeacherHomePageProps) {
+export function TeacherHomePage({  user, onLogout }: TeacherHomePageProps) {
   const sections = [
     {
       id: "letters",

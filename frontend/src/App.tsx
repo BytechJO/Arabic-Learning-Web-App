@@ -22,6 +22,7 @@ import { MemoryMatchGame } from "./components/games/MemoryMatchGame";
 import { SortingGame } from "./components/games/SortingGame";
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { AppRouter } from "./app/router";
 import { motion } from "motion/react";
 import {
   Home,
@@ -41,103 +42,84 @@ import { storage } from "./utils/storage";
 import { initializeDemoData } from "./utils/seedData";
 import { User, Classroom } from "./types";
 import logoImg from "figma:asset/6520b1b60d37f88a4b683be1071a82232534fb7f.png";
-
+import { useNavigate } from "react-router-dom";
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
-  const [selectedUserType, setSelectedUserType] = useState<'teacher' | 'student' | null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(
-    null,
-  );
+  const [selectedUserType, setSelectedUserType] = useState<
+    "teacher" | "student" | null
+  >(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeSection, setActiveSection] = useState("home");
-  const [showClassroomManagement, setShowClassroomManagement] =
-    useState(false);
-  const [showJoinClassroom, setShowJoinClassroom] =
-    useState(false);
+  const [showClassroomManagement, setShowClassroomManagement] = useState(false);
+  const [showJoinClassroom, setShowJoinClassroom] = useState(false);
   const [selectedLetter, setSelectedLetter] = useState<{
     letter: string;
     name: string;
   } | null>(null);
-  const [selectedLetterSection, setSelectedLetterSection] =
-    useState<string | null>(null);
+  const [selectedLetterSection, setSelectedLetterSection] = useState<
+    string | null
+  >(null);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const navigate = useNavigate();
+  // useEffect(() => {
+  //   // تهيئة البيانات التجريبية عند أول تشغيل
+  //   initializeDemoData();
 
-  useEffect(() => {
-    // تهيئة البيانات التجريبية عند أول تشغيل
-    initializeDemoData();
+  //   // طباعة معلومات الحسابات التجريبية في console
+  //   console.log(
+  //     "%c🎓 مرحباً بك في مدرستي لغتي!",
+  //     "font-size: 20px; font-weight: bold; color: #652b82;"
+  //   );
+  //   console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #652b82;");
+  //   console.log("%c👨‍🏫 حساب المعلم:", "font-weight: bold; color: #059669;");
+  //   console.log("   البريد: teacher@test.com");
+  //   console.log("   الباسورد: 123456");
+  //   console.log("   كود التفعيل: TEACH2024");
+  //   console.log("   كود الصف: ABC123");
+  //   console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #652b82;");
+  //   console.log("%c🎒 حساب الطالب:", "font-weight: bold; color: #2563eb;");
+  //   console.log("   البريد: student@test.com");
+  //   console.log("   الباسورد: 123456");
+  //   console.log("   كود التفعيل: STUDY2024");
+  //   console.log("   للانضمام: ABC123");
+  //   console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: #652b82;");
+  //   console.log(
+  //     '%c💡 نصيحة: سجل دخول كمعلم واضغط "إدارة الصفوف" لرؤية تقييم الطلاب!',
+  //     "color: #059669; font-weight: bold; font-size: 14px;"
+  //   );
+  //   console.log(
+  //     '%c⭐ إذا لم تظهر التقييمات، اضغط زر "إنشاء بيانات تجريبية"',
+  //     "color: #f59e0b; font-weight: bold;"
+  //   );
 
-    // طباعة معلومات الحسابات التجريبية في console
-    console.log(
-      "%c🎓 مرحباً بك في مدرستي لغتي!",
-      "font-size: 20px; font-weight: bold; color: #652b82;",
-    );
-    console.log(
-      "%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      "color: #652b82;",
-    );
-    console.log(
-      "%c👨‍🏫 حساب المعلم:",
-      "font-weight: bold; color: #059669;",
-    );
-    console.log("   البريد: teacher@test.com");
-    console.log("   الباسورد: 123456");
-    console.log("   كود التفعيل: TEACH2024");
-    console.log("   كود الصف: ABC123");
-    console.log(
-      "%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      "color: #652b82;",
-    );
-    console.log(
-      "%c🎒 حساب الطالب:",
-      "font-weight: bold; color: #2563eb;",
-    );
-    console.log("   البريد: student@test.com");
-    console.log("   الباسورد: 123456");
-    console.log("   كود التفعيل: STUDY2024");
-    console.log("   للانضمام: ABC123");
-    console.log(
-      "%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-      "color: #652b82;",
-    );
-    console.log(
-      '%c💡 نصيحة: سجل دخول كمعلم واضغط "إدارة الصفوف" لرؤية تقييم الطلاب!',
-      "color: #059669; font-weight: bold; font-size: 14px;",
-    );
-    console.log(
-      '%c⭐ إذا لم تظهر التقييمات، اضغط زر "إنشاء بيانات تجريبية"',
-      "color: #f59e0b; font-weight: bold;",
-    );
+  //   // Check if user is already logged in
+  //   const user = storage.getCurrentUser();
+  //   if (user) {
+  //     setCurrentUser(user);
 
-    // Check if user is already logged in
-    const user = storage.getCurrentUser();
-    if (user) {
-      setCurrentUser(user);
-
-      // إنشاء صف تلقائي للمعلم إذا لم يكن لديه أي صفوف
-      if (user.type === "teacher") {
-        const teacherClassrooms =
-          storage.getClassroomsByTeacher(user.id);
-        if (teacherClassrooms.length === 0) {
-          const demoClassroom = {
-            id: `demo-${user.id}-${Date.now()}`,
-            name: "صفي التجريبي",
-            teacherId: user.id,
-            code: storage.generateClassCode(),
-            students: [],
-          };
-          storage.saveClassroom(demoClassroom);
-        }
-      }
-    }
-  }, []);
+  //     // إنشاء صف تلقائي للمعلم إذا لم يكن لديه أي صفوف
+  //     if (user.type === "teacher") {
+  //       const teacherClassrooms = storage.getClassroomsByTeacher(user.id);
+  //       if (teacherClassrooms.length === 0) {
+  //         const demoClassroom = {
+  //           id: `demo-${user.id}-${Date.now()}`,
+  //           name: "صفي التجريبي",
+  //           teacherId: user.id,
+  //           code: storage.generateClassCode(),
+  //           students: [],
+  //         };
+  //         storage.saveClassroom(demoClassroom);
+  //       }
+  //     }
+  //   }
+  // }, []);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
 
     // إنشاء صف تلقائي للمعلم إذا لم يكن لديه أي صفوف
     if (user.type === "teacher") {
-      const teacherClassrooms = storage.getClassroomsByTeacher(
-        user.id,
-      );
+      const teacherClassrooms = storage.getClassroomsByTeacher(user.id);
       if (teacherClassrooms.length === 0) {
         const demoClassroom = {
           id: `demo-${user.id}-${Date.now()}`,
@@ -153,26 +135,15 @@ export default function App() {
 
   const handleLogout = () => {
     storage.setCurrentUser(null);
+    navigate("/");
     setCurrentUser(null);
-    setActiveSection("home");
     setSelectedLetter(null);
     setSelectedLetterSection(null);
+     window.location.reload();
   };
 
-  const refreshCurrentUser = () => {
-    if (currentUser) {
-      const updatedUser = storage.getUserById(currentUser.id);
-      if (updatedUser) {
-        setCurrentUser(updatedUser);
-        storage.setCurrentUser(updatedUser);
-      }
-    }
-  };
-
-  const handleLetterClick = (
-    letter: string,
-    letterName: string,
-  ) => {
+ 
+  const handleLetterClick = (letter: string, letterName: string) => {
     setSelectedLetter({ letter, name: letterName });
     setSelectedLetterSection(null);
   };
@@ -220,60 +191,22 @@ export default function App() {
 
   // Show splash screen first
   if (showSplash) {
-    return (
-      <SplashScreen onComplete={() => setShowSplash(false)} />
-    );
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
-
-  // Show choose account type if not selected
-  if (!currentUser && !selectedUserType) {
+  if (!currentUser) {
     return (
-      <ChooseAccountType onChoose={(type) => setSelectedUserType(type)} />
-    );
-  }
-
-  // Show login page if user hasn't logged in but has selected account type
-  if (!currentUser && selectedUserType) {
-    return (
-      <LoginPage 
-        onLogin={handleLogin} 
-        userType={selectedUserType}
-        onBack={() => setSelectedUserType(null)}
-      />
-    );
-  }
-
-  // Show LettersDashboard as main page after login
-  if (activeSection === "home" && !selectedLetter) {
-    // صفحة خاصة للمعلم
-    if (currentUser.type === "teacher") {
-      return (
-        <div
-          className="min-h-screen relative overflow-hidden"
-          style={{ backgroundColor: "#f5f3f7" }}
-          dir="rtl"
-        >
-          {/* Main Content */}
-          <main className="container mx-auto px-4 py-8 pb-24 relative z-10">
-            <TeacherHomePage
-              onNavigate={setActiveSection}
-              user={currentUser}
-              onLogout={handleLogout}
-            />
-          </main>
-        </div>
-      );
-    }
-    
-    // صفحة الطالب - تعرض HomePage مع زرين: الحروف وصفي
-    return (
-      <HomePage
-        onNavigate={setActiveSection}
+      <AppRouter
+        onChooseType={setSelectedUserType}
+        onLogin={handleLogin}
+        selectedUserType={selectedUserType}
+        currentUser={currentUser}
         onLogout={handleLogout}
-        user={currentUser}
+        onNavigate={setActiveSection}
       />
     );
   }
+
+
 
   const renderSection = () => {
     // Pass selected letter to all sections when a letter is selected
@@ -288,9 +221,9 @@ export default function App() {
       case "home":
         return (
           <HomePage
-            onNavigate={setActiveSection}
+          
             onLogout={handleLogout}
-            user={currentUser}
+        
           />
         );
       case "videos":
@@ -325,7 +258,7 @@ export default function App() {
             onActivityChange={handleLetterSectionClick}
             onGameSelect={(game) => {
               // يمكن إضافة منطق اختيار اللعبة هنا لاحقاً
-              console.log('Selected game:', game);
+              console.log("Selected game:", game);
               setSelectedGame(game);
             }}
           />
@@ -333,9 +266,9 @@ export default function App() {
       case "my-classroom":
         return (
           <JoinClassroom
-            student={currentUser}
+          
             onClose={() => setActiveSection("home")}
-            onJoined={refreshCurrentUser}
+   
           />
         );
       case "letter-sounds":
@@ -370,27 +303,24 @@ export default function App() {
       default:
         return (
           <HomePage
-            onNavigate={setActiveSection}
+   
             onLogout={handleLogout}
-            user={currentUser}
+           
           />
         );
     }
   };
 
   return (
-    <div
-      className="min-h-screen relative overflow-hidden"
-      dir="rtl"
-    >
+    <div className="min-h-screen relative overflow-hidden" dir="rtl">
       {/* خلفية متدرجة ملونة */}
       <div className="fixed inset-0 bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50 -z-10"></div>
-      
+
       {/* دوائر ملونة في الخلفية */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <motion.div
           className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-10"
-          style={{ backgroundColor: '#fad656' }}
+          style={{ backgroundColor: "#fad656" }}
           animate={{
             scale: [1, 1.1, 1],
             rotate: [0, 90, 0],
@@ -398,12 +328,12 @@ export default function App() {
           transition={{
             duration: 20,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
         />
         <motion.div
           className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full opacity-10"
-          style={{ backgroundColor: '#652b82' }}
+          style={{ backgroundColor: "#652b82" }}
           animate={{
             scale: [1, 1.2, 1],
             rotate: [0, -90, 0],
@@ -411,103 +341,100 @@ export default function App() {
           transition={{
             duration: 25,
             repeat: Infinity,
-            ease: "linear"
+            ease: "linear",
           }}
         />
       </div>
 
       {/* Navigation Header - مخفي في صفحة تفاصيل الحرف وصفحة الحروف */}
-      {!selectedLetter && activeSection !== "letters" && activeSection !== "students" && activeSection !== "teachers" && activeSection !== "my-classroom" && (
-        <nav
-          className="bg-white shadow-lg sticky top-0 z-50 relative"
-          style={{ borderBottom: "4px solid #652b82" }}
-        >
-          <div className="py-4 px-6">
-            <div className="flex items-center justify-between w-full">
-              {/* Logo على أقصى اليمين */}
-              <div className="flex items-center gap-4 mr-auto">
-                <img
-                  src={logoImg}
-                  alt="مدرستي لغتي"
-                  className="h-12 w-auto object-contain drop-shadow-lg"
-                />
-              </div>
-
-              {/* User Info & Action Buttons على أقصى اليسار */}
-              <div className="flex items-center gap-3 ml-auto">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md text-lg"
-                    style={{ backgroundColor: "#652b82" }}
-                  >
-                    {currentUser.type === "student" ? "🎒" : "👨‍🏫"}
-                  </div>
-                  <div>
-                    <p
-                      className="text-sm"
-                      style={{ color: "#652b82" }}
-                    >
-                      {currentUser.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {currentUser.type === "student"
-                        ? "طالب"
-                        : "معلم"}
-                    </p>
-                  </div>
+      {!selectedLetter &&
+        activeSection !== "letters" &&
+        activeSection !== "students" &&
+        activeSection !== "teachers" &&
+        activeSection !== "my-classroom" && (
+          <nav
+            className="bg-white shadow-lg sticky top-0 z-50 relative"
+            style={{ borderBottom: "4px solid #652b82" }}
+          >
+            <div className="py-4 px-6">
+              <div className="flex items-center justify-between w-full">
+                {/* Logo على أقصى اليمين */}
+                <div className="flex items-center gap-4 mr-auto">
+                  <img
+                    src={logoImg}
+                    alt="مدرستي لغتي"
+                    className="h-12 w-auto object-contain drop-shadow-lg"
+                  />
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {currentUser.type === "teacher" && (
-                    <button
-                      onClick={() => setActiveSection("students")}
-                      className="text-white px-5 py-2.5 rounded-xl text-sm hover:opacity-90 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                {/* User Info & Action Buttons على أقصى اليسار */}
+                <div className="flex items-center gap-3 ml-auto">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md text-lg"
                       style={{ backgroundColor: "#652b82" }}
                     >
-                      <Users className="w-4 h-4" />
-                      <span>إدارة الصفوف</span>
-                    </button>
-                  )}
-                  {currentUser.type === "student" && (
+                      {currentUser.type === "student" ? "🎒" : "👨‍🏫"}
+                    </div>
+                    <div>
+                      <p className="text-sm" style={{ color: "#652b82" }}>
+                        {currentUser.username}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {currentUser.type === "student" ? "طالب" : "معلم"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {currentUser.type === "teacher" && (
+                      <button
+                        onClick={() => setActiveSection("students")}
+                        className="text-white px-5 py-2.5 rounded-xl text-sm hover:opacity-90 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                        style={{ backgroundColor: "#652b82" }}
+                      >
+                        <Users className="w-4 h-4" />
+                        <span>إدارة الصفوف</span>
+                      </button>
+                    )}
+                    {currentUser.type === "student" && (
+                      <button
+                        onClick={() => setActiveSection("my-classroom")}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl hover:opacity-80 transition-all text-white"
+                        style={{ backgroundColor: "#652b82" }}
+                      >
+                        <span>صفي</span>
+                        <Users className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
-                      onClick={() =>
-                        setActiveSection("my-classroom")
-                      }
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl hover:opacity-80 transition-all text-white"
-                      style={{ backgroundColor: "#652b82" }}
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl hover:opacity-80 transition-all"
+                      style={{
+                        backgroundColor: "#dc2626",
+                        color: "white",
+                      }}
                     >
-                      <span>صفي</span>
-                      <Users className="w-4 h-4" />
+                      <span>تسجيل الخروج</span>
+                      <LogOut className="w-4 h-4" />
                     </button>
-                  )}
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl hover:opacity-80 transition-all"
-                    style={{
-                      backgroundColor: "#dc2626",
-                      color: "white",
-                    }}
-                  >
-                    <span>تسجيل الخروج</span>
-                    <LogOut className="w-4 h-4" />
-                  </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </nav>
-      )}
+          </nav>
+        )}
 
       {/* Main Content */}
       {selectedGame ? (
         // عرض اللعبة المختارة
-        selectedGame === 'sounds' ? (
+        selectedGame === "sounds" ? (
           <WordCatchGame onBack={() => setSelectedGame(null)} />
-        ) : selectedGame === 'draw' ? (
+        ) : selectedGame === "draw" ? (
           <MemoryMatchGame onBack={() => setSelectedGame(null)} />
-        ) : selectedGame === 'position' ? (
+        ) : selectedGame === "position" ? (
           <SortingGame onBack={() => setSelectedGame(null)} />
-        ) : selectedGame === 'color' ? (
+        ) : selectedGame === "color" ? (
           <BalloonPopGame onBack={() => setSelectedGame(null)} />
         ) : null
       ) : selectedLetter && !selectedLetterSection ? (
@@ -517,7 +444,7 @@ export default function App() {
           onBack={handleBackToLetters}
           onSectionClick={handleLetterSectionClick}
         />
-      ) : selectedLetterSection && activeSection === 'letters' ? (
+      ) : selectedLetterSection && activeSection === "letters" ? (
         // عرض LearnLetters بدون container عشان ياخد الشاشة كاملة
         <LearnLetters
           currentLetter={selectedLetter?.letter}
@@ -528,7 +455,7 @@ export default function App() {
           user={currentUser}
           onLogout={handleLogout}
         />
-      ) : selectedLetterSection && activeSection === 'letters2' ? (
+      ) : selectedLetterSection && activeSection === "letters2" ? (
         // عرض LearnLetters2 بدون container عشان ياخد الشاشة كاملة
         <LearnLetters2
           currentLetter={selectedLetter?.letter}
@@ -539,29 +466,31 @@ export default function App() {
           user={currentUser}
           onLogout={handleLogout}
         />
-      ) : activeSection === 'letters' && !selectedLetter && !selectedLetterSection ? (
+      ) : activeSection === "letters" &&
+        !selectedLetter &&
+        !selectedLetterSection ? (
         // عرض LettersDashboard بدون container عشان ياخد الشاشة كاملة
         <LettersDashboard
-          user={currentUser}
+        
           onLetterClick={handleLetterClick}
           onLogout={handleLogout}
-          onBack={() => setActiveSection('home')}
+          onBack={() => setActiveSection("home")}
         />
-      ) : activeSection === 'students' ? (
+      ) : activeSection === "students" ? (
         // عرض StudentsManagement بدون container عشان ياخد الشاشة كاملة
         <StudentsManagement
           teacher={currentUser}
           onHomeClick={() => setActiveSection("home")}
           onResourcesClick={() => setActiveSection("teachers")}
         />
-      ) : activeSection === 'teachers' ? (
+      ) : activeSection === "teachers" ? (
         // عرض TeacherResources بدون container عشان ياخد الشاشة كاملة
         <TeacherResources
           onBack={() => setActiveSection("home")}
           user={currentUser}
           onLogout={handleLogout}
         />
-      ) : activeSection === 'my-classroom' ? (
+      ) : activeSection === "my-classroom" ? (
         // عرض JoinClassroom بدون container عشان ياخد الشاشة كاملة
         renderSection()
       ) : (
@@ -571,19 +500,18 @@ export default function App() {
       )}
 
       {/* Modals */}
-      {showClassroomManagement &&
-        currentUser.type === "teacher" && (
-          <ClassroomManagement
-            teacher={currentUser}
-            onClose={() => setShowClassroomManagement(false)}
-          />
-        )}
+      {showClassroomManagement && currentUser.type === "teacher" && (
+        <ClassroomManagement
+          teacher={currentUser}
+          onClose={() => setShowClassroomManagement(false)}
+        />
+      )}
 
       {showJoinClassroom && currentUser.type === "student" && (
         <JoinClassroom
-          student={currentUser}
+        
           onClose={() => setShowJoinClassroom(false)}
-          onJoined={refreshCurrentUser}
+      
         />
       )}
 
@@ -605,57 +533,43 @@ export default function App() {
                   icon={<Video className="w-5 h-5" />}
                   label="فيديوهات"
                   active={activeSection === "videos"}
-                  onClick={() =>
-                    handleLetterSectionClick("videos")
-                  }
+                  onClick={() => handleLetterSectionClick("videos")}
                 />
                 <NavButton
                   icon={<BookOpen className="w-5 h-5" />}
                   label="تعلم الحرف"
                   active={activeSection === "letters"}
-                  onClick={() =>
-                    handleLetterSectionClick("learn")
-                  }
+                  onClick={() => handleLetterSectionClick("learn")}
                 />
                 <NavButton
                   icon={<Volume2 className="w-5 h-5" />}
                   label="صوت الحرف"
                   active={activeSection === "letter-sounds"}
-                  onClick={() =>
-                    handleLetterSectionClick("sound")
-                  }
+                  onClick={() => handleLetterSectionClick("sound")}
                 />
                 <NavButton
                   icon={<Edit3 className="w-5 h-5" />}
                   label="رسم الحرف"
                   active={activeSection === "draw-letters"}
-                  onClick={() =>
-                    handleLetterSectionClick("draw")
-                  }
+                  onClick={() => handleLetterSectionClick("draw")}
                 />
                 <NavButton
                   icon={<Target className="w-5 h-5" />}
                   label="مكان الحرف"
                   active={activeSection === "letter-position"}
-                  onClick={() =>
-                    handleLetterSectionClick("position")
-                  }
+                  onClick={() => handleLetterSectionClick("position")}
                 />
                 <NavButton
                   icon={<Palette className="w-5 h-5" />}
                   label="تلوين الحرف"
                   active={activeSection === "color-letters"}
-                  onClick={() =>
-                    handleLetterSectionClick("coloring")
-                  }
+                  onClick={() => handleLetterSectionClick("coloring")}
                 />
                 <NavButton
                   icon={<Gamepad2 className="w-5 h-5" />}
                   label="الألعاب"
                   active={activeSection === "games"}
-                  onClick={() =>
-                    handleLetterSectionClick("games")
-                  }
+                  onClick={() => handleLetterSectionClick("games")}
                 />
                 <NavButton
                   icon={<Home className="w-5 h-5" />}
@@ -680,12 +594,7 @@ interface NavButtonProps {
   onClick: () => void;
 }
 
-function NavButton({
-  icon,
-  label,
-  active,
-  onClick,
-}: NavButtonProps) {
+function NavButton({ icon, label, active, onClick }: NavButtonProps) {
   return (
     <button
       onClick={onClick}
@@ -701,9 +610,7 @@ function NavButton({
             }
       }
     >
-      <div className="w-5 h-5 flex items-center justify-center">
-        {icon}
-      </div>
+      <div className="w-5 h-5 flex items-center justify-center">{icon}</div>
       <span className="text-[0.65rem] leading-tight text-center whitespace-nowrap">
         {label}
       </span>

@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Star, Award, RotateCcw, X } from 'lucide-react';
+import { useParams, useNavigate } from "react-router-dom";
 
-interface MemoryMatchGameProps {
-  onBack: () => void;
-}
 
 interface Card {
   id: number;
@@ -23,13 +21,14 @@ const alefPairs = [
   { letter: 'أ', word: 'أنف' },
 ];
 
-export function MemoryMatchGame({ onBack }: MemoryMatchGameProps) {
+export function MemoryMatchGame() {
   const [cards, setCards] = useState<Card[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [score, setScore] = useState(0);
   const [moves, setMoves] = useState(0);
   const [gameWon, setGameWon] = useState(false);
-
+const { letter } = useParams();
+  const navigate = useNavigate();
   useEffect(() => {
     initializeGame();
   }, []);
@@ -125,7 +124,7 @@ export function MemoryMatchGame({ onBack }: MemoryMatchGameProps) {
       <div className="absolute top-0 left-0 right-0 z-30 px-6 py-4 border-b-4" style={{ borderColor: '#652b82', backgroundColor: '#ffffff' }}>
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <button
-            onClick={onBack}
+           onClick={() => navigate(`/letter/${letter}/games`)}
             className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
             style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
           >
@@ -225,7 +224,7 @@ export function MemoryMatchGame({ onBack }: MemoryMatchGameProps) {
               </button>
               
               <button
-                onClick={onBack}
+                onClick={() => navigate(`/letter/${letter}/games`)}
                 className="px-8 py-4 rounded-2xl shadow-lg text-xl"
                 style={{ backgroundColor: '#fad656', color: '#652b82' }}
               >

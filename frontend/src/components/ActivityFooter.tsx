@@ -1,5 +1,5 @@
 import { BookOpen, Target, FileText, Video, Gamepad2 } from 'lucide-react';
-
+import { useNavigate, useLocation } from "react-router-dom";
 // أيقونة الحروف العربية المخصصة
 const ArabicLettersIcon = ({ className }: { className?: string }) => (
   <svg 
@@ -27,23 +27,24 @@ const ArabicLettersIcon = ({ className }: { className?: string }) => (
 );
 
 interface ActivityFooterProps {
-  currentActivity: string;
-  onActivityChange: (activity: string) => void;
-  onHomeClick?: () => void;
+
   currentLetter?: string;
   letterName?: string;
 }
-
 const activities = [
   { id: 'learn', label: 'تعلم الحرف', icon: BookOpen },
-  { id: 'learn2', label: 'اكتب الحرف', icon: BookOpen },
+  { id: 'write', label: 'اكتب الحرف', icon: BookOpen },
   { id: 'position', label: 'مكان الحرف', icon: Target },
   { id: 'tashkeel', label: 'تشكيل الحرف', icon: FileText },
   { id: 'videos', label: 'فيديوهات', icon: Video },
   { id: 'games', label: 'العاب', icon: Gamepad2 },
 ];
 
-export function ActivityFooter({ currentActivity, onActivityChange, onHomeClick, currentLetter, letterName }: ActivityFooterProps) {
+export function ActivityFooter({currentLetter}: ActivityFooterProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentActivity = location.pathname.split("/").pop();
+
   return (
     <footer 
       className="fixed bottom-0 left-0 right-0 border-t-3 shadow-2xl z-50"
@@ -124,12 +125,14 @@ export function ActivityFooter({ currentActivity, onActivityChange, onHomeClick,
           <div className="flex-1 grid grid-cols-6 gap-2">
             {activities.map((activity) => {
               const Icon = activity.icon;
-              const isActive = currentActivity === activity.id;
+             const isActive = currentActivity === activity.id;
+
               
               return (
                 <button
                   key={activity.id}
-                  onClick={() => onActivityChange(activity.id)}
+                  onClick={() => navigate(`/letter/${currentLetter}/${activity.id}`)}
+
                   className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-xl transition-all ${
                     isActive ? 'shadow-lg scale-105' : 'hover:scale-105'
                   }`}
@@ -149,9 +152,9 @@ export function ActivityFooter({ currentActivity, onActivityChange, onHomeClick,
           </div>
           
           {/* زر العودة إلى صفحة الحروف */}
-          {onHomeClick && (
+       
             <button
-              onClick={onHomeClick}
+               onClick={() => navigate("/letters")}
               className="flex flex-col items-center justify-center gap-1 px-3 py-3 rounded-xl transition-all hover:scale-105"
               style={{ backgroundColor: '#f5f3f7', color: '#652b82', minWidth: '80px' }}
             >
@@ -160,7 +163,7 @@ export function ActivityFooter({ currentActivity, onActivityChange, onHomeClick,
                 الحروف
               </span>
             </button>
-          )}
+         
         </div>
       </div>
     </footer>

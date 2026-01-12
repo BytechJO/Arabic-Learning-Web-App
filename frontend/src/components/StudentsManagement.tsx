@@ -16,7 +16,6 @@ export function StudentsManagement({ teacher, onHomeClick, onResourcesClick }: S
       {/* الهيدر - نفس تصميم صفحة الحروف */}
       <AppHeader 
         showUserInfo={true}
-        user={teacher}
         onLogout={onHomeClick}
         showBackButton={false}
       />

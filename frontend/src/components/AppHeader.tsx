@@ -1,12 +1,13 @@
 import { motion } from 'motion/react';
 import { LogOut, User, GraduationCap, ArrowLeft } from 'lucide-react';
-import { User as UserType } from '../types';
+// import { User as UserType } from '../types';
+import { useAppSelector } from "../redux/hooks";
 
 interface AppHeaderProps {
   showBackButton?: boolean;
   onBack?: () => void;
   showUserInfo?: boolean;
-  user?: UserType;
+  // user?: UserType;
   onLogout?: () => void;
   currentLetter?: string;
   showLetter?: boolean;
@@ -16,13 +17,19 @@ export function AppHeader({
   showBackButton, 
   onBack, 
   showUserInfo = true,
-  user,
+  // user,
   onLogout,
   currentLetter,
   showLetter
 }: AppHeaderProps) {
+  const user = useAppSelector((state) => state.auth.user);
   const userType = user?.type || 'student';
-  const userName = user?.name || 'المستخدم';
+  const userName = user?.username || 'المستخدم';
+// console.log(userName);
+
+if (!user && showUserInfo) {
+  return null;
+}
 
   return (
     <header className="bg-white shadow-md sticky top-0 w-full" style={{ borderBottom: '3px solid #fad656' }}>

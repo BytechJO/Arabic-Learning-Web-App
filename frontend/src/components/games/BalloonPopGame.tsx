@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Star, Award, RotateCcw, X } from 'lucide-react';
-
+import { useParams, useNavigate } from "react-router-dom";
 interface BalloonPopGameProps {
   onBack: () => void;
 }
@@ -20,13 +20,15 @@ const otherWords = ['بطة', 'تفاح', 'جمل', 'دب', 'حصان', 'زهر�
 
 const balloonColors = ['#ef4444', '#3b82f6', '#22c55e', '#f97316', '#a855f7', '#ec4899'];
 
-export function BalloonPopGame({ onBack }: BalloonPopGameProps) {
+export function BalloonPopGame() {
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [balloons, setBalloons] = useState<Balloon[]>([]);
   const [nextId, setNextId] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [level, setLevel] = useState(1);
+  const { letter } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (gameOver || lives <= 0) return;
@@ -120,7 +122,7 @@ export function BalloonPopGame({ onBack }: BalloonPopGameProps) {
       <div className="absolute top-0 left-0 right-0 z-30 px-6 py-4 border-b-4" style={{ borderColor: '#652b82', backgroundColor: 'rgba(255,255,255,0.95)' }}>
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <button
-            onClick={onBack}
+            onClick={() => navigate(`/letter/${letter}/games`)}
             className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
             style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
           >
@@ -272,7 +274,7 @@ export function BalloonPopGame({ onBack }: BalloonPopGameProps) {
               </button>
               
               <button
-                onClick={onBack}
+               onClick={() => navigate(`/letter/${letter}/games`)}
                 className="px-8 py-4 rounded-2xl shadow-lg text-xl"
                 style={{ backgroundColor: '#fad656', color: '#652b82' }}
               >

@@ -71,7 +71,8 @@ const login = (req, res) => {
                 success: true,
                 message: `Valid login credentials`,
                 userId: result.rows[0].id,
-                  role: result.rows[0].role_id,
+                role: result.rows[0].role_id,
+                username: result.rows[0].username,
               });
             } else {
               throw Error;

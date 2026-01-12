@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { storage } from "../utils/storage";
+import { useNavigate } from "react-router-dom";
 // import { ACTIVATION_CODES } from "../utils/seedData";
 import { User } from "../types";
 import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
@@ -18,7 +19,7 @@ import { useAppDispatch } from "../redux/hooks";
 import { loginSuccess } from "../redux/reducers/auth";
 
 interface LoginPageProps {
-  onLogin: (user: User) => void;
+  // onLogin: (user: User) => void;
   userType: "teacher" | "student";
   onBack: () => void;
 }
@@ -71,12 +72,12 @@ const registerApi = async (
   return data;
 };
 
-export function LoginPage({ onLogin, userType, onBack }: LoginPageProps) {
+export function LoginPage({  userType, onBack }: LoginPageProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
   // const [activationCode, setActivationCode] = useState("");
   const dispatch = useAppDispatch();
   // console.log(userType);
-
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -119,7 +120,8 @@ export function LoginPage({ onLogin, userType, onBack }: LoginPageProps) {
       );
 
       // إذا لسه محتاجة onLogin (تنقّل مثلاً)
-      onLogin(user);
+      // onLogin(user);
+      navigate(user.type === "teacher" ? "/teacher/home" : "/student/home");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -160,7 +162,7 @@ export function LoginPage({ onLogin, userType, onBack }: LoginPageProps) {
         type: mappedType,
       };
 
-      setMode("login");
+      navigate(`/login/${userType}`);
       // (اختياري) تفريغ كلمة المرور
       setFormData((prev) => ({ ...prev, password: "" }));
     } catch (err) {
@@ -438,7 +440,6 @@ export function LoginPage({ onLogin, userType, onBack }: LoginPageProps) {
                     )}
                   </motion.div>
                 )}
-               
 
                 <div className="text-center space-y-2">
                   <button
@@ -456,7 +457,9 @@ export function LoginPage({ onLogin, userType, onBack }: LoginPageProps) {
                   <div>
                     <button
                       type="button"
-                      onClick={onBack}
+                      onClick={() => {
+                        navigate("/");
+                      }}
                       className="text-gray-600 hover:text-purple-600 transition-colors text-sm md:text-base flex items-center justify-center gap-1.5 mx-auto"
                     >
                       <Home className="w-4 h-4" />
