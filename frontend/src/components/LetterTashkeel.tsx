@@ -4,19 +4,10 @@ import { motion, AnimatePresence } from "motion/react";
 import { ActivityFooter } from "./ActivityFooter";
 import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { useParams, useNavigate } from "react-router-dom";
-interface LetterTashkeelProps {
-  currentLetter?: string;
-  letterName?: string;
-  onBack?: () => void;
-  onActivityChange?: (activity: string) => void;
-  user?: any;
-  onLogout?: () => void;
-}
-
-export function LetterTashkeel({
-  onBack,
-  onActivityChange,
-}: LetterTashkeelProps) {
+import { useEffect } from "react";
+import { getLetterPositionQuestions } from "../API/questions";
+import { submitAnswer, calculateLessonResult } from "../API/result";
+export function LetterTashkeel() {
   const [score, setScore] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showFeedback, setShowFeedback] = useState<"correct" | "wrong" | null>(
@@ -24,6 +15,10 @@ export function LetterTashkeel({
   );
   const { letter } = useParams();
   const navigate = useNavigate();
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showFinishModal, setShowFinishModal] = useState(false);
+  const [totalScore, setTotalScore] = useState(0);
 
   const propLetter = letter;
   const letterName = letter;
@@ -36,124 +31,75 @@ export function LetterTashkeel({
       </div>
     );
   }
-
-  const getQuestionsForLetter = (letter: string) => {
-    const letterQuestions: { [key: string]: any[] } = {
-      أ: [
-        {
-          letter: "أَ",
-          sound: "أَ (فتحة)",
-          word: "أَسَد",
-          correctAnswer: "fatha",
-          shakl: "فتحة",
-        },
-        {
-          letter: "أُ",
-          sound: "أُ (ضمة)",
-          word: "أُذُن",
-          correctAnswer: "damma",
-          shakl: "ضمة",
-        },
-        {
-          letter: "إِ",
-          sound: "إِ (كسرة)",
-          word: "إِبْرة",
-          correctAnswer: "kasra",
-          shakl: "كسرة",
-        },
-        {
-          letter: "أْ",
-          sound: "أْ (سكون)",
-          word: "مَأْوى",
-          correctAnswer: "sukun",
-          shakl: "سكون",
-        },
-      ],
-      ب: [
-        {
-          letter: "بَ",
-          sound: "بَ (فتحة)",
-          word: "بَطَل",
-          correctAnswer: "fatha",
-          shakl: "فتحة",
-        },
-        {
-          letter: "بُ",
-          sound: "بُ (ضمة)",
-          word: "بُرْتُقال",
-          correctAnswer: "damma",
-          shakl: "ضمة",
-        },
-        {
-          letter: "بِ",
-          sound: "بِ (كسرة)",
-          word: "بِنْت",
-          correctAnswer: "kasra",
-          shakl: "كسرة",
-        },
-        {
-          letter: "بْ",
-          sound: "بْ (سكون)",
-          word: "صَبْر",
-          correctAnswer: "sukun",
-          shakl: "سكون",
-        },
-      ],
-    };
-
-    return (
-      letterQuestions[letter] || [
-        {
-          letter: propLetter + "َ",
-          sound: propLetter + "َ (فتحة)",
-          word: propLetter + "َ...",
-          correctAnswer: "fatha",
-          shakl: "فتحة",
-        },
-        {
-          letter: propLetter + "ُ",
-          sound: propLetter + "ُ (ضمة)",
-          word: propLetter + "ُ...",
-          correctAnswer: "damma",
-          shakل: "ضمة",
-        },
-        {
-          letter: propLetter + "ِ",
-          sound: propLetter + "ِ (كسرة)",
-          word: propLetter + "ِ...",
-          correctAnswer: "kasra",
-          shakl: "كسرة",
-        },
-        {
-          letter: propLetter + "ْ",
-          sound: propLetter + "ْ (سكون)",
-          word: propLetter + "ْ...",
-          correctAnswer: "sukun",
-          shakl: "سكون",
-        },
-      ]
-    );
+  const letterMap: Record<string, number> = {
+    أ: 1,
+    ب: 2,
+    ت: 3,
   };
 
-  const questions = getQuestionsForLetter(propLetter);
-  const question = questions[currentQuestion];
+  useEffect(() => {
+    if (!propLetter) return;
 
-  const handleAnswer = (position: string) => {
-    const isCorrect = position === question.correctAnswer;
-    setShowFeedback(isCorrect ? "correct" : "wrong");
-
-    if (isCorrect) {
-      setScore(score + 1);
-    }
-
-    setTimeout(() => {
-      setShowFeedback(null);
-      if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-      } else {
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true);
+        const letterId = letterMap[propLetter];
+        const data = await getLetterPositionQuestions(letterId, 3);
+        setQuestions(data);
         setCurrentQuestion(0);
+        setScore(0);
+      } catch (error) {
+        console.error("Error fetching questions", error);
+      } finally {
+        setLoading(false);
       }
-    }, 1500);
+    };
+
+    fetchQuestions();
+  }, [propLetter]);
+  // const questions = getQuestionsForLetter(propLetter);
+  if (!questions.length || !questions[currentQuestion]) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">جاري تحميل الأسئلة...</p>
+      </div>
+    );
+  }
+
+  const question = questions[currentQuestion];
+  const parsedQuestionText = JSON.parse(question.question_text);
+  const handleAnswer = async (position: string) => {
+    try {
+      const result = await submitAnswer(3, question.id, position);
+
+      setShowFeedback(result.is_correct ? "correct" : "wrong");
+
+      if (result.is_correct) {
+        setScore((prev) => prev + result.score);
+      }
+
+      setTimeout(async () => {
+        setShowFeedback(null);
+
+        // ✅ إذا في أسئلة بعدها
+        if (currentQuestion < questions.length - 1) {
+          setCurrentQuestion((prev) => prev + 1);
+        }
+        // ✅ إذا هذا آخر سؤال
+        else {
+          // 🔹 جيب السكور النهائي من الباك اند
+          const res = await calculateLessonResult(12);
+          const data = res;
+          if (!data.is_completed || data.is_completed) {
+            setTotalScore(data.total_score);
+          }
+
+          setShowFinishModal(true);
+        }
+      }, 1500);
+    } catch (error) {
+      console.error("Error submitting answer", error);
+    }
   };
 
   const resetGame = () => {
@@ -161,7 +107,13 @@ export function LetterTashkeel({
     setCurrentQuestion(0);
     setShowFeedback(null);
   };
+  if (loading) {
+    return <div className="text-center mt-20">جاري تحميل الأسئلة...</div>;
+  }
 
+  if (!questions.length) {
+    return <div className="text-center mt-20">لا يوجد أسئلة لهذا الحرف</div>;
+  }
   return (
     <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
       {/* خلفية متدرجة */}
@@ -332,7 +284,7 @@ export function LetterTashkeel({
                   className="text-5xl md:text-6xl"
                   style={{ color: "#652b82" }}
                 >
-                  {question.word}
+                  {parsedQuestionText?.word}
                 </h2>
               </motion.div>
             </motion.div>
@@ -412,7 +364,87 @@ export function LetterTashkeel({
           />
         </motion.div>
       </div>
+      <AnimatePresence>
+        {showFinishModal && (
+          <motion.div
+            className="fixed inset-0 flex items-center justify-center z-50"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowFinishModal(false)}
+          >
+            <motion.div
+              className="bg-white rounded-2xl p-6 md:p-8 shadow-2xl text-center max-w-sm mx-4"
+              initial={{ scale: 0.5, y: 100 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.5, y: 100 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* أيقونة النجاح */}
+              <motion.div
+                className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: "#fad656" }}
+                initial={{ rotate: -180, scale: 0 }}
+                animate={{ rotate: 0, scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              >
+                <svg
+                  className="w-8 h-8 md:w-10 md:h-10"
+                  style={{ color: "#652b82" }}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </motion.div>
 
+              {/* العنوان */}
+              <motion.h2
+                className="text-2xl md:text-3xl mb-2"
+                style={{ color: "#652b82" }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                أحسنت!
+              </motion.h2>
+
+              {/* الرسالة */}
+              <motion.p
+                className="text-sm md:text-base text-gray-600 mb-5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                لقد أتممت حل جميع الاسئلة
+                <br />
+                مجموع النقاط : {totalScore}/ 4
+              </motion.p>
+
+              {/* زر الإغلاق */}
+              <motion.button
+                onClick={() => {
+                  setShowFinishModal(false);
+                  navigate(`/letter/${propLetter}/videos`);
+                }}
+                className="px-6 py-2.5 rounded-xl text-white shadow-lg"
+                style={{
+                  background: "linear-gradient(135deg, #652b82, #7d3ba0)",
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                متابعة
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Footer للأنشطة */}
 
       <ActivityFooter currentLetter={propLetter} letterName={letterName} />

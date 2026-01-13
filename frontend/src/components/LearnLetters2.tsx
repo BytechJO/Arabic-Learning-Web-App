@@ -10,6 +10,9 @@ import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { ActivityFooter } from "./ActivityFooter";
 import { User } from "../types";
 import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import { fetchVideoLesson } from "../redux/reducers/videoLessonsSlice";
 
 interface LearnLetters2Props {
   currentLetter?: string;
@@ -32,11 +35,6 @@ declare global {
 export function LearnLetters2({
   currentLetter: propLetter,
   letterName,
-  onBack,
-  onBackToLetters,
-  onActivityChange,
-  user,
-  onLogout,
 }: LearnLetters2Props) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [videoEnded, setVideoEnded] = useState(false);
@@ -49,6 +47,35 @@ export function LearnLetters2({
   const letterMaskRef = useRef<ImageData | null>(null);
   const { letter } = useParams<{ letter: string }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch<any>();
+
+  const { video, loading } = useSelector(
+    (state: RootState) => state.videoLessons
+  );
+
+  useEffect(() => {
+    if (!letter) return;
+
+    const letterIdMap: Record<string, number> = {
+      أ: 1,
+      ب: 2,
+      ت: 3,
+      ث: 4,
+      // كمّليهم
+    };
+
+    const letterId = letterIdMap[letter];
+
+    if (!letterId) return;
+
+    dispatch(
+      fetchVideoLesson({
+        letterId,
+        lessonId: 2, // ⭐ هذا الفرق الوحيد
+      })
+    );
+  }, [letter, dispatch]);
+
   // تحميل YouTube IFrame API
   useEffect(() => {
     if (!window.YT) {
@@ -360,17 +387,7 @@ export function LearnLetters2({
     // إعادة رسم Canvas
     setTimeout(() => redrawCanvas(), 0);
   };
-
-  // if (!onBack) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50">
-  //       <div className="text-center">
-  //         <div className="text-6xl mb-3">📖</div>
-  //         <p className="text-base text-gray-400">اختر حرفاً من صفحة الحروف</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  console.log(video);
 
   return (
     <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
@@ -435,12 +452,15 @@ export function LearnLetters2({
                   <iframe
                     id="youtube-player-2"
                     className="absolute top-0 left-0 w-full h-full"
-                    src="https://www.youtube.com/embed/Aiyk5Qg3h90?enablejsapi=1"
+                    src={video ? `${video[0].youtube_url}?enablejsapi=1` : ""}
                     title="فيديو تعليمي للحروف العربية"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   ></iframe>
+                  {loading && (
+                    <p className="text-center py-6">جاري تحميل الفيديو...</p>
+                  )}
                 </div>
               </div>
 

@@ -3,30 +3,31 @@ import { getVideoLessonsByLetterAndLesson } from "../../API/videoLessons";
 
 export const fetchVideoLesson = createAsyncThunk(
   "videoLessons/fetchVideoLesson",
-  async (
-    { letterId, lessonId }: { letterId: number; lessonId: number }
-  ) => {
+  async ({ letterId, lessonId }: { letterId: number; lessonId: number }) => {
     const res = await getVideoLessonsByLetterAndLesson(letterId, lessonId);
-    
-    return res.data[0]; // أول فيديو
+
+    return res.data; // أول فيديو
   }
 );
 
-
 interface VideoLessonState {
-  video: any | null;
+  video: any[];
   loading: boolean;
 }
 
 const initialState: VideoLessonState = {
-  video: null,
+  video: [],
   loading: false,
 };
 
 const videoLessonsSlice = createSlice({
   name: "videoLessons",
   initialState,
-  reducers: {},
+  reducers: {
+    clearVideo: (state) => {
+      state.video = [];
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchVideoLesson.pending, (state) => {
@@ -41,5 +42,6 @@ const videoLessonsSlice = createSlice({
       });
   },
 });
+export const { clearVideo } = videoLessonsSlice.actions;
 
 export default videoLessonsSlice.reducer;

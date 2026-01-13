@@ -12,16 +12,10 @@ import { ActivityFooter } from "./ActivityFooter";
 import { useParams, useNavigate } from "react-router-dom";
 import { RootState } from "../redux/store";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchVideoLesson } from "../redux/reducers/videoLessonsSlice";
-
-// interface LearnLettersProps {
-//   currentLetter?: string;
-//   letterName?: string;
-//   onBack?: () => void;
-//   onBackToLetters?: () => void;
-//   onActivityChange?: (activity: string) => void;
-//   onLogout?: () => void;
-// }
+import {
+  fetchVideoLesson,
+  clearVideo,
+} from "../redux/reducers/videoLessonsSlice";
 
 // تعريف نوع YouTube Player
 declare global {
@@ -57,11 +51,12 @@ export function LearnLetters() {
   useEffect(() => {
     if (!letter) return;
 
+    dispatch(clearVideo()); // 🔥 مهم جداً
+
     const letterIdMap: Record<string, number> = {
       أ: 1,
       ب: 2,
       ت: 3,
-      // ...
     };
 
     dispatch(
@@ -72,39 +67,41 @@ export function LearnLetters() {
     );
   }, [letter, dispatch]);
 
-  // تحميل YouTube IFrame API
+  const getVideoId = (url: string) => {
+    const match = url.match(/embed\/([^?]+)/);
+    return match ? match[1] : null;
+  };
   useEffect(() => {
-    if (!video || !window.YT || !window.YT.Player) return;
+    if (window.YT && window.YT.Player) return;
 
-    if (playerRef.current) return; // منع إعادة التهيئة
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.body.appendChild(tag);
+  }, []);
+
+  useEffect(() => {
+    if (!video[0]?.youtube_url) return;
+    if (!window.YT || !window.YT.Player) return;
+
+    const videoId = getVideoId(video[0].youtube_url);
+    if (!videoId) return;
+
+    if (playerRef.current) {
+      playerRef.current.destroy();
+    }
 
     playerRef.current = new window.YT.Player("youtube-player", {
+      videoId,
       events: {
         onStateChange: onPlayerStateChange,
       },
     });
+
+    setVideoEnded(false);
   }, [video]);
 
-  const getEmbedUrl = (url: string) => {
-    if (url.includes("embed")) return url;
-
-    const videoId = url.split("v=")[1]?.split("&")[0];
-    return `https://www.youtube.com/embed/${videoId}`;
-  };
-
-  // const initPlayer = () => {
-  //   if (window.YT && window.YT.Player) {
-  //     playerRef.current = new window.YT.Player("youtube-player", {
-  //       events: {
-  //         onStateChange: onPlayerStateChange,
-  //       },
-  //     });
-  //   }
-  // };
-
   const onPlayerStateChange = (event: any) => {
-    // YT.PlayerState.ENDED = 0
-    if (event.data === 0) {
+    if (event.data === window.YT.PlayerState.ENDED) {
       setVideoEnded(true);
     }
   };
@@ -174,6 +171,7 @@ export function LearnLetters() {
   //     </div>
   //   );
   // }
+  console.log(video);
 
   return (
     <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
@@ -266,7 +264,7 @@ export function LearnLetters() {
                     <p className="text-center">جاري تحميل الفيديو...</p>
                   )}
 
-                  <iframe
+                  {/* <iframe
                     className="absolute top-0 left-0 w-full h-full"
                     id="youtube-player"
                     src={
@@ -278,7 +276,11 @@ export function LearnLetters() {
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
-                  ></iframe>
+                  ></iframe> */}
+                  <div
+                    id="youtube-player"
+                    className="absolute top-0 left-0 w-full h-full"
+                  />
                 </div>
               </div>
 

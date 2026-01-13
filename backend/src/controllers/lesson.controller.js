@@ -251,8 +251,9 @@ const getVideoLessonsByLetterAndLesson = async (req, res) => {
       vl.id AS video_id,
       vl.title AS video_title,
       vl.youtube_url,
+      vl.description,
       vl.duration,
-
+     
       ll.id AS lesson_id, ll.letter_id AS letter_id,
       ll.title AS lesson_title,
       ll.order_index,
@@ -331,21 +332,37 @@ const addGameLesson = async (req, res) => {
 
 const getGamesByLetter = async (req, res) => {
   const letter_id = req.params.id;
+  const game_type = req.query.type; // 👈 نوع اللعبة
 
-  const query = `
+  let query = `
     SELECT 
-      gc.id,
+      gc.id AS game_config_id,
+      gl.id AS game_lesson_id,   -- 👈 هذا اللي بدك إياه
       gc.game_type,
       gc.data
     FROM letter_lessons ll
-    JOIN game_configs gc ON gc.lesson_id = ll.id
+    JOIN game_configs gc 
+      ON gc.lesson_id = ll.id
+    JOIN games_lessons gl
+      ON gl.lesson_id = ll.id
+      AND gl.letter_id = ll.letter_id
+      AND gl.game_type = gc.game_type
     WHERE ll.letter_id = $1
       AND ll.is_lastLesson = true
-    ORDER BY gc.id ASC;
   `;
 
+  const values = [letter_id];
+
+  // إذا تم إرسال type
+  if (game_type) {
+    query += ` AND gc.game_type = $2`;
+    values.push(game_type);
+  }
+
+  query += ` ORDER BY gc.id ASC;`;
+
   try {
-    const response = await client.query(query, [letter_id]);
+    const response = await client.query(query, values);
 
     if (response.rowCount > 0) {
       res.status(200).json({
@@ -355,7 +372,7 @@ const getGamesByLetter = async (req, res) => {
     } else {
       res.status(404).json({
         success: false,
-        message: "No games found for this letter",
+        message: "No games found for this letter and type",
       });
     }
   } catch (error) {
@@ -366,6 +383,7 @@ const getGamesByLetter = async (req, res) => {
     });
   }
 };
+
 
 //================= createGameConfig  ======================//
 const createGameConfig = async (req, res) => {
@@ -446,8 +464,8 @@ const getGameById = async (req, res) => {
 
 //==================== saveGameResult ===================
 const saveGameResult = async (req, res) => {
-  const { student_id, games_lessons_id, score, duration } = req.body;
-
+  const { games_lessons_id, score, duration } = req.body;
+const student_id = req.token.userId
   if (!student_id || !games_lessons_id) {
     return res.status(400).json({
       success: false,

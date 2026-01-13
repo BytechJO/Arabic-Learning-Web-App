@@ -3,10 +3,11 @@ import { motion } from "motion/react";
 import { ActivityFooter } from "./ActivityFooter";
 import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { useParams, useNavigate } from "react-router-dom";
-
+import api from "../API/axios";
+import { useEffect, useState } from "react";
 const games = [
   {
-    id: "sounds",
+    id: "word_catch",
     title: "اصطد كلمات الألف",
     description: "اصطد الكلمات التي تبدأ بحرف الألف قبل أن تختفي",
     icon: Volume2,
@@ -14,7 +15,7 @@ const games = [
     iconBgColor: "#fad656",
   },
   {
-    id: "draw",
+    id: "memory_match",
     title: "ذاكرة الألف",
     description: "اقلب البطاقات وطابق حرف الألف مع الكلمات",
     icon: Pencil,
@@ -22,7 +23,7 @@ const games = [
     iconBgColor: "#fad656",
   },
   {
-    id: "position",
+    id: "sorting",
     title: "صنف كلمات الألف",
     description: "اسحب الكلمات للمكان الصحيح: ألف أم حروف أخرى",
     icon: MapPin,
@@ -30,7 +31,7 @@ const games = [
     iconBgColor: "#fad656",
   },
   {
-    id: "color",
+    id: "balloon_pop",
     title: "بالونات الألف",
     description: "افرقع البالونات التي تحتوي على كلمات تبدأ بالألف",
     icon: Palette,
@@ -45,6 +46,38 @@ export function GamesSection() {
 
   const currentLetter = letter;
   const letterName = letter;
+
+  const [availableGames, setAvailableGames] = useState<string[]>([]);
+const [loadingGames, setLoadingGames] = useState(true);
+
+  useEffect(() => {
+    if (!letter) return;
+
+    const letterMap: Record<string, number> = {
+      أ: 1,
+      ب: 2,
+      ت: 3,
+    };
+
+    const letterId = letterMap[letter];
+
+  const fetchGames = async () => {
+  try {
+    const res = await api.get(`/lessons/game-lesson/${letterId}/letter-id`);
+
+    const gameTypes = res.data.data.map((g: any) => g.game_type);
+    setAvailableGames(gameTypes);
+  } catch (error) {
+    console.error("Error fetching games:", error);
+  } finally {
+    setLoadingGames(false);
+  }
+};
+
+
+    fetchGames();
+  }, [letter]);
+
   return (
     <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
       {/* خلفية متدرجة */}
@@ -107,10 +140,14 @@ export function GamesSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {games.map((game, index) => {
               const Icon = game.icon;
+            const isAvailable =
+  loadingGames || availableGames.includes(game.id);
+
               return (
                 <motion.button
                   key={game.id}
                   onClick={() =>
+                    isAvailable &&
                     navigate(`/letter/${currentLetter}/games/${game.id}`)
                   }
                   className="bg-white rounded-3xl p-6 md:p-8 border-4 shadow-xl hover:shadow-2xl transition-all text-right"

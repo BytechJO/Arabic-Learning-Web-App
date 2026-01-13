@@ -2,8 +2,9 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { Star, Award, RotateCcw, X } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
-
-
+import { useEffect } from "react";
+import api from "../../API/axios";
+import { saveGameResult } from "../../API/gameResult";
 interface Item {
   id: number;
   word: string;
@@ -11,31 +12,21 @@ interface Item {
   placed: boolean;
   position: "left" | "right" | null;
 }
-
-const gameWords = [
-  { word: "أسد", startsWithAlef: true },
-  { word: "بطة", startsWithAlef: false },
-  { word: "أرنب", startsWithAlef: true },
-  { word: "تفاح", startsWithAlef: false },
-  { word: "أذن", startsWithAlef: true },
-  { word: "جمل", startsWithAlef: false },
-  { word: "إصبع", startsWithAlef: true },
-  { word: "دب", startsWithAlef: false },
-  { word: "أنف", startsWithAlef: true },
-  { word: "حصان", startsWithAlef: false },
-];
+interface SortingGameConfig {
+  title: string;
+  instruction: string;
+  targetLetter: string;
+  scorePerCorrect: number;
+  maxMistakes: number;
+  items: {
+    word: string;
+    startsWithTarget: boolean;
+  }[];
+}
 
 export function SortingGame() {
-  const [items, setItems] = useState<Item[]>(
-    gameWords
-      .map((w, i) => ({
-        id: i,
-        ...w,
-        placed: false,
-        position: null,
-      }))
-      .sort(() => Math.random() - 0.5)
-  );
+  const [items, setItems] = useState<Item[]>([]);
+
   const { letter } = useParams();
   const navigate = useNavigate();
 
@@ -43,15 +34,87 @@ export function SortingGame() {
   const [mistakes, setMistakes] = useState(0);
   const [gameWon, setGameWon] = useState(false);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
+  const [config, setConfig] = useState<SortingGameConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [startTime] = useState(Date.now());
+  const [gameLessonId, setGameLessonId] = useState<number | null>(null);
+
+  const getDuration = () => {
+    return Math.floor((Date.now() - startTime) / 1000);
+  };
+  const propLetter = letter;
+
+  useEffect(() => {
+    if (!propLetter) return;
+    const letterMap: Record<string, number> = {
+      أ: 1,
+      ب: 2,
+      ت: 3,
+    };
+    const letterId = letterMap[propLetter];
+
+    const fetchGame = async () => {
+      try {
+        const res = await api.get(
+          `/lessons/game-lesson/${letterId}/letter-id?type=sorting`
+        );
+
+        const game = res.data.data[0]; // 👈 أول لعبة
+        const gameConfig: SortingGameConfig = game.data; // 👈 الداتا الحقيقية
+
+        setGameLessonId(res.data.data?.[0].game_lesson_id);
+        setConfig(gameConfig);
+        const mappedItems: Item[] = gameConfig.items
+          .slice(0, 10)
+          .map((item, index) => ({
+            id: index,
+            word: item.word,
+            startsWithAlef: item.startsWithTarget,
+            placed: false,
+            position: null,
+          }))
+          .sort(() => Math.random() - 0.5);
+
+        setItems(mappedItems);
+      } catch (error) {
+        console.error("Error loading sorting game", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGame();
+  }, [propLetter]);
 
   const handleDragStart = (itemId: number) => {
     setDraggedItem(itemId);
   };
+  useEffect(() => {
+    if (!gameWon && !mistakes) return;
+
+    const saveResult = async () => {
+      try {
+        await saveGameResult({
+          games_lessons_id: gameLessonId! /* id اللعبة */,
+          score: score,
+          duration: getDuration(),
+        });
+
+        console.log(
+          "Game result saved ✅"
+        );
+      } catch (error) {
+        console.error("Error saving game result", error);
+      }
+    };
+
+    saveResult();
+  }, [gameWon, mistakes]);
 
   const handleDrop = (side: "left" | "right") => {
-    if (draggedItem === null) return;
+    if (draggedItem === null || !config) return;
 
-    const item = items.find((i) => i.id === draggedItem);
+    const item = items!.find((i) => i.id === draggedItem);
     if (!item || item.placed) return;
 
     const isCorrect =
@@ -59,22 +122,30 @@ export function SortingGame() {
       (side === "left" && !item.startsWithAlef);
 
     if (isCorrect) {
-      setScore((prev) => prev + 10);
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === draggedItem ? { ...i, placed: true, position: side } : i
-        )
-      );
+      setScore((prev) => {
+        const newScore = prev + 10;
+        if (newScore >= config.items.length * config.scorePerCorrect)
+          setGameWon(true);
+        return newScore;
+      });
 
-      // Check if all items are placed
-      const allPlaced = items
-        .filter((i) => i.id !== draggedItem)
-        .every((i) => i.placed);
-      if (allPlaced) {
-        setTimeout(() => setGameWon(true), 500);
-      }
+      setItems((prev) => {
+        const updated = prev.map((i) =>
+          i.id === draggedItem ? { ...i, placed: true, position: side } : i
+        );
+
+        if (updated.every((i) => i.placed)) {
+          setTimeout(() => setGameWon(true), 500);
+        }
+
+        return updated;
+      });
     } else {
-      setMistakes((prev) => prev + 1);
+      setMistakes((prev) => {
+        const newMistakes = prev + 1;
+        if (newMistakes >= 3) setGameWon(true);
+        return newMistakes;
+      });
     }
 
     setDraggedItem(null);
@@ -85,16 +156,21 @@ export function SortingGame() {
   };
 
   const resetGame = () => {
-    setItems(
-      gameWords
-        .map((w, i) => ({
-          id: i,
-          ...w,
-          placed: false,
-          position: null,
-        }))
-        .sort(() => Math.random() - 0.5)
-    );
+    if (!config || !config.items?.length) return;
+
+    const resetItems: Item[] = config.items
+      .slice(0, 10)
+      .map((item, index) => ({
+        id: index,
+        word: item.word,
+        startsWithAlef: item.startsWithTarget,
+
+        placed: false,
+        position: null,
+      }))
+      .sort(() => Math.random() - 0.5);
+
+    setItems(resetItems);
     setScore(0);
     setMistakes(0);
     setGameWon(false);
@@ -104,6 +180,13 @@ export function SortingGame() {
   const unplacedItems = items.filter((i) => !i.placed);
   const leftItems = items.filter((i) => i.placed && i.position === "left");
   const rightItems = items.filter((i) => i.placed && i.position === "right");
+  if (loading) {
+    return <div className="text-center mt-20">جاري تحميل اللعبة...</div>;
+  }
+
+  if (!config) {
+    return <div className="text-center mt-20">لا توجد بيانات للعبة</div>;
+  }
 
   return (
     <div
@@ -157,11 +240,9 @@ export function SortingGame() {
             animate={{ opacity: 1, y: 0 }}
           >
             <h2 className="text-3xl mb-2" style={{ color: "#652b82" }}>
-              صنف الكلمات
+              {config.title}
             </h2>
-            <p className="text-xl text-gray-700">
-              اسحب الكلمات إلى المكان الصحيح
-            </p>
+            <p className="text-xl text-gray-700">{config.instruction}</p>
           </motion.div>
 
           {/* Unplaced Items */}

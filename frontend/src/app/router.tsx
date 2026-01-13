@@ -93,19 +93,19 @@ export function AppRouter({
       <Route path="/letter/:letter/videos" element={<VideosSection />} />
       <Route path="/letter/:letter/games" element={<GamesSection />} />
       <Route
-        path="/letter/:letter/games/color"
+        path="/letter/:letter/games/balloon_pop"
         element={<BalloonPopGame />}
       />
       <Route
-        path="/letter/:letter/games/draw"
+        path="/letter/:letter/games/memory_match"
         element={<MemoryMatchGame />}
       />
       <Route
-        path="/letter/:letter/games/position"
+        path="/letter/:letter/games/sorting"
         element={<SortingGame />}
       />
       <Route
-        path="/letter/:letter/games/sounds"
+        path="/letter/:letter/games/word_catch"
         element={<WordCatchGame />}
       />
       {/* أي مسار غلط */}

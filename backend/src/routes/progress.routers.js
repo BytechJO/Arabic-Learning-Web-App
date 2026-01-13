@@ -31,8 +31,8 @@ progressRouter.get(
   "/answers/question/:question_id/:user_id",
   getLastAnswerByQuestion
 );
-progressRouter.post("/student-answers/submit", submitAnswer);
-progressRouter.post("/student-lesson-result/calculate", calculateLessonResult);
+progressRouter.post("/student-answers/submit", authentication, submitAnswer);
+progressRouter.post("/student-lesson-result/calculate", authentication, calculateLessonResult);
 progressRouter.get(
   "/student-lesson-result/:lessons_id/:user_id",
   getLessonResultByUser

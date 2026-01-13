@@ -40,7 +40,7 @@ lessonRouter.post("/lesson-games", addGameLesson);
 lessonRouter.post("/game-configs", createGameConfig);
 lessonRouter.get("/game-lesson/:id/letter-id", getGamesByLetter);
 lessonRouter.get("/games/:id", getGameById);
-lessonRouter.post("/saveGameResult", saveGameResult);
+lessonRouter.post("/saveGameResult",authentication, saveGameResult);
 lessonRouter.get("/student-games/student/:student_id", getStudentGameResults);
 lessonRouter.get(
   "/student-games/student/:student_id/letter/:letter_id",

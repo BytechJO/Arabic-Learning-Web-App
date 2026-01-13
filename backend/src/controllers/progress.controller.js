@@ -226,8 +226,8 @@ const getLastAnswerByQuestion = async (req, res) => {
 };
 //=====================submitAnswer=====================
 const submitAnswer = async (req, res) => {
-  const { lessons_id, user_id, question_id, answer } = req.body;
-
+  const { lessons_id,  question_id, answer } = req.body;
+const user_id =req.token.userId
   try {
     const q = await client.query(
       `SELECT correct_answer
@@ -280,8 +280,8 @@ const submitAnswer = async (req, res) => {
 
 //=====================createOrUpdateLessonResult=====================
 const calculateLessonResult = async (req, res) => {
-  const { lessons_id, user_id } = req.body;
-
+  const { lessons_id } = req.body;
+ const user_id = req.token.userId
   try {
     // 1️⃣ حساب مجموع السكور
     const scoreResult = await client.query(

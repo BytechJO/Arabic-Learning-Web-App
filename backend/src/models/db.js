@@ -19,4 +19,3 @@ pool
   });
 
 module.exports = pool;
-

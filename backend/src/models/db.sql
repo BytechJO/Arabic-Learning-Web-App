@@ -80,6 +80,7 @@ CREATE TABLE video_lessons (
   lesson_id INTEGER,
   title VARCHAR,
   youtube_url VARCHAR,
+  description VARCHAR ,
   duration TIME,
   CONSTRAINT fk_video_lessons_letter
     FOREIGN KEY (letter_id) REFERENCES letters(id),
