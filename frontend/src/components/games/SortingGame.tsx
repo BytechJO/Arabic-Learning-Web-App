@@ -5,6 +5,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import api from "../../API/axios";
 import { saveGameResult } from "../../API/gameResult";
+import { RootState } from "../../redux/store";
+import { fetchLetters } from "../../redux/reducers/lettersSlice";
+import { useDispatch, useSelector } from "react-redux";
 interface Item {
   id: number;
   word: string;
@@ -38,53 +41,63 @@ export function SortingGame() {
   const [loading, setLoading] = useState(true);
   const [startTime] = useState(Date.now());
   const [gameLessonId, setGameLessonId] = useState<number | null>(null);
+ const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
 
+  const letterId = currentLetterFromRedux?.id;
+
+  const dispatch = useDispatch<any>();
   const getDuration = () => {
     return Math.floor((Date.now() - startTime) / 1000);
   };
-  const propLetter = letter;
 
-  useEffect(() => {
-    if (!propLetter) return;
-    const letterMap: Record<string, number> = {
-      أ: 1,
-      ب: 2,
-      ت: 3,
-    };
-    const letterId = letterMap[propLetter];
+ useEffect(() => {
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
+useEffect(() => {
+  if (!letter) return;
 
-    const fetchGame = async () => {
-      try {
-        const res = await api.get(
-          `/lessons/game-lesson/${letterId}/letter-id?type=sorting`
-        );
+  const fetchGame = async () => {
+    try {
+       const res = await api.get(
+        `/lessons/games-lessons/by-letter-and-type`,
+        {
+          params: {
+            letter: letter,
+            gameType: "sorting",
+          },
+        }
+      );
 
-        const game = res.data.data[0]; // 👈 أول لعبة
-        const gameConfig: SortingGameConfig = game.data; // 👈 الداتا الحقيقية
 
-        setGameLessonId(res.data.data?.[0].game_lesson_id);
-        setConfig(gameConfig);
-        const mappedItems: Item[] = gameConfig.items
-          .slice(0, 10)
-          .map((item, index) => ({
-            id: index,
-            word: item.word,
-            startsWithAlef: item.startsWithTarget,
-            placed: false,
-            position: null,
-          }))
-          .sort(() => Math.random() - 0.5);
+      const game = res.data.data;
 
-        setItems(mappedItems);
-      } catch (error) {
-        console.error("Error loading sorting game", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setGameLessonId(game.game_lesson_id);
+      setConfig(game.data);
 
-    fetchGame();
-  }, [propLetter]);
+      const mappedItems: Item[] = game.data.items
+        .slice(0, 10)
+        .map((item: any, index: number) => ({
+          id: index,
+          word: item.word,
+          startsWithAlef: item.startsWithTarget,
+          placed: false,
+          position: null,
+        }))
+        .sort(() => Math.random() - 0.5);
+
+      setItems(mappedItems);
+    } catch (error) {
+      console.error("Error loading sorting game", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchGame();
+}, [letter]);
 
   const handleDragStart = (itemId: number) => {
     setDraggedItem(itemId);

@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { ActivityFooter } from "./ActivityFooter";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,7 +16,8 @@ import {
   clearVideo,
 } from "../redux/reducers/videoLessonsSlice";
 import type { RootState, AppDispatch } from "../redux/store";
-
+import { fetchLetters } from "../redux/reducers/lettersSlice";
+import { upsertUserProgress } from "../API/userProgress";
 
 // فيديوهات خاصة بحرف الألف
 // const alifVideos = [
@@ -72,32 +73,57 @@ import type { RootState, AppDispatch } from "../redux/store";
 
 export function VideosSection() {
   const [currentPage, setCurrentPage] = useState(0);
+  const [progressSaved, setProgressSaved] = useState(false);
   const { letter } = useParams();
   const navigate = useNavigate();
+  const progressSavedRef = useRef(false);
   const dispatch = useDispatch<AppDispatch>();
-
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
+  const letterId = currentLetterFromRedux?.id;
   const { video, loading } = useSelector(
     (state: RootState) => state.videoLessons
   );
-
   useEffect(() => {
-    if (!letter) return;
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
+  useEffect(() => {
+    if (!letterId) return;
 
     dispatch(clearVideo()); // 🔥 مهم جداً
 
-    const letterIdMap: Record<string, number> = {
-      أ: 1,
-      ب: 2,
-      ت: 3,
-    };
-
     dispatch(
       fetchVideoLesson({
-        letterId: letterIdMap[letter],
+        letterId: letterId,
         lessonId: 4,
       })
     );
   }, [letter, dispatch]);
+
+  useEffect(() => {
+    const saveProgress = async () => {
+      if (!video || video.length === 0) return;
+      if (!letterId) return;
+      if (progressSavedRef.current) return;
+
+      dispatch(
+        await upsertUserProgress({
+          letter_id: letterId,
+          lesson_id: 4,
+          lesson_type: "video",
+          score: 1,
+          completed: true,
+        })
+      );
+
+      progressSavedRef.current = true;
+    };
+
+    saveProgress();
+  }, [video, letterId, dispatch]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -116,7 +142,7 @@ export function VideosSection() {
   }
 
   const currentLetter = letter;
-  const letterName = letter;
+  const letterName = currentLetterFromRedux?.name;
   const videosPerPage = 3;
   const totalPages = Math.ceil(video.length / videosPerPage);
 
@@ -185,7 +211,7 @@ export function VideosSection() {
                 className="text-3xl md:text-4xl mb-2"
                 style={{ color: "#652b82" }}
               >
-                فيديوهات حرف ال  {letterName || "ألف"}
+                فيديوهات حرف ال {letterName || "ألف"}
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 شاهد وتعلم حرف الألف بطريقة ممتعة

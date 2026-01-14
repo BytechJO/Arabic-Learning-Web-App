@@ -8,9 +8,10 @@ import ustadImage from "figma:asset/216a220785407a2bc8628b1a0d3bf85089f190e1.png
 import rasImage from "figma:asset/46c822ef74d9cc21028b51d1aa52c350af43ad74.png";
 import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { ActivityFooter } from "./ActivityFooter";
-
+import { upsertUserProgress } from "../API/userProgress";
 import { useParams, useNavigate } from "react-router-dom";
 import { RootState } from "../redux/store";
+import { fetchLetters } from "../redux/reducers/lettersSlice";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchVideoLesson,
@@ -37,35 +38,41 @@ export function LearnLetters() {
     (state: RootState) => state.videoLessons
   );
 
-  // const saveProgress = () => {
-  //   if (!user) return;
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
 
-  //   dispatch(
-  //     saveLessonProgress({
-  //       userId: user.id,
-  //       letter: currentLetter.arabic,
-  //       activity: "learn",
-  //     })
-  //   );
-  // };
+  const letterId = currentLetterFromRedux?.id;
+console.log(letterId);
+
   useEffect(() => {
-    if (!letter) return;
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
+  const saveLearnProgress = async () => {
+    if (!user || !letter) return;
+
+    await upsertUserProgress({
+      letter_id: letterId,
+      lesson_id: 1, // درس التعلم
+      lesson_type: "learn",
+      score: 1,
+      completed: true,
+    });
+  };
+
+  useEffect(() => {
+    if (!letterId) return;
 
     dispatch(clearVideo()); // 🔥 مهم جداً
 
-    const letterIdMap: Record<string, number> = {
-      أ: 1,
-      ب: 2,
-      ت: 3,
-    };
-
     dispatch(
       fetchVideoLesson({
-        letterId: letterIdMap[letter],
+        letterId: letterId,
         lessonId: 1,
       })
     );
-  }, [letter, dispatch]);
+  }, [letterId, dispatch]);
 
   const getVideoId = (url: string) => {
     const match = url.match(/embed\/([^?]+)/);
@@ -80,7 +87,7 @@ export function LearnLetters() {
   }, []);
 
   useEffect(() => {
-    if (!video[0]?.youtube_url) return;
+   if (!video.length) return;
     if (!window.YT || !window.YT.Player) return;
 
     const videoId = getVideoId(video[0].youtube_url);
@@ -106,7 +113,7 @@ export function LearnLetters() {
     }
   };
 
-  const letters = [
+  const lettersComp = [
     {
       arabic: "أ",
       name: "ألف",
@@ -150,7 +157,8 @@ export function LearnLetters() {
     { arabic: "ي", name: "ياء", sound: "ي", example: "يد", emoji: "✋" },
   ];
 
-  const currentLetter = letters.find((l) => l.arabic === letter) || letters[0];
+  const currentLetter =
+    lettersComp.find((l) => l.arabic === letter) || lettersComp[0];
 
   const speak = (text: string) => {
     if ("speechSynthesis" in window) {
@@ -161,17 +169,10 @@ export function LearnLetters() {
     }
   };
 
-  // if (!onBack) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50">
-  //       <div className="text-center">
-  //         <div className="text-6xl mb-3">📖</div>
-  //         <p className="text-base text-gray-400">اختر حرفاً من صفحة الحروف</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-  console.log(video);
+
+  if (loading) {
+    return <div className="text-center mt-20">جاري تحميل الفيديو...</div>;
+  }
 
   return (
     <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
@@ -237,7 +238,7 @@ export function LearnLetters() {
                 className="text-2xl md:text-3xl mb-1"
                 style={{ color: "#652b82" }}
               >
-                مرحباً بك في درس حرف {currentLetter.name || "الألف"}
+                مرحباً بك في درس حرف {currentLetterFromRedux?.name|| "الألف"}
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 شاهد الفيديو ثم ابدأ التعلم التفاعلي
@@ -263,20 +264,6 @@ export function LearnLetters() {
                   {loading && (
                     <p className="text-center">جاري تحميل الفيديو...</p>
                   )}
-
-                  {/* <iframe
-                    className="absolute top-0 left-0 w-full h-full"
-                    id="youtube-player"
-                    src={
-                      video
-                        ? `${video.youtube_url}`
-                        : undefined
-                    }
-                    title="فيديو تعليمي للحروف العربية"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe> */}
                   <div
                     id="youtube-player"
                     className="absolute top-0 left-0 w-full h-full"
@@ -292,7 +279,12 @@ export function LearnLetters() {
                 className="text-center mt-4"
               >
                 <motion.button
-                  onClick={() => videoEnded && setCurrentSlide(1)}
+                  onClick={async () => {
+                    if (!videoEnded) return;
+                    await saveLearnProgress(); // ✅ هون المكان الصح
+
+                    setCurrentSlide(1);
+                  }}
                   disabled={!videoEnded}
                   className="px-10 py-4 rounded-2xl shadow-2xl text-white text-xl transition-all"
                   style={{

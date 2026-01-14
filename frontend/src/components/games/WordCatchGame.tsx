@@ -4,7 +4,9 @@ import { Star, Award, RotateCcw, X } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../API/axios";
 import { saveGameResult } from "../../API/gameResult";
-
+import { RootState } from "../../redux/store";
+import { fetchLetters } from "../../redux/reducers/lettersSlice";
+import { useDispatch, useSelector } from "react-redux";
 interface FallingWord {
   id: number;
   word: string;
@@ -28,14 +30,8 @@ export function WordCatchGame() {
   const [mistakes, setMistakes] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [words, setWords] = useState<FallingWord[]>([]);
-  const [startTime] = useState(Date.now());
-  const [gameLessonId, setGameLessonId] = useState<number | null>(null);
-
-  const getDuration = () => {
-    return Math.floor((Date.now() - startTime) / 1000);
-  };
-
-  const [config, setConfig] = useState<WordCatchConfig | null>(null);
+  const [startTime] = useState(Date.now()); 
+   const [config, setConfig] = useState<WordCatchConfig | null>(null);
   const MAX_MISTAKES = 3;
   const MAX_CORRECT_WORDS = 10;
 
@@ -44,39 +40,54 @@ export function WordCatchGame() {
   const [nextId, setNextId] = useState(0);
   const { letter } = useParams();
   const navigate = useNavigate();
+  const [gameLessonId, setGameLessonId] = useState<number | null>(null);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
 
-  const propLetter = letter;
+  const letterId = currentLetterFromRedux?.id;
+
+  const dispatch = useDispatch<any>();
+  const getDuration = () => {
+    return Math.floor((Date.now() - startTime) / 1000);
+  };
+
+
+
   useEffect(() => {
-    if (!propLetter) return;
-    const letterMap: Record<string, number> = {
-      أ: 1,
-      ب: 2,
-      ت: 3,
-    };
-    const letterId = letterMap[propLetter];
-    const fetchGameConfig = async () => {
-      try {
-        const res = await api.get(
-          `/lessons/game-lesson/${letterId}/letter-id?type=word_catch`
-        );
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
 
-        const gameConfig = res.data.data?.[0]?.data;
-        console.log(res.data.data?.[0]);
-        
-        setGameLessonId(res.data.data?.[0].game_lesson_id);
-        if (!gameConfig) {
-          console.error("No game config found");
-          return;
+useEffect(() => {
+  if (!letter) return;
+  if (!letterId) return;
+
+  const fetchGameConfig = async () => {
+    try {
+      const res = await api.get(
+        `/lessons/games-lessons/by-letter-and-type`,
+        {
+          params: {
+            letter: letter,
+            gameType: "word_catch",
+          },
         }
+      );
 
-        setConfig(gameConfig);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+      const gameLesson = res.data.data;
 
-    fetchGameConfig();
-  }, []);
+  setGameLessonId(res.data.data.game_lesson_id);
+setConfig(res.data.data.data);
+    } catch (err) {
+      console.error("Error fetching game config", err);
+    }
+  };
+
+  fetchGameConfig();
+}, [letter, letterId]);
+
 
   useEffect(() => {
     if (!config || gameOver) return;
@@ -120,25 +131,29 @@ export function WordCatchGame() {
 
     return () => clearInterval(animationFrame);
   }, []);
-  useEffect(() => {
-    if (!gameOver) return;
 
-    const saveResult = async () => {
-      try {
-        await saveGameResult({
-          games_lessons_id: gameLessonId! /* id اللعبة */,
-          score: score,
-          duration: getDuration(),
-        });
+  
+ useEffect(() => {
+  if (!gameOver) return;
+  if (!gameLessonId) return;
 
-        console.log("Game result saved ✅");
-      } catch (error) {
-        console.error("Error saving game result", error);
-      }
-    };
+  const saveResult = async () => {
+    try {
+      await saveGameResult({
+        games_lessons_id: gameLessonId,
+        score: score,
+        duration: getDuration(),
+      });
 
-    saveResult();
-  }, [gameOver]);
+      console.log("Game result saved ✅");
+    } catch (error) {
+      console.error("Error saving game result", error);
+    }
+  };
+
+  saveResult();
+}, [gameOver, gameLessonId]);
+
 
   const handleWordClick = (word: FallingWord) => {
     if (word.startsWithAlef) {

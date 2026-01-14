@@ -8,11 +8,20 @@ export interface User {
 }
 
 export interface Classroom {
-  id: string;
+  students: any;
+  id: number;
   name: string;
-  teacherId: string;
   code: string;
-  students: string[];
+  status: string;
+  created_at: string;
+  students_count: number;
+}
+
+export interface ClassStudent {
+  id: number;
+  username: string;
+  email: string;
+  jouind_at: string;
 }
 
 // نظام التتبع

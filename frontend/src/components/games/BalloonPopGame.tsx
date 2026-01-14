@@ -4,6 +4,10 @@ import { Star, Award, RotateCcw, X } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../API/axios";
 import { saveGameResult } from "../../API/gameResult";
+import { RootState } from "../../redux/store";
+import { fetchLetters } from "../../redux/reducers/lettersSlice";
+import { useDispatch, useSelector } from "react-redux";
+
 interface BalloonPopGameProps {
   onBack: () => void;
 }
@@ -73,29 +77,37 @@ export function BalloonPopGame() {
   const navigate = useNavigate();
   const [config, setConfig] = useState<BalloonPopConfig | null>(null);
   const [loading, setLoading] = useState(true);
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
+
+  const letterId = currentLetterFromRedux?.id;
+
+  const dispatch = useDispatch<any>();
+
+  useEffect(() => {
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
 
   useEffect(() => {
     if (!letter) return;
-
-    const letterMap: Record<string, number> = {
-      أ: 1,
-      ب: 2,
-      ت: 3,
-    };
-
-    const letterId = letterMap[letter];
+    if (!letterId) return;
 
     const fetchGame = async () => {
       try {
-        const res = await api.get(
-          `/lessons/game-lesson/${letterId}/letter-id?type=balloon_pop`
-        );
+        const res = await api.get(`/lessons/games-lessons/by-letter-and-type`, {
+          params: {
+            letter: letter,
+            gameType: "balloon_pop",
+          },
+        });
 
         // لأنو الريسبونس Array
-        const game = res.data.data[0];
+        const game = res.data.data;
 
+        setGameLessonId(game.game_lesson_id);
         setConfig(game.data);
-        setGameLessonId(res.data.data?.[0].game_lesson_id);
       } catch (err) {
         console.error("Error loading balloon game", err);
       } finally {
@@ -104,7 +116,7 @@ export function BalloonPopGame() {
     };
 
     fetchGame();
-  }, [letter]);
+  }, [letter, letterId]);
 
   useEffect(() => {
     if (!config || gameOver || lives <= 0 || correctCount >= 10) return;
@@ -147,14 +159,7 @@ export function BalloonPopGame() {
           duration: getDuration(),
         });
 
-        console.log(
-          "Game result saved ✅",
-          await saveGameResult({
-            games_lessons_id: gameLessonId! /* id اللعبة */,
-            score: score,
-            duration: getDuration(),
-          })
-        );
+        console.log("Game result saved ✅");
       } catch (error) {
         console.error("Error saving game result", error);
       }

@@ -2,15 +2,14 @@ const client = require("../models/db");
 
 //==================== upsertUserProgress ===================
 const upsertUserProgress = async (req, res) => {
-  const { user_id, letter_id, lesson_id, lesson_type, score, completed } =
-    req.body;
-
+  const { letter_id, lesson_id, lesson_type, score, completed } = req.body;
+  const user_id = req.token.userId;
   try {
     const query = `
       INSERT INTO user_progress
       (user_id, letter_id, lesson_id, lesson_type, score, completed, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, NOW())
-      ON CONFLICT (user_id, lesson_id)
+      ON CONFLICT (user_id, letter_id, lesson_id)
       DO UPDATE SET
         score = EXCLUDED.score,
         completed = EXCLUDED.completed,
@@ -31,6 +30,71 @@ const upsertUserProgress = async (req, res) => {
       success: true,
       message: "Progress saved successfully",
       data: result.rows[0],
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+//==================== getCurrentLessonForLetter ===================
+const getCurrentLessonForLetter = async (req, res) => {
+  const { letter_id } = req.params;
+  const user_id = req.token.userId;
+
+  try {
+    const query = `
+      SELECT 
+        ll.id AS lesson_id,
+        ll.title,
+        ll.order_index,
+        COALESCE(up.completed, false) AS completed
+      FROM letter_lessons ll
+      LEFT JOIN user_progress up
+        ON up.lesson_id = ll.id
+        AND up.user_id = $1
+      WHERE ll.letter_id = $2
+      ORDER BY ll.order_index ASC;
+    `;
+
+    const result = await client.query(query, [user_id, letter_id]);
+
+    // أول درس غير مكتمل
+    const currentLesson = result.rows.find(
+      (lesson) => lesson.completed === false
+    );
+
+    // الطالب مخلص كل الدروس
+    if (!currentLesson) {
+      const completedLessons = result.rows.map((lesson) => ({
+        lesson_id: lesson.lesson_id,
+        title: lesson.title,
+        order_index: lesson.order_index,
+      }));
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          completed_all: true,
+          completed_lessons: completedLessons,
+        },
+      });
+    }
+
+    // لسه في دروس
+    res.status(200).json({
+      success: true,
+      data: {
+        completed_all: false,
+        currentLesson: {
+          lesson_id: currentLesson.lesson_id,
+          title: currentLesson.title,
+          order_index: currentLesson.order_index,
+        },
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -226,8 +290,8 @@ const getLastAnswerByQuestion = async (req, res) => {
 };
 //=====================submitAnswer=====================
 const submitAnswer = async (req, res) => {
-  const { lessons_id,  question_id, answer } = req.body;
-const user_id =req.token.userId
+  const { lessons_id, question_id, answer } = req.body;
+  const user_id = req.token.userId;
   try {
     const q = await client.query(
       `SELECT correct_answer
@@ -281,7 +345,7 @@ const user_id =req.token.userId
 //=====================createOrUpdateLessonResult=====================
 const calculateLessonResult = async (req, res) => {
   const { lessons_id } = req.body;
- const user_id = req.token.userId
+  const user_id = req.token.userId;
   try {
     // 1️⃣ حساب مجموع السكور
     const scoreResult = await client.query(
@@ -405,6 +469,175 @@ const markLessonCompleted = async (req, res) => {
   }
 };
 
+
+const checkLetterCompletion = async (req, res) => {
+  try {
+    const userId = req.token.userId;
+    const { letterId } = req.params;
+
+    // 1️⃣ عدد الدروس الكلي (ثابت لكل الحروف)
+    const totalLessonsQuery = `
+      SELECT COUNT(*) AS total
+      FROM letter_lessons
+    `;
+
+    // 2️⃣ عدد الدروس المكتملة لهذا الحرف عند الطالب
+    const completedLessonsQuery = `
+      SELECT COUNT(DISTINCT lesson_id) AS completed
+      FROM user_progress
+      WHERE user_id = $1
+        AND letter_id = $2
+        AND completed = true
+    `;
+
+    const [{ rows: totalRows }, { rows: completedRows }] = await Promise.all([
+      client.query(totalLessonsQuery),
+      client.query(completedLessonsQuery, [userId, letterId]),
+    ]);
+
+    const totalLessons = Number(totalRows[0].total);
+    const completedLessons = Number(completedRows[0].completed);
+
+    const isCompleted = totalLessons > 0 && totalLessons === completedLessons;
+
+    // 3️⃣ جلب الحرف التالي
+    const nextLetterQuery = `
+      SELECT id, symbol, name
+      FROM letters
+      WHERE id > $1
+      ORDER BY id ASC
+      LIMIT 1
+    `;
+
+    const nextLetterResult = await client.query(nextLetterQuery, [letterId]);
+
+    const nextLetter = nextLetterResult.rows[0] || null;
+
+    res.status(200).json({
+      letterId: Number(letterId),
+      totalLessons,
+      completedLessons,
+      isCompleted,
+      unlockNextLetter: isCompleted && !!nextLetter,
+      nextLetter,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to check letter completion",
+    });
+  }
+};
+
+
+
+ const getUserLettersStatus = async (req, res) => {
+  try {
+    const userId = req.token.userId;
+
+    // 1️⃣ كل الحروف بالترتيب
+    const lettersQuery = `
+      SELECT id, symbol, name
+      FROM letters
+      ORDER BY id ASC
+    `;
+
+    // 2️⃣ عدد الدروس الكلي
+    const totalLessonsQuery = `
+      SELECT COUNT(*) AS total
+      FROM letter_lessons
+    `;
+
+    // 3️⃣ الدروس المكتملة لكل حرف عند الطالب
+    const progressQuery = `
+      SELECT letter_id, COUNT(DISTINCT lesson_id) AS completed
+      FROM user_progress
+      WHERE user_id = $1
+        AND completed = true
+      GROUP BY letter_id
+    `;
+
+    const [lettersRes, totalLessonsRes, progressRes] =
+      await Promise.all([
+        client.query(lettersQuery),
+        client.query(totalLessonsQuery),
+        client.query(progressQuery, [userId]),
+      ]);
+
+    const letters = lettersRes.rows;
+    const totalLessons = Number(totalLessonsRes.rows[0].total);
+
+    // خريطة إنجاز الطالب
+    const progressMap = {};
+    progressRes.rows.forEach((row) => {
+      progressMap[row.letter_id] = Number(row.completed);
+    });
+
+    let firstUnlockedFound = false;
+
+    const lettersWithStatus = letters.map((letter) => {
+      const completedLessons = progressMap[letter.id] || 0;
+      const isCompleted =
+        totalLessons > 0 && completedLessons === totalLessons;
+
+      let status = "locked";
+
+      if (isCompleted) {
+        status = "completed";
+      } else if (!firstUnlockedFound) {
+        status = "unlocked";
+        firstUnlockedFound = true;
+      }
+
+      return {
+        ...letter,
+        status, // locked | unlocked | completed
+      };
+    });
+
+    res.status(200).json({
+      totalLessons,
+      letters: lettersWithStatus,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to get letters status",
+    });
+  }
+};
+const getStudentProgress = async (req, res) => {
+  const { studentId } = req.params;
+
+  try {
+    const student = await client.query(
+      `SELECT id, name, email FROM users WHERE id = $1`,
+      [studentId]
+    );
+
+    if (student.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    const stats = await getStudentStats(studentId);
+    const activityScores = await getActivityScores(studentId);
+    const recentActivities = await getRecentActivities(studentId);
+
+    res.json({
+      success: true,
+      data: {
+        student: student.rows[0],
+        ...stats,
+        activityScores,
+        recentActivities,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
 module.exports = {
   upsertUserProgress,
   getUserProgressByLetter,
@@ -418,4 +651,6 @@ module.exports = {
   getLessonResultByUser,
   getAllLessonResultsByUser,
   markLessonCompleted,
+  getCurrentLessonForLetter,
+  checkLetterCompletion,getUserLettersStatus,getStudentProgress
 };

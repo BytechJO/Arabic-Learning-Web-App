@@ -7,3 +7,20 @@ export async function joinClassroomByCode(code: string) {
 
   return response.data;
 }
+
+export const getTeacherClasses = () => {
+  return api.get("/class/getClassByTeacherId");
+};
+
+
+export const getStudentsByClassId = (classId: number) => {
+  return api.get(`/class/student/${classId}`);
+};
+
+export const createClass = (name: string) => {
+  return api.post("/class/createNewClass", { name });
+};
+
+export const deleteClassById = (classId: number) => {
+  return api.delete(`/class/deleteClass/${classId}`);
+};

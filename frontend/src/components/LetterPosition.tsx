@@ -7,10 +7,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { submitAnswer, calculateLessonResult } from "../API/result";
 import { getLetterPositionQuestions } from "../API/questions";
+import { upsertUserProgress } from "../API/userProgress";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import { fetchLetters } from "../redux/reducers/lettersSlice";
+
 export function LetterPosition() {
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
-
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showFeedback, setShowFeedback] = useState<"correct" | "wrong" | null>(
     null
@@ -20,9 +24,15 @@ export function LetterPosition() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFinishModal, setShowFinishModal] = useState(false);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetterFromRedux = letters.find((l) => l.symbol === symbol);
 
+  const letterId = currentLetterFromRedux?.id;
+
+  const dispatch = useDispatch<any>();
   const propLetter = symbol;
-  const letterName = symbol;
+
   if (!propLetter) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50 flex items-center justify-center p-6">
@@ -32,10 +42,22 @@ export function LetterPosition() {
       </div>
     );
   }
-  const letterMap: Record<string, number> = {
-    أ: 1,
-    ب: 2,
-    ت: 3,
+
+  useEffect(() => {
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
+  const saveLearnProgress = async () => {
+    if (!user || !symbol) return;
+
+    await upsertUserProgress({
+      letter_id: letterId,
+      lesson_id: 12, // درس التعلم
+      lesson_type: "position",
+      score: score,
+      completed: true,
+    });
   };
 
   useEffect(() => {
@@ -44,7 +66,6 @@ export function LetterPosition() {
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const letterId = letterMap[propLetter];
         const data = await getLetterPositionQuestions(letterId, 12);
         setQuestions(data);
         setCurrentQuestion(0);
@@ -96,7 +117,8 @@ export function LetterPosition() {
           if (!data.is_completed || data.is_completed) {
             setTotalScore(data.total_score);
           }
-
+          // ✅ هون المكان الصح
+          await saveLearnProgress();
           setShowFinishModal(true);
         }
       }, 1500);
@@ -153,7 +175,7 @@ export function LetterPosition() {
                 className="text-xl md:text-2xl mb-1"
                 style={{ color: "#652b82" }}
               >
-                حدد مكان حرف {letterName}
+                حدد مكان حرف {currentLetterFromRedux?.name}
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 اختر المكان الصحيح للحرف في الكلمة
@@ -272,7 +294,7 @@ export function LetterPosition() {
                   className="text-2xl md:text-3xl"
                   style={{ color: "#652b82" }}
                 >
-                  {letterName}
+                  {currentLetterFromRedux?.name}
                 </span>{" "}
                 في هذه الكلمة؟
               </p>
@@ -436,7 +458,10 @@ export function LetterPosition() {
       </AnimatePresence>
       {/* Footer للأنشطة */}
 
-      <ActivityFooter currentLetter={propLetter} letterName={letterName} />
+      <ActivityFooter
+        currentLetter={propLetter}
+        letterName={currentLetterFromRedux?.name}
+      />
     </div>
   );
 }

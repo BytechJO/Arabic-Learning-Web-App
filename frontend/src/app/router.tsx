@@ -19,15 +19,17 @@ import { BalloonPopGame } from "../components/games/BalloonPopGame";
 import { MemoryMatchGame } from "../components/games/MemoryMatchGame";
 import { SortingGame } from "../components/games/SortingGame";
 import { WordCatchGame } from "../components/games/WordCatchGame";
+import { TeacherResources } from "../components/TeacherResources";
+import { ClassroomManagement } from "../components/ClassroomManagement";
+import { StudentsManagement } from "../components/StudentsManagement";
+
 interface AppRouterProps {
   onChooseType: (type: "student" | "teacher") => void;
-  onLogin: (user: any) => void; // مؤقت
   selectedUserType: "student" | "teacher" | null;
   currentUser: User | null;
   onLogout: () => void;
   onNavigate: (section: string) => void;
 }
-
 export function AppRouter({
   onChooseType,
   selectedUserType,
@@ -35,19 +37,40 @@ export function AppRouter({
 }: AppRouterProps) {
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
+
   return (
     <Routes>
-      <Route path="/" element={<ChooseAccountType onChoose={onChooseType} />} />
+      {/* الجذر */}
+      <Route
+        path="/"
+        element={
+          user ? (
+            user.type === "student" ? (
+              <Navigate to="/student/home" />
+            ) : (
+              <Navigate to="/teacher/home" />
+            )
+          ) : (
+            <ChooseAccountType onChoose={onChooseType} />
+          )
+        }
+      />
+
+      {/* تسجيل الدخول */}
       <Route
         path="/login/:type"
         element={
           selectedUserType ? (
-            <LoginPage userType={selectedUserType} onBack={() => {}} />
+            <LoginPage
+              userType={selectedUserType}
+              onBack={() => navigate("/")}
+            />
           ) : (
             <Navigate to="/" />
           )
         }
       />
+
       {/* طالب */}
       <Route
         path="/student/home"
@@ -64,27 +87,28 @@ export function AppRouter({
       <Route
         path="/teacher/home"
         element={
-          user?.type === "teacher" ? (
-            <TeacherHomePage user={user} onLogout={onLogout} />
-          ) : (
-            <Navigate to="/" />
-          )
+          user?.type === "teacher" ? <TeacherHomePage /> : <Navigate to="/" />
         }
+      />
+      <Route path="/teacher/resources" element={<TeacherResources />} />
+      <Route
+        path="/teacher/letters"
+        element={<LettersDashboard onLogout={onLogout} />}
+      />
+       <Route
+        path="/teacher/students"
+        element={<StudentsManagement />}
       />
       <Route
         path="/letters"
         element={<LettersDashboard onLogout={onLogout} />}
       />
+
       <Route
         path="/my-classroom"
-        element={
-          <JoinClassroom
-            onClose={() => {
-              navigate("/student/home");
-            }}
-          />
-        }
+        element={<JoinClassroom onClose={() => navigate("/student/home")} />}
       />
+
       <Route path="/letter/:letter" element={<LetterDetails />} />
       <Route path="/letter/:letter/learn" element={<LearnLetters />} />
       <Route path="/letter/:letter/write" element={<LearnLetters2 />} />
@@ -92,6 +116,7 @@ export function AppRouter({
       <Route path="/letter/:letter/tashkeel" element={<LetterTashkeel />} />
       <Route path="/letter/:letter/videos" element={<VideosSection />} />
       <Route path="/letter/:letter/games" element={<GamesSection />} />
+
       <Route
         path="/letter/:letter/games/balloon_pop"
         element={<BalloonPopGame />}
@@ -100,14 +125,12 @@ export function AppRouter({
         path="/letter/:letter/games/memory_match"
         element={<MemoryMatchGame />}
       />
-      <Route
-        path="/letter/:letter/games/sorting"
-        element={<SortingGame />}
-      />
+      <Route path="/letter/:letter/games/sorting" element={<SortingGame />} />
       <Route
         path="/letter/:letter/games/word_catch"
         element={<WordCatchGame />}
       />
+
       {/* أي مسار غلط */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

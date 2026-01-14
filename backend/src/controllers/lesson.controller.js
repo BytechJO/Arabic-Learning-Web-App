@@ -254,7 +254,7 @@ const getVideoLessonsByLetterAndLesson = async (req, res) => {
       vl.description,
       vl.duration,
      
-      ll.id AS lesson_id, ll.letter_id AS letter_id,
+      ll.id AS lesson_id, 
       ll.title AS lesson_title,
       ll.order_index,
       ll.is_lastLesson
@@ -345,9 +345,8 @@ const getGamesByLetter = async (req, res) => {
       ON gc.lesson_id = ll.id
     JOIN games_lessons gl
       ON gl.lesson_id = ll.id
-      AND gl.letter_id = ll.letter_id
       AND gl.game_type = gc.game_type
-    WHERE ll.letter_id = $1
+    WHERE gc.letter_id = $1
       AND ll.is_lastLesson = true
   `;
 
@@ -383,7 +382,6 @@ const getGamesByLetter = async (req, res) => {
     });
   }
 };
-
 
 //================= createGameConfig  ======================//
 const createGameConfig = async (req, res) => {
@@ -465,7 +463,7 @@ const getGameById = async (req, res) => {
 //==================== saveGameResult ===================
 const saveGameResult = async (req, res) => {
   const { games_lessons_id, score, duration } = req.body;
-const student_id = req.token.userId
+  const student_id = req.token.userId;
   if (!student_id || !games_lessons_id) {
     return res.status(400).json({
       success: false,
@@ -775,7 +773,6 @@ const updateQuestion = async (req, res) => {
   }
 };
 
-
 //==================== deleteQuestion ===================
 const deleteQuestion = async (req, res) => {
   const { id } = req.params;
@@ -810,7 +807,119 @@ const deleteQuestion = async (req, res) => {
   }
 };
 
+const getLetterGamesProgress = async (req, res) => {
+  try {
+    const { letterId } = req.params;
+    const studentId = req.token.userId; // أو req.params / req.body حسب نظامك
 
+    const query = `
+      SELECT
+        gl.id AS game_lesson_id,
+        gl.game_type,
+        gl.order_index,
+        CASE
+          WHEN sgr.id IS NOT NULL THEN true
+          ELSE false
+        END AS is_played,
+        COALESCE(sgr.score, 0) AS score,
+        sgr.duration
+      FROM games_lessons gl
+      LEFT JOIN student_game_results sgr
+        ON gl.id = sgr.games_lessons_id
+        AND sgr.student_id = $1
+      WHERE gl.letter_id = $2
+      ORDER BY gl.order_index;
+    `;
+
+    const { rows } = await client.query(query, [
+      studentId,
+      Number(letterId),
+    ]);
+
+    // لو ما في ألعاب أصلاً
+    if (rows.length === 0) {
+      return res.status(200).json({
+        letterId: Number(letterId),
+        totalGames: 0,
+        playedGamesCount: 0,
+        isCompleted: true,
+        playedGames: [],
+        unplayedGames: [],
+      });
+    }
+
+    const playedGames = rows.filter((g) => g.is_played);
+    const unplayedGames = rows.filter((g) => !g.is_played);
+
+    res.status(200).json({
+      letterId: Number(letterId),
+      totalGames: rows.length,
+      playedGamesCount: playedGames.length,
+      isCompleted: playedGames.length === rows.length,
+      playedGames,
+      unplayedGames,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to get letter games progress",
+    });
+  }
+};
+
+
+const getGameLessonByLetterAndType = async (req, res) => {
+  const { letter, gameType } = req.query;
+
+  if (!letter || !gameType) {
+    return res.status(400).json({
+      success: false,
+      message: "letter and gameType are required",
+    });
+  }
+
+  try {
+    const query = `
+      SELECT
+        gl.id AS game_lesson_id,
+        gl.game_type,
+        gl.lesson_id,
+        gc.data,
+        l.id AS letter_id,
+        l.symbol
+      FROM games_lessons gl
+      JOIN letters l 
+        ON l.id = gl.letter_id
+      JOIN game_configs gc
+        ON gc.letter_id = gl.letter_id
+       AND gc.lesson_id = gl.lesson_id
+       AND gc.game_type = gl.game_type
+      WHERE l.symbol = $1
+        AND gl.game_type = $2
+      LIMIT 1;
+    `;
+
+    const result = await client.query(query, [letter, gameType]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Game lesson not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   createLesson,
@@ -830,5 +939,6 @@ module.exports = {
   addQuestion,
   getQuestionsByLesson,
   updateQuestion,
-  deleteQuestion
+  deleteQuestion,
+  getLetterGamesProgress,getGameLessonByLetterAndType
 };

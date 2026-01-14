@@ -1,82 +1,140 @@
 import { ArrowRight, Volume2, Pencil, MapPin, Palette } from "lucide-react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { ActivityFooter } from "./ActivityFooter";
 import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../API/axios";
-import { useEffect, useState } from "react";
-const games = [
-  {
-    id: "word_catch",
-    title: "اصطد كلمات الألف",
-    description: "اصطد الكلمات التي تبدأ بحرف الألف قبل أن تختفي",
-    icon: Volume2,
-    color: "#652b82",
-    iconBgColor: "#fad656",
-  },
-  {
-    id: "memory_match",
-    title: "ذاكرة الألف",
-    description: "اقلب البطاقات وطابق حرف الألف مع الكلمات",
-    icon: Pencil,
-    color: "#652b82",
-    iconBgColor: "#fad656",
-  },
-  {
-    id: "sorting",
-    title: "صنف كلمات الألف",
-    description: "اسحب الكلمات للمكان الصحيح: ألف أم حروف أخرى",
-    icon: MapPin,
-    color: "#652b82",
-    iconBgColor: "#fad656",
-  },
-  {
-    id: "balloon_pop",
-    title: "بالونات الألف",
-    description: "افرقع البالونات التي تحتوي على كلمات تبدأ بالألف",
-    icon: Palette,
-    color: "#652b82",
-    iconBgColor: "#fad656",
-  },
-];
+import { useEffect, useState, useRef } from "react";
+import { RootState } from "../redux/store";
+import { fetchLetters } from "../redux/reducers/lettersSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { upsertUserProgress } from "../API/userProgress";
 
 export function GamesSection() {
   const { letter } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch<any>();
+  const progressSavedRef = useRef(false);
+  const [gamesCompleted, setGamesCompleted] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
+
+  const letterId = currentLetterFromRedux?.id;
 
   const currentLetter = letter;
-  const letterName = letter;
+  const letterName = currentLetterFromRedux?.name;
 
   const [availableGames, setAvailableGames] = useState<string[]>([]);
-const [loadingGames, setLoadingGames] = useState(true);
+  const [loadingGames, setLoadingGames] = useState(true);
+
+  const games = [
+    {
+      id: "word_catch",
+      title: `اصطد كلمات ال${currentLetterFromRedux?.name}`,
+      description: `اصطد الكلمات التي تبدأ بحرف ال${currentLetterFromRedux?.name} قبل أن تختفي `,
+      icon: Volume2,
+      color: "#652b82",
+      iconBgColor: "#fad656",
+    },
+    {
+      id: "memory_match",
+      title: `ذاكرة ال${currentLetterFromRedux?.name}`,
+      description: `اقلب البطاقات وطابق حرف ال${currentLetterFromRedux?.name} مع الكلمات`,
+      icon: Pencil,
+      color: "#652b82",
+      iconBgColor: "#fad656",
+    },
+    {
+      id: "sorting",
+      title: `صنف كلمات ال${currentLetterFromRedux?.name}`,
+      description: `اسحب الكلمات للمكان الصحيح: ${currentLetterFromRedux?.name} أم حروف أخرى`,
+      icon: MapPin,
+      color: "#652b82",
+      iconBgColor: "#fad656",
+    },
+    {
+      id: "balloon_pop",
+      title: `بالونات ال${currentLetterFromRedux?.name}`,
+      description: ` افرقع البالونات التي تحتوي على كلمات تبدأ ب ${currentLetterFromRedux?.name}`,
+      icon: Palette,
+      color: "#652b82",
+      iconBgColor: "#fad656",
+    },
+  ];
 
   useEffect(() => {
-    if (!letter) return;
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
 
-    const letterMap: Record<string, number> = {
-      أ: 1,
-      ب: 2,
-      ت: 3,
+  useEffect(() => {
+    if (!letterId) return;
+    const fetchGames = async () => {
+      try {
+        const res = await api.get(`/lessons/game-lesson/${letterId}/letter-id`);
+
+        const gameTypes = res.data.data.map((g: any) => g.game_type);
+        setAvailableGames(gameTypes);
+      } catch (error) {
+        console.error("Error fetching games:", error);
+      } finally {
+        setLoadingGames(false);
+      }
     };
 
-    const letterId = letterMap[letter];
-
-  const fetchGames = async () => {
-  try {
-    const res = await api.get(`/lessons/game-lesson/${letterId}/letter-id`);
-
-    const gameTypes = res.data.data.map((g: any) => g.game_type);
-    setAvailableGames(gameTypes);
-  } catch (error) {
-    console.error("Error fetching games:", error);
-  } finally {
-    setLoadingGames(false);
-  }
-};
-
-
     fetchGames();
-  }, [letter]);
+  }, [letterId]);
+
+  useEffect(() => {
+    if (!letterId) return;
+
+    const checkGamesCompletion = async () => {
+      try {
+        const res = await api.get(`/lessons/${letterId}/games/progress`);
+
+        const { isCompleted } = res.data;
+
+        setGamesCompleted(isCompleted);
+        console.log(res.data);
+
+        // لو الطالب خلص كل الألعاب ولسا ما حفظنا التقدم
+        if (isCompleted && !progressSavedRef.current) {
+          progressSavedRef.current = true;
+
+          await upsertUserProgress({
+            letter_id: letterId,
+            lesson_id: 5, // درس التعلم
+            lesson_type: "game",
+            score: 1,
+            completed: true,
+          });
+
+          setShowCompleteModal(true);
+        }
+      } catch (error) {
+        console.error("Error checking games progress:", error);
+      }
+    };
+
+    checkGamesCompletion();
+  }, [letterId]);
+  const handleGoToNextLetter = async () => {
+    try {
+      // الانتقال للحرف التالي
+      navigate("/letters");
+      // أو لو عندك ترتيب:
+      // navigate(`/letters/${nextLetterSymbol}`);
+    } catch (error) {
+      console.error("Error saving progress:", error);
+    }
+  };
+
+  const handleStayHere = () => {
+    setShowCompleteModal(false);
+  };
 
   return (
     <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
@@ -129,10 +187,10 @@ const [loadingGames, setLoadingGames] = useState(true);
               className="text-3xl md:text-4xl mb-3"
               style={{ color: "#652b82" }}
             >
-              ألعاب حرف {letterName}
+              ألعاب حرف ال{letterName}
             </h1>
             <p className="text-xs md:text-sm text-gray-700">
-              اختر لعبة للبدء في التعلم والمرح مع حرف {letterName}
+              اختر لعبة للبدء في التعلم والمرح مع حرف ال{letterName}
             </p>
           </motion.div>
 
@@ -140,8 +198,8 @@ const [loadingGames, setLoadingGames] = useState(true);
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {games.map((game, index) => {
               const Icon = game.icon;
-            const isAvailable =
-  loadingGames || availableGames.includes(game.id);
+              const isAvailable =
+                loadingGames || availableGames.includes(game.id);
 
               return (
                 <motion.button
@@ -234,6 +292,99 @@ const [loadingGames, setLoadingGames] = useState(true);
           }}
         />
       </motion.div>
+      <AnimatePresence>
+        {showCompleteModal && (
+          <motion.div
+            className="fixed inset-0 flex items-center justify-center z-50"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleStayHere}
+          >
+            <motion.div
+              className="bg-white rounded-2xl p-6 md:p-8 shadow-2xl text-center max-w-sm mx-4 flex flex-col items-center"
+              initial={{ scale: 0.5, y: 100 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.5, y: 100 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* أيقونة النجاح */}
+              <motion.div
+                className="w-16 h-16 md:w-20 md:h-20 mb-4 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: "#fad656" }}
+                initial={{ rotate: -180, scale: 0 }}
+                animate={{ rotate: 0, scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              >
+                <span className="text-3xl md:text-4xl">🎉</span>
+              </motion.div>
+
+              {/* العنوان */}
+              <motion.h2
+                className="text-2xl md:text-3xl mb-2"
+                style={{ color: "#652b82" }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                أحسنت!
+              </motion.h2>
+
+              {/* الرسالة */}
+              <motion.p
+                className="text-sm md:text-base text-gray-600 mb-6 leading-relaxed"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                لقد أنهيت جميع ألعاب حرف{" "}
+                <span className="font-semibold" style={{ color: "#652b82" }}>
+                  {letterName}
+                </span>
+                <br />
+                هل تود الانتقال إلى الحرف التالي؟
+              </motion.p>
+
+              {/* الأزرار */}
+              <div className="flex gap-4">
+                <motion.button
+                  onClick={handleStayHere}
+                  className="px-5 py-2.5 rounded-xl border-2"
+                  style={{
+                    borderColor: "#652b82",
+                    color: "#652b82",
+                    backgroundColor: "white",
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  البقاء هنا
+                </motion.button>
+
+                <motion.button
+                  onClick={handleGoToNextLetter}
+                  className="px-5 py-2.5 rounded-xl text-white shadow-lg"
+                  style={{
+                    background: "linear-gradient(135deg, #652b82, #7d3ba0)",
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  الانتقال
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* تذييل النشاط */}
 

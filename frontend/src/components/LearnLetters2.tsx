@@ -13,7 +13,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { fetchVideoLesson } from "../redux/reducers/videoLessonsSlice";
-
+import { upsertUserProgress } from "../API/userProgress";
+import { fetchLetters } from "../redux/reducers/lettersSlice";
 interface LearnLetters2Props {
   currentLetter?: string;
   letterName?: string;
@@ -32,10 +33,7 @@ declare global {
   }
 }
 
-export function LearnLetters2({
-  currentLetter: propLetter,
-  letterName,
-}: LearnLetters2Props) {
+export function LearnLetters2() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [videoEnded, setVideoEnded] = useState(false);
   const [selectedColor, setSelectedColor] = useState("#fad656");
@@ -46,61 +44,58 @@ export function LearnLetters2({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const letterMaskRef = useRef<ImageData | null>(null);
   const { letter } = useParams<{ letter: string }>();
+  const user = useSelector((state: RootState) => state.auth.user);
   const navigate = useNavigate();
   const dispatch = useDispatch<any>();
 
   const { video, loading } = useSelector(
     (state: RootState) => state.videoLessons
   );
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
+
+  const letterId = currentLetterFromRedux?.id;
+  console.log(currentLetterFromRedux?.name);
 
   useEffect(() => {
-    if (!letter) return;
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
+  const saveLearnProgress = async () => {
+    if (!user || !letter) return;
 
-    const letterIdMap: Record<string, number> = {
-      أ: 1,
-      ب: 2,
-      ت: 3,
-      ث: 4,
-      // كمّليهم
-    };
+    await upsertUserProgress({
+      letter_id: letterId,
+      lesson_id: 2, // درس التعلم
+      lesson_type: "write",
+      score: 1,
+      completed: true,
+    });
+  };
 
-    const letterId = letterIdMap[letter];
-
+  useEffect(() => {
     if (!letterId) return;
-
     dispatch(
       fetchVideoLesson({
         letterId,
         lessonId: 2, // ⭐ هذا الفرق الوحيد
       })
     );
-  }, [letter, dispatch]);
+  }, [letterId, dispatch]);
 
   // تحميل YouTube IFrame API
-  useEffect(() => {
-    if (!window.YT) {
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      const firstScriptTag = document.getElementsByTagName("script")[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+useEffect(() => {
+  if (!video.length) return;
+  if (!window.YT || !window.YT.Player) return;
 
-      window.onYouTubeIframeAPIReady = () => {
-        initPlayer();
-      };
-    } else {
-      initPlayer();
-    }
-  }, []);
+  playerRef.current = new window.YT.Player("youtube-player-2", {
+    events: {
+      onStateChange: onPlayerStateChange,
+    },
+  });
+}, [video]);
 
-  const initPlayer = () => {
-    if (window.YT && window.YT.Player) {
-      playerRef.current = new window.YT.Player("youtube-player-2", {
-        events: {
-          onStateChange: onPlayerStateChange,
-        },
-      });
-    }
-  };
 
   const onPlayerStateChange = (event: any) => {
     if (event.data === 0) {
@@ -108,7 +103,7 @@ export function LearnLetters2({
     }
   };
 
-  const letters = [
+  const lettersComp = [
     {
       arabic: "أ",
       name: "ألف",
@@ -152,7 +147,8 @@ export function LearnLetters2({
     { arabic: "ي", name: "ياء", sound: "ي", example: "يد", emoji: "✋" },
   ];
 
-  const currentLetter = letters.find((l) => l.arabic === letter) || letters[0];
+  const currentLetter =
+    lettersComp.find((l) => l.arabic === letter) || lettersComp[0];
 
   // تهيئة Canvas عند الدخول لسلايد التلوين
   useEffect(() => {
@@ -387,7 +383,10 @@ export function LearnLetters2({
     // إعادة رسم Canvas
     setTimeout(() => redrawCanvas(), 0);
   };
-  console.log(video);
+
+  if (loading) {
+    return <div className="text-center mt-20">جاري تحميل الفيديو...</div>;
+  }
 
   return (
     <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
@@ -429,7 +428,8 @@ export function LearnLetters2({
                 مرحباً بك في نشاط الرسم والتلوين
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
-                شاهد الفيديو ثم ابدأ في رسم وتلوين حرف {letterName || "الألف"}
+                شاهد الفيديو ثم ابدأ في رسم وتلوين حرف{" "}
+                {currentLetterFromRedux?.name || "الألف"}
               </p>
             </motion.div>
 
@@ -452,7 +452,11 @@ export function LearnLetters2({
                   <iframe
                     id="youtube-player-2"
                     className="absolute top-0 left-0 w-full h-full"
-                    src={video ? `${video[0].youtube_url}?enablejsapi=1` : ""}
+                    src={
+                      video.length > 0 && video[0]?.youtube_url
+                        ? `${video[0].youtube_url}?enablejsapi=1`
+                        : ""
+                    }
                     title="فيديو تعليمي للحروف العربية"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -472,7 +476,12 @@ export function LearnLetters2({
                 className="text-center mt-4"
               >
                 <motion.button
-                  onClick={() => videoEnded && setCurrentSlide(1)}
+                  onClick={async () => {
+                    if (!videoEnded) return;
+                    await saveLearnProgress(); // ✅ هون المكان الصح
+
+                    setCurrentSlide(1);
+                  }}
                   disabled={!videoEnded}
                   className="px-10 py-4 rounded-2xl shadow-2xl text-white text-xl transition-all"
                   style={{
@@ -709,7 +718,7 @@ export function LearnLetters2({
 
       <ActivityFooter
         currentLetter={currentLetter.arabic}
-        letterName={letterName}
+        letterName={currentLetter.name}
       />
 
       {/* رسالة التهنئة عند اكتمال التلوين */}

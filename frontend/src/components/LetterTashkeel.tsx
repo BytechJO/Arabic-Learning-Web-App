@@ -7,21 +7,32 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { getLetterPositionQuestions } from "../API/questions";
 import { submitAnswer, calculateLessonResult } from "../API/result";
+import { fetchLetters } from "../redux/reducers/lettersSlice";
+import { RootState } from "../redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { upsertUserProgress } from "../API/userProgress";
+
 export function LetterTashkeel() {
   const [score, setScore] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showFeedback, setShowFeedback] = useState<"correct" | "wrong" | null>(
     null
   );
+  const user = useSelector((state: RootState) => state.auth.user);
   const { letter } = useParams();
   const navigate = useNavigate();
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [totalScore, setTotalScore] = useState(0);
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const dispatch = useDispatch<any>();
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
+
+  const letterId = currentLetterFromRedux?.id;
 
   const propLetter = letter;
-  const letterName = letter;
+
   if (!propLetter) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50 flex items-center justify-center p-6">
@@ -31,19 +42,31 @@ export function LetterTashkeel() {
       </div>
     );
   }
-  const letterMap: Record<string, number> = {
-    أ: 1,
-    ب: 2,
-    ت: 3,
+
+  const saveLearnProgress = async () => {
+    if (!user || !letter) return;
+
+    await upsertUserProgress({
+      letter_id: letterId,
+      lesson_id: 3, // درس التعلم
+      lesson_type: "tashkeel",
+      score: score,
+      completed: true,
+    });
   };
 
+  useEffect(() => {
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
   useEffect(() => {
     if (!propLetter) return;
 
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const letterId = letterMap[propLetter];
+
         const data = await getLetterPositionQuestions(letterId, 3);
         setQuestions(data);
         setCurrentQuestion(0);
@@ -88,12 +111,13 @@ export function LetterTashkeel() {
         // ✅ إذا هذا آخر سؤال
         else {
           // 🔹 جيب السكور النهائي من الباك اند
-          const res = await calculateLessonResult(12);
+          const res = await calculateLessonResult(3);
           const data = res;
           if (!data.is_completed || data.is_completed) {
             setTotalScore(data.total_score);
           }
-
+          // ✅ هون المكان الصح
+          await saveLearnProgress();
           setShowFinishModal(true);
         }
       }, 1500);
@@ -150,7 +174,7 @@ export function LetterTashkeel() {
                 className="text-xl md:text-2xl mb-1"
                 style={{ color: "#652b82" }}
               >
-                تشكيل حرف {letterName}
+                تشكيل حرف {currentLetterFromRedux?.name}
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 اختر التشكيل الصحيح للحرف
@@ -269,7 +293,7 @@ export function LetterTashkeel() {
                   className="text-2xl md:text-3xl"
                   style={{ color: "#652b82" }}
                 >
-                  {letterName}
+                  {currentLetterFromRedux?.name}
                 </span>{" "}
                 في هذه الكلمة؟
               </p>
@@ -447,7 +471,10 @@ export function LetterTashkeel() {
       </AnimatePresence>
       {/* Footer للأنشطة */}
 
-      <ActivityFooter currentLetter={propLetter} letterName={letterName} />
+      <ActivityFooter
+        currentLetter={propLetter}
+        letterName={currentLetterFromRedux?.name}
+      />
     </div>
   );
 }

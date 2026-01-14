@@ -43,6 +43,8 @@ import { initializeDemoData } from "./utils/seedData";
 import { User, Classroom } from "./types";
 import logoImg from "figma:asset/6520b1b60d37f88a4b683be1071a82232534fb7f.png";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "./redux/reducers/auth";
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [selectedUserType, setSelectedUserType] = useState<
@@ -52,6 +54,7 @@ export default function App() {
   const [activeSection, setActiveSection] = useState("home");
   const [showClassroomManagement, setShowClassroomManagement] = useState(false);
   const [showJoinClassroom, setShowJoinClassroom] = useState(false);
+  const dispatch = useDispatch<any>();
   const [selectedLetter, setSelectedLetter] = useState<{
     letter: string;
     name: string;
@@ -134,24 +137,10 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    storage.setCurrentUser(null);
+    dispatch(logout());
     navigate("/");
-    setCurrentUser(null);
-    setSelectedLetter(null);
-    setSelectedLetterSection(null);
-     window.location.reload();
-  };
 
- 
-  const handleLetterClick = (letter: string, letterName: string) => {
-    setSelectedLetter({ letter, name: letterName });
-    setSelectedLetterSection(null);
-  };
-
-  const handleBackToLetters = () => {
-    setSelectedLetter(null);
-    setSelectedLetterSection(null);
-    setActiveSection("letters");
+    window.location.reload();
   };
 
   const handleBackToLetterDetails = () => {
@@ -197,7 +186,7 @@ export default function App() {
     return (
       <AppRouter
         onChooseType={setSelectedUserType}
-        onLogin={handleLogin}
+
         selectedUserType={selectedUserType}
         currentUser={currentUser}
         onLogout={handleLogout}
@@ -205,8 +194,6 @@ export default function App() {
       />
     );
   }
-
-
 
   const renderSection = () => {
     // Pass selected letter to all sections when a letter is selected
@@ -219,58 +206,17 @@ export default function App() {
 
     switch (activeSection) {
       case "home":
-        return (
-          <HomePage
-          
-            onLogout={handleLogout}
-        
-          />
-        );
+        return <HomePage onLogout={handleLogout} />;
       case "videos":
-        return (
-          <VideosSection
-            {...letterProp}
-            onBack={handleBackToLetterDetails}
-            onActivityChange={handleLetterSectionClick}
-          />
-        );
+        return <VideosSection />;
       case "teachers":
-        return (
-          <TeacherResources
-            onBack={() => setActiveSection("home")}
-            user={currentUser}
-            onLogout={handleLogout}
-          />
-        );
+        return <TeacherResources />;
       case "letters2":
-        return (
-          <LearnLetters2
-            {...letterProp}
-            onBack={handleBackToLetters}
-            onActivityChange={handleLetterSectionClick}
-          />
-        );
+        return <LearnLetters2 />;
       case "games":
-        return (
-          <GamesSection
-            {...letterProp}
-            onBack={handleBackToLetterDetails}
-            onActivityChange={handleLetterSectionClick}
-            onGameSelect={(game) => {
-              // يمكن إضافة منطق اختيار اللعبة هنا لاحقاً
-              console.log("Selected game:", game);
-              setSelectedGame(game);
-            }}
-          />
-        );
+        return <GamesSection />;
       case "my-classroom":
-        return (
-          <JoinClassroom
-          
-            onClose={() => setActiveSection("home")}
-   
-          />
-        );
+        return <JoinClassroom onClose={() => {}} />;
       case "letter-sounds":
         return (
           <LetterSounds
@@ -281,33 +227,11 @@ export default function App() {
           />
         );
       case "letter-position":
-        return (
-          <LetterPosition
-            {...letterProp}
-            onBack={handleBackToLetterDetails}
-            onActivityChange={handleLetterSectionClick}
-            user={currentUser}
-            onLogout={handleLogout}
-          />
-        );
+        return <LetterPosition />;
       case "letter-tashkeel":
-        return (
-          <LetterTashkeel
-            {...letterProp}
-            onBack={handleBackToLetterDetails}
-            onActivityChange={handleLetterSectionClick}
-            user={currentUser}
-            onLogout={handleLogout}
-          />
-        );
+        return <LetterTashkeel />;
       default:
-        return (
-          <HomePage
-   
-            onLogout={handleLogout}
-           
-          />
-        );
+        return <HomePage onLogout={handleLogout} />;
     }
   };
 
@@ -429,50 +353,27 @@ export default function App() {
       {selectedGame ? (
         // عرض اللعبة المختارة
         selectedGame === "sounds" ? (
-          <WordCatchGame onBack={() => setSelectedGame(null)} />
+          <WordCatchGame />
         ) : selectedGame === "draw" ? (
-          <MemoryMatchGame onBack={() => setSelectedGame(null)} />
+          <MemoryMatchGame />
         ) : selectedGame === "position" ? (
-          <SortingGame onBack={() => setSelectedGame(null)} />
+          <SortingGame />
         ) : selectedGame === "color" ? (
-          <BalloonPopGame onBack={() => setSelectedGame(null)} />
+          <BalloonPopGame />
         ) : null
       ) : selectedLetter && !selectedLetterSection ? (
-        <LetterDetails
-          letter={selectedLetter.letter}
-          letterName={selectedLetter.name}
-          onBack={handleBackToLetters}
-          onSectionClick={handleLetterSectionClick}
-        />
+        <LetterDetails />
       ) : selectedLetterSection && activeSection === "letters" ? (
         // عرض LearnLetters بدون container عشان ياخد الشاشة كاملة
-        <LearnLetters
-          currentLetter={selectedLetter?.letter}
-          letterName={selectedLetter?.name}
-          onBack={handleBackToLetterDetails}
-          onBackToLetters={handleBackToLetters}
-          onActivityChange={handleLetterSectionClick}
-          user={currentUser}
-          onLogout={handleLogout}
-        />
+        <LearnLetters />
       ) : selectedLetterSection && activeSection === "letters2" ? (
         // عرض LearnLetters2 بدون container عشان ياخد الشاشة كاملة
-        <LearnLetters2
-          currentLetter={selectedLetter?.letter}
-          letterName={selectedLetter?.name}
-          onBack={handleBackToLetterDetails}
-          onBackToLetters={handleBackToLetters}
-          onActivityChange={handleLetterSectionClick}
-          user={currentUser}
-          onLogout={handleLogout}
-        />
+        <LearnLetters2 />
       ) : activeSection === "letters" &&
         !selectedLetter &&
         !selectedLetterSection ? (
         // عرض LettersDashboard بدون container عشان ياخد الشاشة كاملة
         <LettersDashboard
-        
-          onLetterClick={handleLetterClick}
           onLogout={handleLogout}
           onBack={() => setActiveSection("home")}
         />
@@ -485,11 +386,7 @@ export default function App() {
         />
       ) : activeSection === "teachers" ? (
         // عرض TeacherResources بدون container عشان ياخد الشاشة كاملة
-        <TeacherResources
-          onBack={() => setActiveSection("home")}
-          user={currentUser}
-          onLogout={handleLogout}
-        />
+        <TeacherResources />
       ) : activeSection === "my-classroom" ? (
         // عرض JoinClassroom بدون container عشان ياخد الشاشة كاملة
         renderSection()
@@ -508,11 +405,7 @@ export default function App() {
       )}
 
       {showJoinClassroom && currentUser.type === "student" && (
-        <JoinClassroom
-        
-          onClose={() => setShowJoinClassroom(false)}
-      
-        />
+        <JoinClassroom onClose={() => setShowJoinClassroom(false)} />
       )}
 
       {/* Bottom Navigation */}

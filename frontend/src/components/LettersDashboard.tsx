@@ -3,9 +3,11 @@ import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { AppHeader } from "./AppHeader";
-import { use, useEffect } from "react";
+import { use, useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
 import { fetchLetters } from "../redux/reducers/lettersSlice";
+import api from "../API/axios";
+
 import { useNavigate } from "react-router-dom";
 interface LettersDashboardProps {
   // onLetterClick: (letter: string, letterName: string) => void;
@@ -46,18 +48,37 @@ interface LettersDashboardProps {
 
 export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
   const user = useAppSelector((state) => state.auth.user);
+  const [lettersStatus, setLettersStatus] = useState<any[]>([]);
+
   const dispatch = useAppDispatch();
   const { letters, loading } = useAppSelector((state) => state.letters);
   const navigate = useNavigate();
 
   useEffect(() => {
-    dispatch(fetchLetters());
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
+
+  useEffect(() => {
+    const fetchLettersStatus = async () => {
+      try {
+        const res = await api.get("/progress/user-status");
+        console.log(res.data);
+
+        setLettersStatus(res.data.letters);
+      } catch (err) {
+        console.error("Failed to fetch letters status", err);
+      }
+    };
+
+    fetchLettersStatus();
   }, []);
-  {
-    loading && (
-      <p className="text-center text-gray-500">جاري تحميل الحروف...</p>
-    );
+
+  if (loading) {
+    return <p className="text-center text-gray-500">جاري تحميل الحروف...</p>;
   }
+
   return (
     <div className="min-h-screen relative overflow-hidden" dir="rtl">
       {/* خلفية متدرجة */}
@@ -130,8 +151,13 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-7 gap-2 md:gap-3">
               {letters.map((item, index) => {
-                const isDisabled = item.symbol !== "أ";
+                const isTeacher = user?.type === "teacher";
+                const letterStatus = lettersStatus.find(
+                  (l) => l.id === item.id
+                )?.status;
 
+                const isLocked = letterStatus === "locked";
+                const isCompleted = letterStatus === "completed";
                 return (
                   <motion.div
                     key={item.symbol}
@@ -147,15 +173,18 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                   >
                     <button
                       onClick={() => {
+                        // if (isTeacher) return; // المعلم: عرض فقط
+                        if (isLocked && !isTeacher) return;
+
                         navigate(`/letter/${item.symbol}`, {
                           state: { name: item.name },
                         });
-                        if (!isDisabled) {
-                        }
                       }}
                       // disabled={isDisabled}
                       className={`w-full aspect-square relative group ${
-                        isDisabled ? "cursor-not-allowed" : ""
+                        isLocked || isTeacher
+                          ? "cursor-default"
+                          : "cursor-pointer"
                       }`}
                     >
                       <div className="absolute inset-0 bg-white rounded-lg md:rounded-xl shadow-sm group-hover:shadow-lg transition-all border border-gray-100">
@@ -184,6 +213,17 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                           <div className="text-[9px] md:text-[11px] text-gray-600 group-hover:text-white transition-colors mt-1">
                             {item.name}
                           </div>
+                          {isCompleted && !isTeacher && (
+                            <div className="absolute top-0 left-1 text-green-500 text-sm">
+                              ✅
+                            </div>
+                          )}
+
+                          {isLocked&& !isTeacher && (
+                            <div className="absolute top-0 left-1 text-gray-400 text-sm">
+                              🔒
+                            </div>
+                          )}
                         </div>
 
                         {/* نجمة صغيرة في الزاوية */}

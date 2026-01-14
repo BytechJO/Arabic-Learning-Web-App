@@ -3,43 +3,27 @@ import { TrendingUp, Award, Clock, Target, BookOpen, CheckCircle, BarChart3, Cal
 import { User } from '../types';
 import { progressTracking, ACTIVITY_NAMES, getScoreColor, getScoreText } from '../utils/progressTracking';
 import { storage } from '../utils/storage';
-
+import api from '../API/axios';
 interface StudentProgressViewProps {
-  classroomId: string;
+  classroomId: number;
   studentId?: string;
   onBack?: () => void;
 }
 
-export function StudentProgressView({ classroomId, studentId, onBack }: StudentProgressViewProps) {
+export function StudentProgressView({ classroomId, studentId}: StudentProgressViewProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(studentId || null);
   const [students, setStudents] = useState<User[]>([]);
+const [studentData, setStudentData] = useState<any>(null);
+const [loading, setLoading] = useState(false);
+useEffect(() => {
+  const fetchStudents = async () => {
+    const res = await api.get(`/class/classrooms/${classroomId}/students`);
+    setStudents(res.data.data);
+  };
 
-  useEffect(() => {
-    // إذا كان studentId محدد من الخارج، استخدمه مباشرة
-    if (studentId) {
-      setSelectedStudentId(studentId);
-    }
-    
-    // الحصول على الصف
-    const classroom = storage.getClassrooms().find(c => c.id === classroomId);
-    if (!classroom) {
-      console.log('❌ لم يتم العثور على الصف:', classroomId);
-      return;
-    }
+  fetchStudents();
+}, [classroomId]);
 
-    // الحصول على الطلاب
-    const classStudents = classroom.students
-      .map(studentId => storage.getUserById(studentId))
-      .filter((s): s is User => s !== null);
-    
-    console.log('📊 الطلاب في الصف:', classStudents.length);
-    classStudents.forEach(student => {
-      const stats = progressTracking.calculateStats(student.id);
-      console.log(`  - ${student.name}: ${stats.totalActivities} نشاط`);
-    });
-    
-    setStudents(classStudents);
-  }, [classroomId, studentId]);
 
   // تنسيق التاريخ
   const formatDate = (timestamp: number): string => {
@@ -114,11 +98,11 @@ export function StudentProgressView({ classroomId, studentId, onBack }: StudentP
                       className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl shadow-md"
                       style={{ backgroundColor: '#164194' }}
                     >
-                      {student.name.charAt(0)}
+                      {student.username.charAt(0)}
                     </div>
                     
                     <div className="flex-1">
-                      <h3 className="text-xl mb-1" style={{ color: '#164194' }}>{student.name}</h3>
+                      <h3 className="text-xl mb-1" style={{ color: '#164194' }}>{student.username}</h3>
                       <p className="text-sm text-gray-500">{student.email}</p>
                     </div>
 
@@ -150,12 +134,22 @@ export function StudentProgressView({ classroomId, studentId, onBack }: StudentP
     );
   }
 
-  // عرض تفاصيل طالب محدد
-  const student = storage.getUserById(selectedStudentId);
-  if (!student) return null;
+useEffect(() => {
+  if (!selectedStudentId) return;
 
-  const stats = progressTracking.calculateStats(selectedStudentId);
-  const recentActivities = progressTracking.getRecentActivities(selectedStudentId);
+  const fetchStudentProgress = async () => {
+    setLoading(true);
+    const res = await api.get(`/progress/students/${selectedStudentId}/progress`);
+    setStudentData(res.data.data);
+    setLoading(false);
+  };
+
+  fetchStudentProgress();
+}, [selectedStudentId]);
+
+const student = studentData?.student;
+const stats = studentData?.stats;
+const recentActivities = studentData?.recentActivities || [];
 
   return (
     <div className="space-y-4" dir="rtl">

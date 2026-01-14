@@ -155,7 +155,7 @@ const deleteClass = async (req, res) => {
   const query = `
     UPDATE "class"
     SET is_deleted=1
-    WHERE id = $1 AND teacher_is=$2 
+    WHERE id = $1 AND teacher_id=$2 
     RETURNING *;
   `;
 
@@ -185,7 +185,20 @@ const deleteClass = async (req, res) => {
 //===================get All Classes by teacher_id  ======================//
 const getClassByTeacherId = async (req, res) => {
   const teacher_id = req.token.userId;
-  const query = `SELECT * FROM  "class"  Where teacher_id=$1 AND is_deleted=0`;
+  const query = `  SELECT 
+      c.id,
+      c.name,
+      c.code,
+      c.status,
+      c.created_at,
+      COUNT(cs.student_id) AS students_count
+    FROM class c
+    LEFT JOIN class_student cs 
+      ON cs.class_id = c.id
+    WHERE c.teacher_id = $1
+      AND c.is_deleted = 0
+    GROUP BY c.id
+    ORDER BY c.created_at DESC;`;
   try {
     const response = await client.query(query, [teacher_id]);
     if (response.rowCount) {
@@ -367,5 +380,6 @@ module.exports = {
   getClassByTeacherId,
   addStudentToClass,
   removeStudentFromClass,
-  getStudentClasses,getMyClass
+  getStudentClasses,
+  getMyClass,
 };

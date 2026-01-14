@@ -4,6 +4,10 @@ import { Star, Award, RotateCcw, X } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../API/axios";
 import { saveGameResult } from "../../API/gameResult";
+import { RootState } from "../../redux/store";
+import { fetchLetters } from "../../redux/reducers/lettersSlice";
+import { useDispatch, useSelector } from "react-redux";
+
 interface Card {
   id: number;
   content: string;
@@ -11,15 +15,6 @@ interface Card {
   matched: boolean;
   flipped: boolean;
 }
-
-const alefPairs = [
-  { letter: "أ", word: "أسد" },
-  { letter: "أ", word: "أرنب" },
-  { letter: "أ", word: "أذن" },
-  { letter: "أ", word: "إصبع" },
-  { letter: "أ", word: "أزرق" },
-  { letter: "أ", word: "أنف" },
-];
 
 export function MemoryMatchGame() {
   const [cards, setCards] = useState<Card[]>([]);
@@ -30,67 +25,71 @@ export function MemoryMatchGame() {
   const [gameLost, setGameLost] = useState(false);
   const [startTime] = useState(Date.now());
   const [gameLessonId, setGameLessonId] = useState<number | null>(null);
-
-  const getDuration = () => {
-    return Math.floor((Date.now() - startTime) / 1000);
-  };
   const { letter } = useParams();
   const navigate = useNavigate();
   const [pairs, setPairs] = useState<{ letter: string; word: string }[]>([]);
   const propLetter = letter;
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
+
+  const letterId = currentLetterFromRedux?.id;
+
+  const dispatch = useDispatch<any>();
+
+  const getDuration = () => {
+    return Math.floor((Date.now() - startTime) / 1000);
+  };
+
   useEffect(() => {
-    if (!propLetter) return;
-    const letterMap: Record<string, number> = {
-      أ: 1,
-      ب: 2,
-      ت: 3,
-    };
-    const letterId = letterMap[propLetter];
+    if (!letterId) return;
+
     const fetchGameData = async () => {
       try {
-        const res = await api.get(
-          `/lessons/game-lesson/${letterId}/letter-id?type=memory_match`
-        );
-
-        const game = res.data.data?.[0]; // العنصر الوحيد
-
+        const res = await api.get(`/lessons/games-lessons/by-letter-and-type`, {
+          params: {
+            letter: letter,
+            gameType: "memory_match",
+          },
+        });
+        const game = res.data.data;
         if (!game || !game.data?.pairs) return;
 
         const formatted = game.data.pairs.map((pair: any) => ({
-          letter: pair.letter.trim(), // مهم 👈
+          letter: pair.letter.trim(),
           word: pair.word,
         }));
-        setGameLessonId(res.data.data?.[0].game_lesson_id);
+
+        setGameLessonId(game.game_lesson_id);
         setPairs(formatted);
         initializeGame(formatted);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching memory match game", error);
       }
     };
 
     fetchGameData();
   }, [letter]);
+  
+  useEffect(() => {
+    if (!gameWon && !gameLost) return;
+    if (!gameLessonId) return;
 
- useEffect(() => {
-  if (!gameWon && !gameLost) return;
-  if (!gameLessonId) return;
+    const saveResult = async () => {
+      try {
+        const res = await saveGameResult({
+          games_lessons_id: gameLessonId,
+          score: score,
+          duration: getDuration(),
+        });
 
-  const saveResult = async () => {
-    try {
-      const res = await saveGameResult({
-        games_lessons_id: gameLessonId,
-        score: score,
-        duration: getDuration(),
-      });
+        console.log("Game result saved ✅", res);
+      } catch (error) {
+        console.error("Error saving game result", error);
+      }
+    };
 
-      console.log("Game result saved ✅", res);
-    } catch (error) {
-      console.error("Error saving game result", error);
-    }
-  };
-
-  saveResult();
-}, [gameWon, gameLost, gameLessonId]);
+    saveResult();
+  }, [gameWon, gameLost, gameLessonId]);
 
   useEffect(() => {
     if (moves >= 10 && !gameWon) {
