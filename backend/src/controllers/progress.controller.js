@@ -469,7 +469,6 @@ const markLessonCompleted = async (req, res) => {
   }
 };
 
-
 const checkLetterCompletion = async (req, res) => {
   try {
     const userId = req.token.userId;
@@ -529,9 +528,7 @@ const checkLetterCompletion = async (req, res) => {
   }
 };
 
-
-
- const getUserLettersStatus = async (req, res) => {
+const getUserLettersStatus = async (req, res) => {
   try {
     const userId = req.token.userId;
 
@@ -557,12 +554,11 @@ const checkLetterCompletion = async (req, res) => {
       GROUP BY letter_id
     `;
 
-    const [lettersRes, totalLessonsRes, progressRes] =
-      await Promise.all([
-        client.query(lettersQuery),
-        client.query(totalLessonsQuery),
-        client.query(progressQuery, [userId]),
-      ]);
+    const [lettersRes, totalLessonsRes, progressRes] = await Promise.all([
+      client.query(lettersQuery),
+      client.query(totalLessonsQuery),
+      client.query(progressQuery, [userId]),
+    ]);
 
     const letters = lettersRes.rows;
     const totalLessons = Number(totalLessonsRes.rows[0].total);
@@ -577,8 +573,7 @@ const checkLetterCompletion = async (req, res) => {
 
     const lettersWithStatus = letters.map((letter) => {
       const completedLessons = progressMap[letter.id] || 0;
-      const isCompleted =
-        totalLessons > 0 && completedLessons === totalLessons;
+      const isCompleted = totalLessons > 0 && completedLessons === totalLessons;
 
       let status = "locked";
 
@@ -606,37 +601,311 @@ const checkLetterCompletion = async (req, res) => {
     });
   }
 };
+const getStudentStats2 = async (studentId) => {
+  // إحصائيات الليسون (الأساس)
+  const lessonStats = await client.query(
+    `
+    SELECT
+      COUNT(*) FILTER (WHERE completed = true) AS completed_lessons,
+      COUNT(*) AS total_lessons,
+      COALESCE(AVG(score), 0) AS average_score
+    FROM user_progress
+    WHERE user_id = $1
+    `,
+    [studentId]
+  );
+
+  // الوقت من الألعاب (فرعي)
+  const timeResult = await client.query(
+    `
+    SELECT COALESCE(SUM(duration), 0) AS total_time_spent
+    FROM student_game_results
+    WHERE student_id = $1
+    `,
+    [studentId]
+  );
+
+  // الحروف المكتملة (كل لِسونات الحرف مكتملة)
+  const completedLetters = await client.query(
+    `
+    SELECT l.symbol
+    FROM letters l
+    JOIN user_progress up ON up.letter_id = l.id
+    WHERE up.user_id = $1
+    GROUP BY l.id, l.symbol
+    HAVING BOOL_AND(up.completed = true)
+    `,
+    [studentId]
+  );
+
+  return {
+    stats: {
+      averageScore: Number(lessonStats.rows[0].average_score),
+      completedLessons: Number(lessonStats.rows[0].completed_lessons),
+      totalLessons: Number(lessonStats.rows[0].total_lessons),
+      totalTimeSpent: Number(timeResult.rows[0].total_time_spent),
+      completedLetters: completedLetters.rows.map((r) => r.symbol),
+    },
+  };
+};
+
+const getActivityScores = async (studentId) => {
+  const result = await client.query(
+    `
+    SELECT
+      gl.game_type,
+      COALESCE(AVG(sgr.score), 0) AS average_score
+    FROM student_game_results sgr
+    JOIN games_lessons gl ON gl.id = sgr.games_lessons_id
+    WHERE sgr.student_id = $1
+    GROUP BY gl.game_type
+    `,
+    [studentId]
+  );
+
+  return result.rows.reduce((acc, row) => {
+    acc[row.game_type] = Number(row.average_score);
+    return acc;
+  }, {});
+};
+
+const getRecentActivities = async (studentId) => {
+  const result = await client.query(
+    `
+    SELECT
+      gl.game_type AS "activityType",
+      l.symbol AS letter,
+      ll.title AS lessonTitle,
+      sgr.score,
+      sgr.duration AS "timeSpent",
+      sgr.created_at AS "completedAt"
+    FROM student_game_results sgr
+    JOIN games_lessons gl ON gl.id = sgr.games_lessons_id
+    JOIN letter_lessons ll ON ll.id = gl.lesson_id
+    JOIN letters l ON l.id = gl.letter_id
+    WHERE sgr.student_id = $1
+    ORDER BY sgr.created_at DESC
+    LIMIT 10
+    `,
+    [studentId]
+  );
+
+  return result.rows;
+};
+const getLessonScores = async (studentId) => {
+  const result = await client.query(
+    `
+    SELECT
+      up.lesson_id,  up.lesson_type, 
+      ll.title AS lesson_title,
+      l.symbol AS letter,
+      COALESCE(
+        ROUND(AVG(sgr.score)),
+        up.score,
+        0
+      ) AS score
+    FROM user_progress up
+    JOIN letter_lessons ll ON ll.id = up.lesson_id
+    JOIN letters l ON l.id = up.letter_id
+    LEFT JOIN games_lessons gl ON gl.lesson_id = up.lesson_id
+    LEFT JOIN student_game_results sgr
+      ON sgr.games_lessons_id = gl.id
+     AND sgr.student_id = up.user_id
+    WHERE up.user_id = $1
+    GROUP BY
+      up.lesson_id,up.lesson_type,
+      ll.title,
+      l.symbol,
+      up.score
+    ORDER BY up.lesson_id
+    `,
+    [studentId]
+  );
+
+  return result.rows.map((row) => ({
+    lessonId: row.lesson_id,
+    lessonType: row.lesson_type, // 👈 هذا هو activityType
+    lessonTitle: row.lesson_title,
+    letter: row.letter,
+    score: Number(row.score), // 0–100
+  }));
+};
+const getLessonGamesDetails = async (studentId, lessonId) => {
+  const result = await client.query(
+    `
+    SELECT
+      gl.id AS game_id,
+      gl.lesson_id,
+      gl.game_type,
+      sgr.score,
+      sgr.duration,
+      sgr.created_at
+    FROM games_lessons gl
+    LEFT JOIN student_game_results sgr
+      ON sgr.games_lessons_id = gl.id
+      AND sgr.student_id = $1
+    WHERE gl.lesson_id = $2
+    `,
+    [studentId, lessonId]
+  );
+
+  return result.rows.map((row) => ({
+    gameId: row.game_id, // 👈 اسم صحيح
+    gameType: row.game_type,
+    score: row.score ?? 0,
+    duration: row.duration ?? 0,
+    completedAt: row.created_at,
+  }));
+};
+
+const getLessonActivities = async (studentId) => {
+  const lessons = await getLessonScores(studentId);
+
+  const activities = await Promise.all(
+    lessons.map(async (lesson) => {
+      if (lesson.lessonType !== "game") {
+        return {
+          ...lesson,
+          games: [],
+        };
+      }
+
+      const games = await getLessonGamesDetails(studentId, lesson.lessonId);
+
+      return {
+        ...lesson,
+        games,
+      };
+    })
+  );
+
+  return activities;
+};
+
+const getRecentLessonActivities = async (studentId) => {
+  const result = await client.query(
+    `
+    SELECT DISTINCT ON (up.lesson_id)
+      up.lesson_id, up.lesson_type,
+      ll.title AS lesson_title,
+      l.symbol AS letter,
+      up.updated_at,
+      COALESCE(
+        ROUND(AVG(sgr.score)),
+        up.score,
+        0
+      ) AS score
+    FROM user_progress up
+    JOIN letter_lessons ll ON ll.id = up.lesson_id
+    JOIN letters l ON l.id = up.letter_id
+    LEFT JOIN games_lessons gl ON gl.lesson_id = up.lesson_id
+    LEFT JOIN student_game_results sgr
+      ON sgr.games_lessons_id = gl.id
+     AND sgr.student_id = up.user_id
+    WHERE up.user_id = $1
+    GROUP BY
+      up.lesson_id,up.lesson_type,
+      ll.title,
+      l.symbol,
+      up.updated_at,
+      up.score
+    ORDER BY up.lesson_id, up.updated_at DESC
+    LIMIT 10
+    `,
+    [studentId]
+  );
+
+  return result.rows.map((row) => ({
+    activityType: row.lesson_title, // 👈 مهم
+    lessonName: row.lesson_type,
+    lessonId: row.lesson_id,
+    letter: row.letter,
+    score: Number(row.score),
+    timeSpent: 0, // لو بدك لاحقاً تجمعها
+    completedAt: row.updated_at,
+  }));
+};
+const buildStatsFromLessons = (lessons) => {
+  let totalScore = 0;
+  let totalActivities = lessons.length;
+  let totalTimeSpent = 0;
+
+  const activityScoresMap = {};
+  const completedLettersSet = new Set();
+
+  lessons.forEach((lesson) => {
+    totalScore += lesson.score;
+
+    // activityScores
+    if (!activityScoresMap[lesson.lessonType]) {
+      activityScoresMap[lesson.lessonType] = {
+        total: 0,
+        count: 0,
+      };
+    }
+
+    activityScoresMap[lesson.lessonType].total += lesson.score;
+    activityScoresMap[lesson.lessonType].count += 1;
+
+    // game duration
+    if (lesson.lessonType === "game") {
+      lesson.games.forEach((g) => {
+        totalTimeSpent += g.duration || 0;
+      });
+    }
+
+    // درس مكتمل = score > 0
+    if (lesson.score > 0) {
+      completedLettersSet.add(lesson.letter);
+    }
+  });
+
+  const activityScores = {};
+  Object.entries(activityScoresMap).forEach(([type, data]) => {
+    activityScores[type] = Math.round(data.total / data.count);
+  });
+
+  return {
+    totalActivities,
+    averageScore: totalActivities
+      ? Math.round(totalScore / totalActivities)
+      : 0,
+    totalTimeSpent,
+    completedLetters: [...completedLettersSet],
+    activityScores,
+  };
+};
+
 const getStudentProgress = async (req, res) => {
   const { studentId } = req.params;
 
   try {
-    const student = await client.query(
-      `SELECT id, name, email FROM users WHERE id = $1`,
+    const studentRes = await client.query(
+      `SELECT id, username, email FROM users WHERE id = $1`,
       [studentId]
     );
 
-    if (student.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+    if (!studentRes.rows.length) {
+      return res.status(404).json({ success: false });
     }
 
-    const stats = await getStudentStats(studentId);
-    const activityScores = await getActivityScores(studentId);
-    const recentActivities = await getRecentActivities(studentId);
+    const activities = await getLessonActivities(studentId);
+    const recentActivities = await getRecentLessonActivities(studentId);
+
+    const stats = buildStatsFromLessons(activities);
 
     res.json({
       success: true,
       data: {
-        student: student.rows[0],
-        ...stats,
-        activityScores,
+        student: studentRes.rows[0],
+        stats,
         recentActivities,
       },
     });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Server error" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 };
-
 
 module.exports = {
   upsertUserProgress,
@@ -652,5 +921,7 @@ module.exports = {
   getAllLessonResultsByUser,
   markLessonCompleted,
   getCurrentLessonForLetter,
-  checkLetterCompletion,getUserLettersStatus,getStudentProgress
+  checkLetterCompletion,
+  getUserLettersStatus,
+  getStudentProgress,
 };

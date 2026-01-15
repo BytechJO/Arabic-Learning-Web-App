@@ -444,7 +444,7 @@ export function LetterTashkeel() {
               >
                 لقد أتممت حل جميع الاسئلة
                 <br />
-                مجموع النقاط : {totalScore}/ 4
+                مجموع النقاط : {score}/ 4
               </motion.p>
 
               {/* زر الإغلاق */}

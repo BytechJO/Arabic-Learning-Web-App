@@ -1,29 +1,70 @@
-import { useState, useEffect } from 'react';
-import { TrendingUp, Award, Clock, Target, BookOpen, CheckCircle, BarChart3, Calendar, Star, Volume2, Edit3, Palette, ArrowRight } from 'lucide-react';
-import { User } from '../types';
-import { progressTracking, ACTIVITY_NAMES, getScoreColor, getScoreText } from '../utils/progressTracking';
-import { storage } from '../utils/storage';
-import api from '../API/axios';
+import { useState, useEffect } from "react";
+import {
+  TrendingUp,
+  Award,
+  Clock,
+  Target,
+  BookOpen,
+  CheckCircle,
+  BarChart3,
+  Calendar,
+  Star,
+  Volume2,
+  Edit3,
+  Palette,
+  ArrowRight,
+} from "lucide-react";
+import { User } from "../types";
+import {
+  progressTracking,
+  ACTIVITY_NAMES,
+  getScoreColor,
+  getScoreText,
+} from "../utils/progressTracking";
+
+import api from "../API/axios";
+import { useNavigate } from "react-router-dom";
 interface StudentProgressViewProps {
   classroomId: number;
-  studentId?: string;
+  studentId?: number;
   onBack?: () => void;
 }
 
-export function StudentProgressView({ classroomId, studentId}: StudentProgressViewProps) {
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(studentId || null);
+export function StudentProgressView({
+  classroomId,
+  studentId,
+}: StudentProgressViewProps) {
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
+    studentId ?? null
+  );
   const [students, setStudents] = useState<User[]>([]);
-const [studentData, setStudentData] = useState<any>(null);
-const [loading, setLoading] = useState(false);
-useEffect(() => {
-  const fetchStudents = async () => {
-    const res = await api.get(`/class/classrooms/${classroomId}/students`);
-    setStudents(res.data.data);
-  };
+  const [studentData, setStudentData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  fetchStudents();
-}, [classroomId]);
+  useEffect(() => {
+    const fetchStudents = async () => {
+      const res = await api.get(`/class/student/${classroomId}`);
+      setStudents(res.data.data);
+    };
 
+    fetchStudents();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedStudentId) return;
+
+    const fetchStudentProgress = async () => {
+      setLoading(true);
+      const res = await api.get(
+        `/progress/students/${selectedStudentId}/progress`
+      );
+      setStudentData(res.data.data);
+
+      setLoading(false);
+    };
+
+    fetchStudentProgress();
+  }, [selectedStudentId]);
 
   // تنسيق التاريخ
   const formatDate = (timestamp: number): string => {
@@ -31,32 +72,67 @@ useEffect(() => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    if (days === 0) return 'اليوم';
-    if (days === 1) return 'أمس';
+
+    if (days === 0) return "اليوم";
+    if (days === 1) return "أمس";
     if (days < 7) return `منذ ${days} أيام`;
-    return date.toLocaleDateString('ar-EG');
+    return date.toLocaleDateString("ar-EG");
   };
 
   // أيقونة النشاط
   const getActivityIcon = (activityType: string) => {
     switch (activityType) {
-      case 'letter-sounds': return <Volume2 className="w-5 h-5" />;
-      case 'draw-letters': return <Edit3 className="w-5 h-5" />;
-      case 'letter-position': return <Target className="w-5 h-5" />;
-      case 'color-letters': return <Palette className="w-5 h-5" />;
-      default: return <BookOpen className="w-5 h-5" />;
+      case "learn":
+        return <Volume2 className="w-5 h-5" />;
+      case "write":
+        return <Edit3 className="w-5 h-5" />;
+      case "position":
+        return <Target className="w-5 h-5" />;
+      case "tashkeel":
+        return <Palette className="w-5 h-5" />;
+      case "video":
+        return <TrendingUp className="w-5 h-5" />;
+      default:
+        return <BookOpen className="w-5 h-5" />;
     }
   };
 
   // لون النشاط
   const getActivityColor = (activityType: string) => {
     switch (activityType) {
-      case 'letter-sounds': return '#10b981';
-      case 'draw-letters': return '#3b82f6';
-      case 'letter-position': return '#f59e0b';
-      case 'color-letters': return '#ec4899';
-      default: return '#164194';
+      case "learn":
+        return "#10b981";
+      case "write":
+        return "#3b82f6";
+      case "position":
+        return "#f59e0b";
+      case "tashkeel":
+        return "#ec4899";
+      case "video":
+        return "#ec4848ff";
+      default:
+        return "#164194";
+    }
+  };
+  const getActivityPercentage = (
+    activityType: string,
+    score: number
+  ): number => {
+    switch (activityType) {
+      case "learn":
+      case "write":
+      case "video":
+        return score * 100;
+
+      case "position":
+      case "tashkeel":
+        return score * 25;
+
+      case "game":
+        return score;
+
+      default:
+        return 0;
     }
   };
 
@@ -65,11 +141,16 @@ useEffect(() => {
     return (
       <div className="space-y-6" dir="rtl">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 rounded-xl shadow-lg" style={{ backgroundColor: '#164194' }}>
+          <div
+            className="p-3 rounded-xl shadow-lg"
+            style={{ backgroundColor: "#164194" }}
+          >
             <BarChart3 className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl" style={{ color: '#164194' }}>تقدم الطلاب</h2>
+            <h2 className="text-2xl" style={{ color: "#164194" }}>
+              تقدم الطلاب
+            </h2>
             <p className="text-gray-600">اختر طالباً لعرض إنجازاته التفصيلية</p>
           </div>
         </div>
@@ -77,15 +158,19 @@ useEffect(() => {
         <div className="grid gap-4">
           {students.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-3xl shadow-lg">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ECEEEF' }}>
+              <div
+                className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: "#ECEEEF" }}
+              >
                 <Award className="w-10 h-10 text-gray-400" />
               </div>
               <p className="text-gray-500">لا يوجد طلاب في هذا الصف بعد</p>
             </div>
           ) : (
-            students.map(student => {
+            students.map((student) => {
               const stats = progressTracking.calculateStats(student.id);
-              const hasProgress = stats.totalActivities > 0;
+              // const hasProgress = stats.totalActivities > 0;
+              const hasProgress = true;
 
               return (
                 <button
@@ -94,27 +179,47 @@ useEffect(() => {
                   className="bg-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-300 text-right"
                 >
                   <div className="flex items-center gap-4">
-                    <div 
+                    <div
                       className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl shadow-md"
-                      style={{ backgroundColor: '#164194' }}
+                      style={{ backgroundColor: "#164194" }}
                     >
                       {student.username.charAt(0)}
                     </div>
-                    
+
                     <div className="flex-1">
-                      <h3 className="text-xl mb-1" style={{ color: '#164194' }}>{student.username}</h3>
+                      <h3 className="text-xl mb-1" style={{ color: "#164194" }}>
+                        {student.username}
+                      </h3>
                       <p className="text-sm text-gray-500">{student.email}</p>
                     </div>
 
                     {hasProgress ? (
-                      <div className="text-center px-6 py-3 rounded-2xl shadow-md" style={{ backgroundColor: getScoreColor(stats.averageScore) + '15' }}>
+                      <div
+                        className="text-center px-6 py-3 rounded-2xl shadow-md"
+                        style={{
+                          backgroundColor:
+                            getScoreColor(stats.averageScore) + "15",
+                        }}
+                      >
                         <div className="flex items-center gap-2 mb-1">
-                          <Star className="w-5 h-5" style={{ color: getScoreColor(stats.averageScore), fill: getScoreColor(stats.averageScore) }} />
-                          <span className="text-2xl" style={{ color: getScoreColor(stats.averageScore) }}>
+                          <Star
+                            className="w-5 h-5"
+                            style={{
+                              color: getScoreColor(stats.averageScore),
+                              fill: getScoreColor(stats.averageScore),
+                            }}
+                          />
+                          <span
+                            className="text-2xl"
+                            style={{ color: getScoreColor(stats.averageScore) }}
+                          >
                             {stats.averageScore}٪
                           </span>
                         </div>
-                        <span className="text-sm" style={{ color: getScoreColor(stats.averageScore) }}>
+                        <span
+                          className="text-sm"
+                          style={{ color: getScoreColor(stats.averageScore) }}
+                        >
                           {getScoreText(stats.averageScore)}
                         </span>
                       </div>
@@ -134,35 +239,38 @@ useEffect(() => {
     );
   }
 
-useEffect(() => {
-  if (!selectedStudentId) return;
+  const student = studentData?.student ?? {};
 
-  const fetchStudentProgress = async () => {
-    setLoading(true);
-    const res = await api.get(`/progress/students/${selectedStudentId}/progress`);
-    setStudentData(res.data.data);
-    setLoading(false);
-  };
+  const stats = studentData?.stats;
+  const recentActivities = studentData?.recentActivities || [];
 
-  fetchStudentProgress();
-}, [selectedStudentId]);
+  if (loading) {
+    return <div>جاري التحميل...</div>;
+  }
 
-const student = studentData?.student;
-const stats = studentData?.stats;
-const recentActivities = studentData?.recentActivities || [];
-
+  if (!studentData) {
+    return <div>لا توجد بيانات لهذا الطالب</div>;
+  }
   return (
     <div className="space-y-4" dir="rtl">
       {/* رأس الصفحة */}
-      <div className="flex items-center gap-3 rounded-2xl p-3 border-2" style={{ background: 'linear-gradient(to bottom right, #652b8220, #fad65620)', borderColor: '#652b82' }}>
-        <div 
+      <div
+        className="flex items-center gap-3 rounded-2xl p-3 border-2"
+        style={{
+          background: "linear-gradient(to bottom right, #652b8220, #fad65620)",
+          borderColor: "#652b82",
+        }}
+      >
+        <div
           className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-md"
-          style={{ backgroundColor: '#164194' }}
+          style={{ backgroundColor: "#164194" }}
         >
-          {student.name.charAt(0)}
+          {student.username.charAt(0)}
         </div>
         <div>
-          <h2 className="text-lg mb-1" style={{ color: '#164194' }}>{student.name}</h2>
+          <h2 className="text-lg mb-1" style={{ color: "#164194" }}>
+            {student.username}
+          </h2>
           <p className="text-xs text-gray-600">{student.email}</p>
         </div>
       </div>
@@ -170,12 +278,25 @@ const recentActivities = studentData?.recentActivities || [];
       {/* إحصائيات عامة */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* المعدل العام */}
-        <div className="rounded-2xl p-3 border-2" style={{ background: 'linear-gradient(to bottom right, #fad65620, #fad65610)', borderColor: '#fad656' }}>
+        <div
+          className="rounded-2xl p-3 border-2"
+          style={{
+            background:
+              "linear-gradient(to bottom right, #fad65620, #fad65610)",
+            borderColor: "#fad656",
+          }}
+        >
           <div className="flex items-center justify-between mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: getScoreColor(stats.averageScore) }}>
+            <div
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: getScoreColor(stats.averageScore) }}
+            >
               <Star className="w-4 h-4 text-white" />
             </div>
-            <div className="text-xl" style={{ color: getScoreColor(stats.averageScore) }}>
+            <div
+              className="text-xl"
+              style={{ color: getScoreColor(stats.averageScore) }}
+            >
               {isNaN(stats.averageScore) ? 0 : stats.averageScore}%
             </div>
           </div>
@@ -183,12 +304,22 @@ const recentActivities = studentData?.recentActivities || [];
         </div>
 
         {/* عدد الأنشطة */}
-        <div className="rounded-2xl p-3 border-2" style={{ background: 'linear-gradient(to bottom right, #652b8220, #652b8210)', borderColor: '#652b82' }}>
+        <div
+          className="rounded-2xl p-3 border-2"
+          style={{
+            background:
+              "linear-gradient(to bottom right, #652b8220, #652b8210)",
+            borderColor: "#652b82",
+          }}
+        >
           <div className="flex items-center justify-between mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: '#3b82f6' }}>
+            <div
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: "#3b82f6" }}
+            >
               <CheckCircle className="w-4 h-4 text-white" />
             </div>
-            <div className="text-xl" style={{ color: '#3b82f6' }}>
+            <div className="text-xl" style={{ color: "#3b82f6" }}>
               {stats.totalActivities || 0}
             </div>
           </div>
@@ -198,10 +329,13 @@ const recentActivities = studentData?.recentActivities || [];
         {/* الوقت الإجمالي */}
         <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-2xl border-2 border-purple-200">
           <div className="flex items-center justify-between mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: '#a855f7' }}>
+            <div
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: "#a855f7" }}
+            >
               <Clock className="w-4 h-4 text-white" />
             </div>
-            <div className="text-xl" style={{ color: '#a855f7' }}>
+            <div className="text-xl" style={{ color: "#a855f7" }}>
               {Math.floor((stats.totalTimeSpent || 0) / 60)}
             </div>
           </div>
@@ -211,10 +345,13 @@ const recentActivities = studentData?.recentActivities || [];
         {/* الحروف المكتملة */}
         <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-3 rounded-2xl border-2 border-orange-200">
           <div className="flex items-center justify-between mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: '#f59e0b' }}>
+            <div
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: "#f59e0b" }}
+            >
               <BookOpen className="w-4 h-4 text-white" />
             </div>
-            <div className="text-xl" style={{ color: '#f59e0b' }}>
+            <div className="text-xl" style={{ color: "#f59e0b" }}>
               {stats.completedLetters?.length || 0}
             </div>
           </div>
@@ -225,53 +362,75 @@ const recentActivities = studentData?.recentActivities || [];
       {/* الأداء حسب النشاط */}
       <div className="bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200">
         <div className="flex items-center gap-2 mb-4">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: '#164194' }}>
+          <div
+            className="p-2 rounded-lg"
+            style={{ backgroundColor: "#164194" }}
+          >
             <Target className="w-4 h-4 text-white" />
           </div>
-          <h3 className="text-base" style={{ color: '#164194' }}>الأداء حسب النشاط</h3>
+          <h3 className="text-base" style={{ color: "#164194" }}>
+            الأداء حسب النشاط
+          </h3>
         </div>
-        
-        {stats.activityScores && Object.keys(stats.activityScores).length > 0 ? (
+
+        {stats.activityScores &&
+        Object.keys(stats.activityScores).length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {Object.entries(stats.activityScores).map(([activityType, score]) => (
-              <div 
-                key={activityType} 
-                className="p-3 rounded-xl border-2"
-                style={{ 
-                  backgroundColor: getActivityColor(activityType) + '10',
-                  borderColor: getActivityColor(activityType) + '30'
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="p-1.5 rounded-lg text-white"
-                      style={{ backgroundColor: getActivityColor(activityType) }}
-                    >
-                      {getActivityIcon(activityType)}
-                    </div>
-                    <span className="text-sm text-gray-700">{ACTIVITY_NAMES[activityType as keyof typeof ACTIVITY_NAMES]}</span>
-                  </div>
-                  <div className="text-lg" style={{ color: getActivityColor(activityType) }}>
-                    {score}%
-                  </div>
-                </div>
-                
-                {/* شريط التقدم */}
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            {Object.entries(stats.activityScores).map(
+              ([activityType, score]) => {
+                const percentage = getActivityPercentage(activityType,score);
+
+                return (
                   <div
-                    className="h-full rounded-full transition-all"
-                    style={{ 
-                      width: `${score}%`,
-                      backgroundColor: getActivityColor(activityType)
+                    key={activityType}
+                    className="p-3 rounded-xl border-2"
+                    style={{
+                      backgroundColor: getActivityColor(activityType) + "10",
+                      borderColor: getActivityColor(activityType) + "30",
                     }}
-                  />
-                </div>
-              </div>
-            ))}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="p-1.5 rounded-lg text-white"
+                          style={{
+                            backgroundColor: getActivityColor(activityType),
+                          }}
+                        >
+                          {getActivityIcon(activityType)}
+                        </div>
+                        <span className="text-sm text-gray-700">
+                          {activityType}
+                        </span>
+                      </div>
+                      <div
+                        className="text-lg"
+                        style={{ color: getActivityColor(activityType) }}
+                      >
+                        {percentage}%
+                      </div>
+                    </div>
+
+                    {/* شريط التقدم */}
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${Math.min(percentage, 100)}%`,
+                          backgroundColor: getActivityColor(activityType),
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+            )}
           </div>
         ) : (
-          <div className="text-center py-8 rounded-xl" style={{ backgroundColor: '#ECEEEF' }}>
+          <div
+            className="text-center py-8 rounded-xl"
+            style={{ backgroundColor: "#ECEEEF" }}
+          >
             <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center bg-white">
               <Target className="w-6 h-6 text-gray-400" />
             </div>
@@ -283,14 +442,22 @@ const recentActivities = studentData?.recentActivities || [];
       {/* النشاطات الأخيرة */}
       <div className="bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200">
         <div className="flex items-center gap-2 mb-4">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: '#164194' }}>
+          <div
+            className="p-2 rounded-lg"
+            style={{ backgroundColor: "#164194" }}
+          >
             <Calendar className="w-4 h-4 text-white" />
           </div>
-          <h3 className="text-base" style={{ color: '#164194' }}>النشاطات الأخيرة</h3>
+          <h3 className="text-base" style={{ color: "#164194" }}>
+            النشاطات الأخيرة
+          </h3>
         </div>
 
         {recentActivities.length === 0 ? (
-          <div className="text-center py-8 rounded-xl" style={{ backgroundColor: '#ECEEEF' }}>
+          <div
+            className="text-center py-8 rounded-xl"
+            style={{ backgroundColor: "#ECEEEF" }}
+          >
             <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center bg-white">
               <BookOpen className="w-6 h-6 text-gray-400" />
             </div>
@@ -298,75 +465,101 @@ const recentActivities = studentData?.recentActivities || [];
           </div>
         ) : (
           <div className="space-y-2">
-            {recentActivities.map((activity, index) => (
-              <div
-                key={index}
-                className="p-3 rounded-xl border-2"
-                style={{ 
-                  backgroundColor: getActivityColor(activity.activityType) + '08',
-                  borderColor: getActivityColor(activity.activityType) + '20'
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  {/* أيقونة النشاط */}
-                  <div 
-                    className="p-2 rounded-lg text-white"
-                    style={{ backgroundColor: getActivityColor(activity.activityType) }}
-                  >
-                    {getActivityIcon(activity.activityType)}
-                  </div>
-
-                  {/* معلومات النشاط */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm text-gray-800">{ACTIVITY_NAMES[activity.activityType as keyof typeof ACTIVITY_NAMES]}</span>
-                      <span className="text-gray-400">-</span>
-                      <span className="text-base" style={{ color: '#164194' }}>حرف {activity.letter}</span>
+            {recentActivities.map((activity: any, index: number) => {
+              const percentage = getActivityPercentage(
+                activity.lessonName,
+                activity.score
+              );
+              return (
+                <div
+                  key={index}
+                  className="p-3 rounded-xl border-2"
+                  style={{
+                    backgroundColor:
+                      getActivityColor(activity.activityType) + "08",
+                    borderColor: getActivityColor(activity.activityType) + "20",
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* أيقونة النشاط */}
+                    <div
+                      className="p-2 rounded-lg text-white"
+                      style={{
+                        backgroundColor: getActivityColor(activity.lessonName),
+                      }}
+                    >
+                      {getActivityIcon(activity.lessonName)}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(activity.completedAt)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {Math.floor(activity.timeSpent / 60)} دقيقة
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* الدرجة */}
-                  <div 
-                    className="px-3 py-2 rounded-lg text-center"
-                    style={{ backgroundColor: getScoreColor(activity.score) }}
-                  >
-                    <div className="text-lg text-white">
-                      {activity.score}%
+                    {/* معلومات النشاط */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm text-gray-800">
+                          {
+                            ACTIVITY_NAMES[
+                              activity.lessonName as keyof typeof ACTIVITY_NAMES
+                            ]
+                          }
+                        </span>
+                        <span className="text-gray-400">-</span>
+                        <span
+                          className="text-base"
+                          style={{ color: "#164194" }}
+                        >
+                          {activity.activityType} {activity.letter}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(activity.completedAt)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {Math.ceil(activity.timeSpent / 60)} دقيقة
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* الدرجة */}
+                    <div
+                      className="px-3 py-2 rounded-lg text-center"
+                      style={{ backgroundColor: getScoreColor(percentage) }}
+                    >
+                      <div className="text-lg text-white">{percentage}%</div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* الحروف المكتملة */}
       {stats.completedLetters.length > 0 && (
-        <div className="bg-white p-4 rounded-2xl shadow-lg border-2" style={{ borderColor: '#10b981' }}>
+        <div
+          className="bg-white p-4 rounded-2xl shadow-lg border-2"
+          style={{ borderColor: "#10b981" }}
+        >
           <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: '#10b981' }}>
+            <div
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: "#10b981" }}
+            >
               <Award className="w-4 h-4 text-white" />
             </div>
-            <h3 className="text-base" style={{ color: '#10b981' }}>الحروف المدروسة ({stats.completedLetters.length} حرف)</h3>
+            <h3 className="text-base" style={{ color: "#10b981" }}>
+              الحروف المدروسة ({stats.completedLetters.length} حرف)
+            </h3>
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
-            {stats.completedLetters.map(letter => (
+            {stats.completedLetters.map((letter: any) => (
               <div
                 key={letter}
                 className="w-12 h-12 rounded-xl shadow-md flex items-center justify-center text-xl text-white"
-                style={{ backgroundColor: '#10b981' }}
+                style={{ backgroundColor: "#10b981" }}
               >
                 {letter}
               </div>

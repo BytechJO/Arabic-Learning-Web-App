@@ -332,7 +332,7 @@ export function LoginPage({  userType, onBack }: LoginPageProps) {
                   </div>
                 </motion.div>
 
-                {/* {mode === "register" && (
+                {mode === "register" && (
                   <motion.div
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -361,7 +361,7 @@ export function LoginPage({  userType, onBack }: LoginPageProps) {
                         : ACTIVATION_CODES.student}
                     </p>
                   </motion.div>
-                )} */}
+                )}
 
                 {error && (
                   <motion.div
@@ -406,7 +406,8 @@ export function LoginPage({  userType, onBack }: LoginPageProps) {
                             // activationCode: "STUDENT2024",
                           };
                           storage.setCurrentUser(demoUser);
-                          onLogin(demoUser);
+                          // onLogin(demoUser);
+                         
                         }}
                         className="w-full py-2.5 rounded-xl border-2 text-sm md:text-base hover:shadow-md transition-all flex items-center justify-center gap-2"
                         style={{ borderColor: "#652b82", color: "#652b82" }}
@@ -429,7 +430,7 @@ export function LoginPage({  userType, onBack }: LoginPageProps) {
                             // activationCode: "TEACHER2024",
                           };
                           storage.setCurrentUser(demoUser);
-                          onLogin(demoUser);
+                          // onLogin(demoUser);
                         }}
                         className="w-full py-2.5 rounded-xl border-2 text-sm md:text-base hover:shadow-md transition-all flex items-center justify-center gap-2"
                         style={{ borderColor: "#652b82", color: "#652b82" }}

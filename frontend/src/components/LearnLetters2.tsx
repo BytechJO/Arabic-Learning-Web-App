@@ -357,7 +357,7 @@ useEffect(() => {
     const percentage = (coloredPixels / totalPixels) * 100;
 
     // إذا تم تلوين 85% أو أكثر، عرض الـ feedback
-    if (percentage >= 85 && !isComplete) {
+    if (percentage > 99 && !isComplete) {
       setIsComplete(true);
     }
   };

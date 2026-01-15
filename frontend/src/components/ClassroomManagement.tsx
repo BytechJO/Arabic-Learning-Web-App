@@ -49,13 +49,12 @@ export function ClassroomManagement() {
   );
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [classToDelete, setClassToDelete] = useState<Classroom | null>(null);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
     null
   );
   const teacher = useSelector((state: RootState) => state.auth.user);
   const [students, setStudents] = useState<ClassStudent[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
-
   const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
     fetchClassrooms();
@@ -107,10 +106,6 @@ export function ClassroomManagement() {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const getStudentInfo = (studentId: string) => {
-    return storage.getUserById(studentId);
-  };
-
   const handleCancelDelete = () => {
     setShowDeleteModal(false);
     setClassToDelete(null);
@@ -133,12 +128,6 @@ export function ClassroomManagement() {
 
   // عرض تفاصيل طالب محدد
   if (selectedStudentId && selectedClassroomId) {
-    const student = storage.getUserById(selectedStudentId);
-    if (!student) {
-      setSelectedStudentId(null);
-      return null;
-    }
-
     return (
       <div className="space-y-4" dir="rtl">
         {/* زر الرجوع */}
@@ -154,7 +143,6 @@ export function ClassroomManagement() {
         <StudentProgressView
           classroomId={selectedClassroomId}
           studentId={selectedStudentId}
-          onBack={() => setSelectedStudentId(null)}
         />
       </div>
     );
@@ -273,7 +261,7 @@ export function ClassroomManagement() {
                 {students.map((student) => (
                   <button
                     key={student.id}
-                    onClick={() => setSelectedStudentId(student.id.toString())}
+                    onClick={() => setSelectedStudentId(student.id)}
                     className="w-full bg-white px-5 py-4 rounded-xl flex items-center gap-4 hover:shadow-lg transition-all"
                   >
                     <div

@@ -60,5 +60,5 @@ progressRouter.get(
   checkLetterCompletion
 );
 progressRouter.get("/user-status", authentication, getUserLettersStatus);
-progressRouter.get ("/students/:student_id/progress",getStudentProgress)
+progressRouter.get ("/students/:studentId/progress",getStudentProgress)
 module.exports = progressRouter;

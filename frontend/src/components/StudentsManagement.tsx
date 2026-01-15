@@ -37,7 +37,7 @@ export function StudentsManagement() {
     
         <motion.button
           onClick={()=>{
-            navigate("/teacher")
+            navigate(-1)
           }}
           className="fixed top-24 right-6 z-30 w-12 h-12 md:w-14 md:h-14 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110"
           style={{ backgroundColor: "#fad656" }}

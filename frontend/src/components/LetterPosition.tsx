@@ -115,13 +115,15 @@ export function LetterPosition() {
           const data = res;
 
           if (!data.is_completed || data.is_completed) {
+            console.log(data);
+            
             setTotalScore(data.total_score);
           }
           // ✅ هون المكان الصح
           await saveLearnProgress();
           setShowFinishModal(true);
         }
-      }, 1500);
+      }, 900);
     } catch (error) {
       console.error("Error submitting answer", error);
     }
@@ -431,7 +433,7 @@ export function LetterPosition() {
               >
                 لقد أتممت حل جميع الاسئلة
                 <br />
-                مجموع النقاط : {totalScore}/ 4
+                مجموع النقاط : {score}/ 4
               </motion.p>
 
               {/* زر الإغلاق */}
