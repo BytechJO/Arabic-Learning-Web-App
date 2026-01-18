@@ -3,7 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 require("./models/db");
-
+require("./models/activationDB")
 // routes
 const usersRouter = require("./routes/user.routers");
 const rolesRouter = require("./routes/roles.routers");

@@ -30,7 +30,7 @@ const mapRoleNumberToType = (role: number): "teacher" | "student" => {
 };
 
 const loginApi = async (email: string, password: string) => {
-  const res = await fetch("http://localhost:5000/users/login", {
+  const res = await fetch("https://arabic-learning-web-app.onrender.com/users/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -45,25 +45,55 @@ const loginApi = async (email: string, password: string) => {
 
   return data;
 };
+// const registerApi = async (
+//   username: string,
+//   email: string,
+//   password: string,
+//   role_id: number
+// ) => {
+//   const res = await fetch("https://arabic-learning-web-app.onrender.com/users/register", {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({
+//       username,
+//       email,
+//       password,
+//       role_id, // ⬅️ 2 أو 3
+//     }),
+//   });
+
+//   const data = await res.json();
+//   console.log(data.response[0]);
+
+//   if (!res.ok) {
+//     throw new Error(data.message || "فشل إنشاء الحساب");
+//   }
+
+//   return data;
+// };
+
+
 const registerApi = async (
   username: string,
   email: string,
   password: string,
-  role_id: number
+  activationCode: string
 ) => {
-  const res = await fetch("http://localhost:5000/users/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username,
-      email,
-      password,
-      role_id, // ⬅️ 2 أو 3
-    }),
-  });
+  const res = await fetch(
+    "https://arabic-learning-web-app.onrender.com/users/register",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        email,
+        password,
+        activation_code: activationCode,
+      }),
+    }
+  );
 
   const data = await res.json();
-  console.log(data.response[0]);
 
   if (!res.ok) {
     throw new Error(data.message || "فشل إنشاء الحساب");
@@ -72,9 +102,10 @@ const registerApi = async (
   return data;
 };
 
+
 export function LoginPage({  userType, onBack }: LoginPageProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
-  // const [activationCode, setActivationCode] = useState("");
+  const [activationCode, setActivationCode] = useState("");
   const dispatch = useAppDispatch();
   // console.log(userType);
   const navigate = useNavigate();
@@ -131,45 +162,79 @@ export function LoginPage({  userType, onBack }: LoginPageProps) {
     }
   };
 
+  // const handleRegister = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError("");
+
+  //   if (!formData.username || !formData.email || !formData.password) {
+  //     setError("يرجى ملء جميع الحقول");
+  //     return;
+  //   }
+
+  //   try {
+  //     const roleNumber = userType === "teacher" ? 2 : 3;
+
+  //     const data = await registerApi(
+  //       formData.username,
+  //       formData.email,
+  //       formData.password,
+  //       roleNumber
+  //     );
+
+  //     const userData = data.response[0]; // ⭐⭐⭐
+
+  //     const mappedType = mapRoleNumberToType(userData.role_id);
+
+  //     const user = {
+  //       id: String(userData.id),
+  //       username: userData.username,
+  //       email: userData.email,
+  //       roleId: userData.role_id,
+  //       type: mappedType,
+  //     };
+
+  //     navigate(`/login/${userType}`);
+  //     // (اختياري) تفريغ كلمة المرور
+  //     setFormData((prev) => ({ ...prev, password: "" }));
+  //   } catch (err) {
+  //     console.error(err);
+  //     setError(err instanceof Error ? err.message : "فشل إنشاء الحساب");
+  //   }
+  // };
+
+
+
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    if (!formData.username || !formData.email || !formData.password) {
-      setError("يرجى ملء جميع الحقول");
-      return;
-    }
+  if (
+    !formData.username ||
+    !formData.email ||
+    !formData.password ||
+    !activationCode
+  ) {
+    setError("يرجى ملء جميع الحقول");
+    return;
+  }
 
-    try {
-      const roleNumber = userType === "teacher" ? 2 : 3;
+  try {
+    await registerApi(
+      formData.username,
+      formData.email,
+      formData.password,
+      activationCode
+    );
 
-      const data = await registerApi(
-        formData.username,
-        formData.email,
-        formData.password,
-        roleNumber
-      );
+    // بعد نجاح التسجيل → رجّعيه على تسجيل الدخول
+    navigate(`/login/${userType}`);
 
-      const userData = data.response[0]; // ⭐⭐⭐
-
-      const mappedType = mapRoleNumberToType(userData.role_id);
-
-      const user = {
-        id: String(userData.id),
-        username: userData.username,
-        email: userData.email,
-        roleId: userData.role_id,
-        type: mappedType,
-      };
-
-      navigate(`/login/${userType}`);
-      // (اختياري) تفريغ كلمة المرور
-      setFormData((prev) => ({ ...prev, password: "" }));
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "فشل إنشاء الحساب");
-    }
-  };
+    setFormData((prev) => ({ ...prev, password: "" }));
+    setActivationCode("");
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "فشل إنشاء الحساب");
+  }
+};
 
   return (
     <div className="min-h-screen relative overflow-hidden" dir="rtl">
@@ -356,9 +421,6 @@ export function LoginPage({  userType, onBack }: LoginPageProps) {
                     </div>
                     <p className="text-xs md:text-sm text-gray-500 mt-1.5">
                       كود التفعيل:{" "}
-                      {userType === "teacher"
-                        ? ACTIVATION_CODES.teacher
-                        : ACTIVATION_CODES.student}
                     </p>
                   </motion.div>
                 )}

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000", // 🔥 باك إند
+  baseURL: "https://arabic-learning-web-app.onrender.com", // 🔥 باك إند
 });
 
 api.interceptors.request.use((config) => {

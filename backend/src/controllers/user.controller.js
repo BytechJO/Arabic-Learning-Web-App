@@ -1,49 +1,183 @@
 const client = require("../models/db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const activationDB = require("../models/activationDB")
 //===================register ======================//
-const register = async (req, res) => {
-  const { username, email, password, role_id } = req.body;
-  const encryptedPassword = await bcrypt.hash(password, 10);
+// const register = async (req, res) => {
+//   const { username, email, password, role_id } = req.body;
+//   const encryptedPassword = await bcrypt.hash(password, 10);
 
-  const query = `INSERT INTO users  (username,email,password,avatar_url,role_id) VALUES ($1,$2,$3,$4,$5) RETURNING *`;
-  const value = [
-    username,
-    email.toLowerCase(),
-    encryptedPassword,
-    "https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg?s=612x612&w=0&k=20&c=UEa7oHoOL30ynvmJzSCIPrwwopJdfqzBs0q69ezQoM8=",
-    role_id,
-  ];
+//   const query = `INSERT INTO users  (username,email,password,avatar_url,role_id) VALUES ($1,$2,$3,$4,$5) RETURNING *`;
+//   const value = [
+//     username,
+//     email.toLowerCase(),
+//     encryptedPassword,
+//     "https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg?s=612x612&w=0&k=20&c=UEa7oHoOL30ynvmJzSCIPrwwopJdfqzBs0q69ezQoM8=",
+//     role_id,
+//   ];
+
+//   try {
+//     const response = await client.query(query, value);
+//     if (response.rowCount) {
+//       res.status(201).json({
+//         success: true,
+//         message: "User account created successfully",
+//         response: response.rows,
+//       });
+//     }
+//   } catch (error) {
+//     if (error.constraint === "users_email_key") {
+//       res.status(409).json({
+//         success: false,
+//         message: "The email already exists",
+//       });
+//     }
+//     if (error.constraint === "chk_email") {
+//       res.status(409).json({
+//         success: false,
+//         message: "The email you entered is not correct",
+//       });
+//     } else {
+//       res.status(500).json({
+//         message: "Server Error",
+//         error: error.message,
+//       });
+//     }
+//   }
+// };
+
+/**
+ * POST /auth/register-with-activation
+ */
+const register = async (req, res) => {
+  const { username, email, password, activation_code } = req.body;
+
+  if (!username || !email || !password || !activation_code) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing required fields",
+    });
+  }
 
   try {
-    const response = await client.query(query, value);
-    if (response.rowCount) {
-      res.status(201).json({
-        success: true,
-        message: "User account created successfully",
-        response: response.rows,
+    /* ----------------------------------------------------
+       1️⃣ Check activation code (Central DB)
+    ---------------------------------------------------- */
+    const codeResult = await activationDB.query(
+      `
+      SELECT
+        id,
+        book_id,
+        role,
+        is_used
+      FROM activation_codes
+      WHERE code = $1
+      `,
+      [activation_code]
+    );
+
+    if (!codeResult.rowCount) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid activation code",
       });
     }
+
+    const code = codeResult.rows[0];
+
+    if (code.is_used !== false) {
+      return res.status(400).json({
+        success: false,
+        message: "Activation code already used",
+      });
+    }
+
+    // ⬅️ اختياري: تأكد إنو الكود تابع لهذا الكتاب
+    // if (code.book_slug !== "math-grade-3") {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "Activation code not valid for this book",
+    //   });
+    // }
+
+    /* ----------------------------------------------------
+       2️⃣ Register user (Book DB)
+    ---------------------------------------------------- */
+    const encryptedPassword = await bcrypt.hash(password, 10);
+
+    const insertUserQuery = `
+      INSERT INTO users
+        (username, email, password, avatar_url, role_id)
+      VALUES
+        ($1, $2, $3, $4, $5)
+      RETURNING id
+    `;
+    const role_id = code.role === "student" ? 2 : 3;
+    const insertValues = [
+      username,
+      email.toLowerCase(),
+      encryptedPassword,
+      "https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg",
+      role_id, // 🔐 الدور جاي من الاكتيفيشن كود
+    ];
+
+    let userId;
+    try {
+      const userResult = await client.query(insertUserQuery, insertValues);
+      userId = userResult.rows[0].id;
+    } catch (error) {
+      if (error.constraint === "users_email_key") {
+        return res.status(409).json({
+          success: false,
+          message: "The email already exists",
+        });
+      }
+
+      if (error.constraint === "chk_email") {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid email format",
+        });
+      }
+
+      throw error;
+    }
+
+    /* ----------------------------------------------------
+       3️⃣ Mark activation code as used (Central DB)
+    ---------------------------------------------------- */
+    console.log(code.id);
+    
+    await activationDB.query(
+      `
+      UPDATE activation_codes
+      SET
+        is_used = 'true',
+        used_at = NOW()
+      WHERE id = $1
+      `,
+      [ code.id]
+    );
+
+    /* ----------------------------------------------------
+       4️⃣ Success response
+    ---------------------------------------------------- */
+    return res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+      user_id: userId,
+    });
   } catch (error) {
-    if (error.constraint === "users_email_key") {
-      res.status(409).json({
-        success: false,
-        message: "The email already exists",
-      });
-    }
-    if (error.constraint === "chk_email") {
-      res.status(409).json({
-        success: false,
-        message: "The email you entered is not correct",
-      });
-    } else {
-      res.status(500).json({
-        message: "Server Error",
-        error: error.message,
-      });
-    }
+    console.error("REGISTER WITH ACTIVATION ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
+
+
 //=================== login ======================//
 const login = (req, res) => {
   const { password } = req.body;
