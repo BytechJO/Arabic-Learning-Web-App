@@ -91,10 +91,14 @@ export function LetterTashkeel() {
 
   const question = questions[currentQuestion];
   const parsedQuestionText = JSON.parse(question.question_text);
-  const handleAnswer = async (position: string) => {
-    try {
-      const result = await submitAnswer(3, question.id, position);
+  const handleAnswer = async (answer: string) => {
+    // ✅ عرض الفيدباك مباشرة (مؤقت)
+    setShowFeedback("correct"); // مؤقت – بيتعدل حسب الرد
 
+    try {
+      const result = await submitAnswer(3, question.id, answer);
+
+      // ✅ حدّث الفيدباك الحقيقي
       setShowFeedback(result.is_correct ? "correct" : "wrong");
 
       if (result.is_correct) {
@@ -104,25 +108,18 @@ export function LetterTashkeel() {
       setTimeout(async () => {
         setShowFeedback(null);
 
-        // ✅ إذا في أسئلة بعدها
         if (currentQuestion < questions.length - 1) {
           setCurrentQuestion((prev) => prev + 1);
-        }
-        // ✅ إذا هذا آخر سؤال
-        else {
-          // 🔹 جيب السكور النهائي من الباك اند
-          const res = await calculateLessonResult(3);
-          const data = res;
-          if (!data.is_completed || data.is_completed) {
-            setTotalScore(data.total_score);
-          }
-          // ✅ هون المكان الصح
+        } else {
+          const data = await calculateLessonResult(3);
+          setTotalScore(data.total_score);
           await saveLearnProgress();
           setShowFinishModal(true);
         }
-      }, 1500);
-    } catch (error) {
-      console.error("Error submitting answer", error);
+      }, 800); // ⏱️ أقل زمن
+    } catch (err) {
+      console.error(err);
+      setShowFeedback("wrong");
     }
   };
 
@@ -174,7 +171,7 @@ export function LetterTashkeel() {
                 className="text-xl md:text-2xl mb-1"
                 style={{ color: "#652b82" }}
               >
-             تشكيل حرف ال{currentLetterFromRedux?.name}
+                تشكيل حرف ال{currentLetterFromRedux?.name}
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 اختر التشكيل الصحيح للحرف

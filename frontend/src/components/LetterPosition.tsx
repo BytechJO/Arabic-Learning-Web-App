@@ -91,43 +91,37 @@ export function LetterPosition() {
   const question = questions[currentQuestion];
   const parsedQuestionText = JSON.parse(question.question_text);
   const handleAnswer = async (position: string) => {
-    try {
-      const result = await submitAnswer(12, question.id, position);
+  // ✅ 1. تحقق فوري
+  const isCorrect = position === question.correct_answer;
 
-      setShowFeedback(result.is_correct ? "correct" : "wrong");
+  // ✅ 2. عرض النتيجة فورًا
+  setShowFeedback(isCorrect ? "correct" : "wrong");
 
-      if (result.is_correct) {
-        setScore((prev) => prev + result.score);
-      }
+  if (isCorrect) {
+    setScore((prev) => prev + 1); // أو result.score
+  }
 
-      setTimeout(async () => {
-        setShowFeedback(null);
+  // ✅ 3. أرسل للباك إند بدون انتظار
+  submitAnswer(12, question.id, position).catch((err) =>
+    console.error("Submit answer error:", err)
+  );
 
-        // ✅ إذا في أسئلة بعدها
-        if (currentQuestion < questions.length - 1) {
-          setCurrentQuestion((prev) => prev + 1);
-        }
-        // ✅ إذا هذا آخر سؤال
-        else {
-          // 🔹 جيب السكور النهائي من الباك اند
-          const res = await calculateLessonResult(12);
+  // ✅ 4. انتقل للسؤال التالي
+  setTimeout(async () => {
+    setShowFeedback(null);
 
-          const data = res;
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion((prev) => prev + 1);
+    } else {
+      const data = await calculateLessonResult(12);
+      setTotalScore(data.total_score);
 
-          if (!data.is_completed || data.is_completed) {
-            console.log(data);
-            
-            setTotalScore(data.total_score);
-          }
-          // ✅ هون المكان الصح
-          await saveLearnProgress();
-          setShowFinishModal(true);
-        }
-      }, 900);
-    } catch (error) {
-      console.error("Error submitting answer", error);
+      await saveLearnProgress();
+      setShowFinishModal(true);
     }
-  };
+  }, 1000); // ⬅️ أسرع من قبل
+};
+
 
   const resetGame = () => {
     setScore(0);
