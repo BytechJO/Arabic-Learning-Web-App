@@ -95,6 +95,21 @@ const register = async (req, res) => {
     }
 
     /* ----------------------------------------------------
+   2️⃣½ Check if email already exists (Book DB)
+---------------------------------------------------- */
+    const emailCheck = await client.query(
+      `SELECT id FROM users WHERE email = $1`,
+      [email.toLowerCase()]
+    );
+   
+    if (emailCheck.rowCount > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "هذا البريد الإلكتروني مستخدم مسبقاً",
+      });
+    }
+
+    /* ----------------------------------------------------
        2️⃣ Check role match (IMPORTANT PART)
     ---------------------------------------------------- */
     if (code.role !== requested_role) {
@@ -144,7 +159,7 @@ const register = async (req, res) => {
         used_at = NOW()
       WHERE id = $1
       `,
-      [ code.id]
+      [code.id]
     );
 
     /* ----------------------------------------------------
