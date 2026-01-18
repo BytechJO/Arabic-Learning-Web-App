@@ -81,7 +81,7 @@ const register = async (req, res) => {
     if (!codeResult.rowCount) {
       return res.status(400).json({
         success: false,
-        message: "Invalid activation code",
+        message: "كود تفعيل غير صالح",
       });
     }
 
@@ -90,7 +90,7 @@ const register = async (req, res) => {
     if (code.is_used) {
       return res.status(400).json({
         success: false,
-        message: "Activation code already used",
+        message: "كود تفعيل مستخدم يرجى ادخال كود التفعيل الصحيح",
       });
     }
 
@@ -112,7 +112,7 @@ const register = async (req, res) => {
     ---------------------------------------------------- */
     const encryptedPassword = await bcrypt.hash(password, 10);
 
-    const role_id = requested_role === "teacher" ? 2 : 3;
+    const role_id = requested_role === "teacher" ? 3 : 2;
 
     const insertUserQuery = `
       INSERT INTO users
@@ -141,11 +141,10 @@ const register = async (req, res) => {
       UPDATE activation_codes
       SET
         is_used = TRUE,
-        used_at = NOW(),
-        used_by = $1
-      WHERE id = $2
+        used_at = NOW()
+      WHERE id = $1
       `,
-      [userId, code.id]
+      [ code.id]
     );
 
     /* ----------------------------------------------------
