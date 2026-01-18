@@ -11,6 +11,9 @@ const classRouter = require("./routes/class.routers");
 const letterRouter = require("./routes/letter.routers");
 const lessonRouter = require("./routes/lesson.routers");
 const progressRouter = require("./routes/progress.routers");
+// import passport from "passport";
+// import "./config/passport.js";
+// import googleAuthRoutes from "./routes/googleAuth.js";
 const app = express();
 
 app.use(cors());
@@ -20,7 +23,8 @@ app.use(express.urlencoded({ extended: true }));
 
 
 
-
+// app.use(passport.initialize());
+// app.use("/auth", googleAuthRoutes);
 // router middleware
 app.use("/users", usersRouter);
 app.use("/roles", rolesRouter);
