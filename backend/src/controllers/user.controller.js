@@ -133,7 +133,7 @@ const register = async (req, res) => {
         return res.status(409).json({
           success: false,
           message: "The email already exists",
-          err: error.message,
+          err: error,
         });
       }
 
@@ -141,7 +141,7 @@ const register = async (req, res) => {
         return res.status(400).json({
           success: false,
           message: "Invalid email format",
-          err: error.message,
+          err: error,
         });
       }
 
@@ -178,7 +178,7 @@ const register = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error",
-      err: error.message,
+      err: res.data,
     });
   }
 };
