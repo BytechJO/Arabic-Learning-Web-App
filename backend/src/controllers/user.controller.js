@@ -178,7 +178,7 @@ const register = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error",
-      err: res.data,
+      err: error,
     });
   }
 };
