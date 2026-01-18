@@ -1,7 +1,7 @@
 const client = require("../models/db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const activationDB = require("../models/activationDB")
+const activationDB = require("../models/activationDB");
 //===================register ======================//
 // const register = async (req, res) => {
 //   const { username, email, password, role_id } = req.body;
@@ -56,6 +56,7 @@ const register = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Missing required fields",
+      err: res,
     });
   }
 
@@ -80,6 +81,7 @@ const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid activation code",
+        err: res,
       });
     }
 
@@ -89,6 +91,7 @@ const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Activation code already used",
+        err: res,
       });
     }
 
@@ -130,6 +133,7 @@ const register = async (req, res) => {
         return res.status(409).json({
           success: false,
           message: "The email already exists",
+          err: res,
         });
       }
 
@@ -137,6 +141,7 @@ const register = async (req, res) => {
         return res.status(400).json({
           success: false,
           message: "Invalid email format",
+          err: res,
         });
       }
 
@@ -147,7 +152,7 @@ const register = async (req, res) => {
        3️⃣ Mark activation code as used (Central DB)
     ---------------------------------------------------- */
     console.log(code.id);
-    
+
     await activationDB.query(
       `
       UPDATE activation_codes
@@ -156,7 +161,7 @@ const register = async (req, res) => {
         used_at = NOW()
       WHERE id = $1
       `,
-      [ code.id]
+      [code.id]
     );
 
     /* ----------------------------------------------------
@@ -173,10 +178,10 @@ const register = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error",
+      err: res,
     });
   }
 };
-
 
 //=================== login ======================//
 const login = (req, res) => {
