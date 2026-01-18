@@ -51,9 +51,6 @@ const activationDB = require("../models/activationDB");
  */
 const register = async (req, res) => {
 
-  activationDB.query("SELECT 1")
-  .then(() => console.log("✅ Activation DB connected"))
-  .catch(err => console.error("❌ Activation DB ERROR", err));
 
   const { username, email, password, activation_code } = req.body;
 
@@ -68,7 +65,11 @@ const register = async (req, res) => {
   try {
     /* ----------------------------------------------------
        1️⃣ Check activation code (Central DB)
-    ---------------------------------------------------- */
+    ---------------------------------------------------- */ 
+     activationDB.query("SELECT 1")
+  .then(() => console.log("✅ Activation DB connected"))
+  .catch(err => console.error("❌ Activation DB ERROR", err));
+
     const codeResult = await activationDB.query(
       `
       SELECT
