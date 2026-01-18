@@ -50,6 +50,11 @@ const activationDB = require("../models/activationDB");
  * POST /auth/register-with-activation
  */
 const register = async (req, res) => {
+
+  activationDB.query("SELECT 1")
+  .then(() => console.log("✅ Activation DB connected"))
+  .catch(err => console.error("❌ Activation DB ERROR", err));
+
   const { username, email, password, activation_code } = req.body;
 
   if (!username || !email || !password || !activation_code) {
@@ -178,7 +183,7 @@ const register = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error",
-      err: res.data,
+      err: error,
     });
   }
 };

@@ -1,15 +1,15 @@
-
 const { Pool } = require("pg");
 
 const connectionString = process.env.Activation_DB;
 console.log(connectionString);
 
-
 const ActivationDB = new Pool({
   connectionString,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
-ActivationDB
-  .connect()
+ActivationDB.connect()
   .then((res) => {
     console.log(`DB connected to ${res.database}`);
   })
@@ -18,6 +18,3 @@ ActivationDB
   });
 
 module.exports = ActivationDB;
-
-
-
