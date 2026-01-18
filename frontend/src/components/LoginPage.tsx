@@ -82,27 +82,31 @@ const registerApi = async (
   activationCode: string,
   userType: "student" | "teacher"
 ) => {
-  const res = await fetch("/users/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username,
-      email,
-      password,
-      activation_code: activationCode,
-      requested_role: userType,
-    }),
-  });
+  const res = await fetch(
+    "https://arabic-learning-web-app.onrender.com/users/register",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        email,
+        password,
+        activation_code: activationCode,
+        requested_role: userType,
+      }),
+    }
+  );
 
   const data = await res.json();
 
   if (!res.ok) {
+    console.log(res);
+    
     throw new Error(data.message);
   }
 
   return data;
 };
-
 
 export function LoginPage({ userType, onBack }: LoginPageProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -222,12 +226,11 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
         formData.username,
         formData.email,
         formData.password,
-        activationCode
+        activationCode,
+        userType
       );
 
       // بعد نجاح التسجيل → رجّعيه على تسجيل الدخول
-
-   
 
       setFormData((prev) => ({ ...prev, password: "" }));
       setMode("login");
