@@ -28,7 +28,7 @@ interface AppRouterProps {
   selectedUserType: "student" | "teacher" | null;
   currentUser: User | null;
   onLogout: () => void;
-  onNavigate: (section: string) => void;
+  // onNavigate: (section: string) => void;
 }
 export function AppRouter({
   onChooseType,

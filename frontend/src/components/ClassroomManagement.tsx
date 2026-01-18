@@ -65,7 +65,9 @@ export function ClassroomManagement() {
       const res = await getTeacherClasses();
       setClassrooms(res.data.data);
     } catch (error) {
-      console.error("فشل تحميل الصفوف", error);
+      console.log(error);
+      
+      // console.error("فشل تحميل الصفوف", error);
     }
   };
   const handleSelectClassroom = async (classId: number) => {
@@ -93,6 +95,8 @@ export function ClassroomManagement() {
       setNewClassName("");
       setShowCreateForm(false);
     } catch (error: any) {
+      console.log(error);
+      
       if (error.response?.status === 409) {
         alert("كود الصف موجود مسبقًا، حاول مرة ثانية");
       } else {

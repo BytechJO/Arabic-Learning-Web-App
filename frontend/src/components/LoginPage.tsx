@@ -24,17 +24,20 @@ interface LoginPageProps {
   onBack: () => void;
 }
 const mapRoleNumberToType = (role: number): "teacher" | "student" => {
-  if (role === 2) return "teacher";
-  if (role === 3) return "student";
+  if (role === 3) return "teacher";
+  if (role === 2) return "student";
   throw new Error("نوع مستخدم غير معروف");
 };
 
 const loginApi = async (email: string, password: string) => {
-  const res = await fetch("https://arabic-learning-web-app.onrender.com/users/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
+  const res = await fetch(
+    "https://arabic-learning-web-app.onrender.com/users/login",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    }
+  );
 
   const data = await res.json();
   console.log(data);
@@ -72,42 +75,39 @@ const loginApi = async (email: string, password: string) => {
 //   return data;
 // };
 
-
 const registerApi = async (
   username: string,
   email: string,
   password: string,
-  activationCode: string
+  activationCode: string,
+  userType: "student" | "teacher"
 ) => {
-  const res = await fetch(
-    "https://arabic-learning-web-app.onrender.com/users/register",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username,
-        email,
-        password,
-        activation_code: activationCode,
-      }),
-    }
-  );
+  const res = await fetch("/users/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username,
+      email,
+      password,
+      activation_code: activationCode,
+      requested_role: userType,
+    }),
+  });
 
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(data.message || "فشل إنشاء الحساب");
+    throw new Error(data.message);
   }
 
   return data;
 };
 
 
-export function LoginPage({  userType, onBack }: LoginPageProps) {
+export function LoginPage({ userType, onBack }: LoginPageProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [activationCode, setActivationCode] = useState("");
   const dispatch = useAppDispatch();
-  // console.log(userType);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
@@ -126,6 +126,7 @@ export function LoginPage({  userType, onBack }: LoginPageProps) {
       const mappedRole = mapRoleNumberToType(data.role);
 
       // حماية: المستخدم دخل على نوع غلط
+      console.log(mappedRole);
       if (mappedRole !== userType) {
         setError(
           `هذا الحساب مسجل كـ ${mappedRole === "teacher" ? "معلم" : "طالب"}`
@@ -202,39 +203,39 @@ export function LoginPage({  userType, onBack }: LoginPageProps) {
   //   }
   // };
 
-
-
   const handleRegister = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
+    e.preventDefault();
+    setError("");
 
-  if (
-    !formData.username ||
-    !formData.email ||
-    !formData.password ||
-    !activationCode
-  ) {
-    setError("يرجى ملء جميع الحقول");
-    return;
-  }
+    if (
+      !formData.username ||
+      !formData.email ||
+      !formData.password ||
+      !activationCode
+    ) {
+      setError("يرجى ملء جميع الحقول");
+      return;
+    }
 
-  try {
-    await registerApi(
-      formData.username,
-      formData.email,
-      formData.password,
-      activationCode
-    );
+    try {
+      await registerApi(
+        formData.username,
+        formData.email,
+        formData.password,
+        activationCode
+      );
 
-    // بعد نجاح التسجيل → رجّعيه على تسجيل الدخول
-    navigate(`/login/${userType}`);
+      // بعد نجاح التسجيل → رجّعيه على تسجيل الدخول
 
-    setFormData((prev) => ({ ...prev, password: "" }));
-    setActivationCode("");
-  } catch (err) {
-    setError(err instanceof Error ? err.message : "فشل إنشاء الحساب");
-  }
-};
+   
+
+      setFormData((prev) => ({ ...prev, password: "" }));
+      setMode("login");
+      setActivationCode("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "فشل إنشاء الحساب");
+    }
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden" dir="rtl">
@@ -469,7 +470,6 @@ export function LoginPage({  userType, onBack }: LoginPageProps) {
                           };
                           storage.setCurrentUser(demoUser);
                           // onLogin(demoUser);
-                         
                         }}
                         className="w-full py-2.5 rounded-xl border-2 text-sm md:text-base hover:shadow-md transition-all flex items-center justify-center gap-2"
                         style={{ borderColor: "#652b82", color: "#652b82" }}

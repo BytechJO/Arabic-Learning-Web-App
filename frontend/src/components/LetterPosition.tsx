@@ -177,7 +177,7 @@ export function LetterPosition() {
                 className="text-xl md:text-2xl mb-1"
                 style={{ color: "#652b82" }}
               >
-                حدد مكان حرف {currentLetterFromRedux?.name}
+              حدد مكان حرف  ال{currentLetterFromRedux?.name}
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 اختر المكان الصحيح للحرف في الكلمة
@@ -296,7 +296,7 @@ export function LetterPosition() {
                   className="text-2xl md:text-3xl"
                   style={{ color: "#652b82" }}
                 >
-                  {currentLetterFromRedux?.name}
+                  ال{currentLetterFromRedux?.name}
                 </span>{" "}
                 في هذه الكلمة؟
               </p>

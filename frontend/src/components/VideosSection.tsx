@@ -211,7 +211,7 @@ export function VideosSection() {
                 className="text-3xl md:text-4xl mb-2"
                 style={{ color: "#652b82" }}
               >
-                فيديوهات حرف ال {letterName || "ألف"}
+                فيديوهات حرف ال{letterName || "ألف"}
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 شاهد وتعلم حرف الألف بطريقة ممتعة

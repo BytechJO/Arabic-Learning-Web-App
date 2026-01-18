@@ -174,7 +174,7 @@ export function LetterTashkeel() {
                 className="text-xl md:text-2xl mb-1"
                 style={{ color: "#652b82" }}
               >
-                تشكيل حرف {currentLetterFromRedux?.name}
+             تشكيل حرف ال{currentLetterFromRedux?.name}
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 اختر التشكيل الصحيح للحرف
@@ -293,7 +293,7 @@ export function LetterTashkeel() {
                   className="text-2xl md:text-3xl"
                   style={{ color: "#652b82" }}
                 >
-                  {currentLetterFromRedux?.name}
+                  ال{currentLetterFromRedux?.name}
                 </span>{" "}
                 في هذه الكلمة؟
               </p>

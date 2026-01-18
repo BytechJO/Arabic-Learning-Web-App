@@ -238,7 +238,7 @@ console.log(letterId);
                 className="text-2xl md:text-3xl mb-1"
                 style={{ color: "#652b82" }}
               >
-                مرحباً بك في درس حرف {currentLetterFromRedux?.name|| "الألف"}
+                مرحباً بك في درس حرف {`ال${currentLetterFromRedux?.name} `|| "الألف"}
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 شاهد الفيديو ثم ابدأ التعلم التفاعلي

@@ -429,7 +429,7 @@ useEffect(() => {
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 شاهد الفيديو ثم ابدأ في رسم وتلوين حرف{" "}
-                {currentLetterFromRedux?.name || "الألف"}
+                {`ال${currentLetterFromRedux?.name} `|| "الألف"}
               </p>
             </motion.div>
 

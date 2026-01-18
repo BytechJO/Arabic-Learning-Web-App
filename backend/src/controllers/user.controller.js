@@ -50,33 +50,28 @@ const activationDB = require("../models/activationDB");
  * POST /auth/register-with-activation
  */
 const register = async (req, res) => {
+  const {
+    username,
+    email,
+    password,
+    activation_code,
+    requested_role, // 'student' | 'teacher'
+  } = req.body;
 
-
-  const { username, email, password, activation_code } = req.body;
-
-  if (!username || !email || !password || !activation_code) {
+  if (!username || !email || !password || !activation_code || !requested_role) {
     return res.status(400).json({
       success: false,
       message: "Missing required fields",
-      err: error.message,
     });
   }
 
   try {
     /* ----------------------------------------------------
        1️⃣ Check activation code (Central DB)
-    ---------------------------------------------------- */ 
-     activationDB.query("SELECT 1")
-  .then(() => console.log("✅ Activation DB connected"))
-  .catch(err => console.error("❌ Activation DB ERROR", err));
-
+    ---------------------------------------------------- */
     const codeResult = await activationDB.query(
       `
-      SELECT
-        id,
-        book_id,
-        role,
-        is_used
+      SELECT id, book_id, role, is_used
       FROM activation_codes
       WHERE code = $1
       `,
@@ -87,91 +82,74 @@ const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid activation code",
-        err: error.message,
       });
     }
 
     const code = codeResult.rows[0];
 
-    if (code.is_used !== false) {
+    if (code.is_used) {
       return res.status(400).json({
         success: false,
         message: "Activation code already used",
-        err: error.message,
       });
     }
 
-    // ⬅️ اختياري: تأكد إنو الكود تابع لهذا الكتاب
-    // if (code.book_slug !== "math-grade-3") {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: "Activation code not valid for this book",
-    //   });
-    // }
+    /* ----------------------------------------------------
+       2️⃣ Check role match (IMPORTANT PART)
+    ---------------------------------------------------- */
+    if (code.role !== requested_role) {
+      return res.status(403).json({
+        success: false,
+        message:
+          requested_role === "teacher"
+            ? "هذا كود تفعيل خاص بالطلاب"
+            : "هذا كود تفعيل خاص بالمعلمين",
+      });
+    }
 
     /* ----------------------------------------------------
-       2️⃣ Register user (Book DB)
+       3️⃣ Register user (Book DB)
     ---------------------------------------------------- */
     const encryptedPassword = await bcrypt.hash(password, 10);
 
+    const role_id = requested_role === "teacher" ? 2 : 3;
+
     const insertUserQuery = `
       INSERT INTO users
-        (username, email, password, avatar_url, role_id)
+        (username, email, password, avatar_url, role_id, created_at)
       VALUES
-        ($1, $2, $3, $4, $5)
+        ($1, $2, $3, $4, $5, NOW())
       RETURNING id
     `;
-    const role_id = code.role === "student" ? 2 : 3;
+
     const insertValues = [
       username,
       email.toLowerCase(),
       encryptedPassword,
       "https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg",
-      role_id, // 🔐 الدور جاي من الاكتيفيشن كود
+      role_id,
     ];
 
-    let userId;
-    try {
-      const userResult = await client.query(insertUserQuery, insertValues);
-      userId = userResult.rows[0].id;
-    } catch (error) {
-      if (error.constraint === "users_email_key") {
-        return res.status(409).json({
-          success: false,
-          message: "The email already exists",
-          err: error,
-        });
-      }
-
-      if (error.constraint === "chk_email") {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid email format",
-          err: error,
-        });
-      }
-
-      throw error;
-    }
+    const userResult = await client.query(insertUserQuery, insertValues);
+    const userId = userResult.rows[0].id;
 
     /* ----------------------------------------------------
-       3️⃣ Mark activation code as used (Central DB)
+       4️⃣ Mark activation code as used
     ---------------------------------------------------- */
-    console.log(code.id);
-
     await activationDB.query(
       `
       UPDATE activation_codes
       SET
         is_used = TRUE,
-        used_at = NOW()
-      WHERE id = $1
+        used_at = NOW(),
+        used_by = $1
+      WHERE id = $2
       `,
-      [code.id]
+      [userId, code.id]
     );
 
     /* ----------------------------------------------------
-       4️⃣ Success response
+       5️⃣ Success
     ---------------------------------------------------- */
     return res.status(201).json({
       success: true,
@@ -184,7 +162,6 @@ const register = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error",
-      err: error,
     });
   }
 };
