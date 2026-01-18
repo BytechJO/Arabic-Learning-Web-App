@@ -56,7 +56,7 @@ const register = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Missing required fields",
-      err: res,
+      err: error.message,
     });
   }
 
@@ -81,7 +81,7 @@ const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid activation code",
-        err: res,
+        err: error.message,
       });
     }
 
@@ -91,7 +91,7 @@ const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Activation code already used",
-        err: res,
+        err: error.message,
       });
     }
 
@@ -133,7 +133,7 @@ const register = async (req, res) => {
         return res.status(409).json({
           success: false,
           message: "The email already exists",
-          err: res,
+          err: error.message,
         });
       }
 
@@ -141,7 +141,7 @@ const register = async (req, res) => {
         return res.status(400).json({
           success: false,
           message: "Invalid email format",
-          err: res,
+          err: error.message,
         });
       }
 
@@ -157,7 +157,7 @@ const register = async (req, res) => {
       `
       UPDATE activation_codes
       SET
-        is_used = 'true',
+        is_used = TRUE,
         used_at = NOW()
       WHERE id = $1
       `,
@@ -178,7 +178,7 @@ const register = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error",
-      err: res,
+      err: error.message,
     });
   }
 };
