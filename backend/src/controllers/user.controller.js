@@ -101,7 +101,7 @@ const register = async (req, res) => {
       `SELECT id FROM users WHERE email = $1`,
       [email.toLowerCase()]
     );
-   
+
     if (emailCheck.rowCount > 0) {
       return res.status(409).json({
         success: false,
