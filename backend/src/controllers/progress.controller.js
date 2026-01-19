@@ -1,4 +1,4 @@
-const client = require("../models/db");
+const pool = require("../models/db");
 
 //==================== upsertUserProgress ===================
 const upsertUserProgress = async (req, res) => {
@@ -17,7 +17,7 @@ const upsertUserProgress = async (req, res) => {
       RETURNING *;
     `;
 
-    const result = await client.query(query, [
+    const result = await pool.query(query, [
       user_id,
       letter_id,
       lesson_id,
@@ -60,7 +60,7 @@ const getCurrentLessonForLetter = async (req, res) => {
       ORDER BY ll.order_index ASC;
     `;
 
-    const result = await client.query(query, [user_id, letter_id]);
+    const result = await pool.query(query, [user_id, letter_id]);
 
     // أول درس غير مكتمل
     const currentLesson = result.rows.find(
@@ -118,7 +118,7 @@ const getUserProgressByLetter = async (req, res) => {
       ORDER BY updated_at DESC;
     `;
 
-    const result = await client.query(query, [user_id, letter_id]);
+    const result = await pool.query(query, [user_id, letter_id]);
 
     res.status(200).json({
       success: true,
@@ -151,7 +151,7 @@ const getUserProgressSummary = async (req, res) => {
       ORDER BY ll.letter_id;
     `;
 
-    const result = await client.query(query, [user_id]);
+    const result = await pool.query(query, [user_id]);
 
     res.status(200).json({
       success: true,
@@ -179,7 +179,7 @@ const addStudentAnswer = async (req, res) => {
       RETURNING *;
     `;
 
-    const result = await client.query(query, [
+    const result = await pool.query(query, [
       lessons_id,
       user_id,
       question_id,
@@ -217,7 +217,7 @@ const getAnswersByLessonAndUser = async (req, res) => {
       ORDER BY sa.answerd_at;
     `;
 
-    const result = await client.query(query, [lessons_id, user_id]);
+    const result = await pool.query(query, [lessons_id, user_id]);
 
     res.status(200).json({
       success: true,
@@ -246,7 +246,7 @@ const getLessonResult = async (req, res) => {
       WHERE lessons_id = $1 AND user_id = $2;
     `;
 
-    const result = await client.query(query, [lessons_id, user_id]);
+    const result = await pool.query(query, [lessons_id, user_id]);
 
     res.status(200).json({
       success: true,
@@ -274,7 +274,7 @@ const getLastAnswerByQuestion = async (req, res) => {
       LIMIT 1;
     `;
 
-    const result = await client.query(query, [question_id, user_id]);
+    const result = await pool.query(query, [question_id, user_id]);
 
     res.status(200).json({
       success: true,
@@ -293,7 +293,7 @@ const submitAnswer = async (req, res) => {
   const { lessons_id, question_id, answer } = req.body;
   const user_id = req.token.userId;
   try {
-    const q = await client.query(
+    const q = await pool.query(
       `SELECT correct_answer
        FROM questions_lessons
        WHERE id = $1`,
@@ -320,7 +320,7 @@ const submitAnswer = async (req, res) => {
       RETURNING *;
     `;
 
-    const result = await client.query(query, [
+    const result = await pool.query(query, [
       lessons_id,
       user_id,
       question_id,
@@ -348,7 +348,7 @@ const calculateLessonResult = async (req, res) => {
   const user_id = req.token.userId;
   try {
     // 1️⃣ حساب مجموع السكور
-    const scoreResult = await client.query(
+    const scoreResult = await pool.query(
       `
       SELECT COALESCE(SUM(score), 0) AS total_score
       FROM student_answers
@@ -371,7 +371,7 @@ const calculateLessonResult = async (req, res) => {
       RETURNING *;
     `;
 
-    const result = await client.query(query, [lessons_id, user_id, totalScore]);
+    const result = await pool.query(query, [lessons_id, user_id, totalScore]);
 
     res.status(200).json({
       success: true,
@@ -392,7 +392,7 @@ const getLessonResultByUser = async (req, res) => {
   const { lessons_id, user_id } = req.params;
 
   try {
-    const result = await client.query(
+    const result = await pool.query(
       `
       SELECT *
       FROM student_lesson_result
@@ -419,7 +419,7 @@ const getAllLessonResultsByUser = async (req, res) => {
   const { user_id } = req.params;
 
   try {
-    const result = await client.query(
+    const result = await pool.query(
       `
       SELECT slr.*, ll.title, ll.type
       FROM student_lesson_result slr
@@ -446,7 +446,7 @@ const markLessonCompleted = async (req, res) => {
   const { lessons_id, user_id } = req.body;
 
   try {
-    const result = await client.query(
+    const result = await pool.query(
       `
       UPDATE student_lesson_result
       SET is_completed = true,
@@ -490,8 +490,8 @@ const checkLetterCompletion = async (req, res) => {
     `;
 
     const [{ rows: totalRows }, { rows: completedRows }] = await Promise.all([
-      client.query(totalLessonsQuery),
-      client.query(completedLessonsQuery, [userId, letterId]),
+      pool.query(totalLessonsQuery),
+      pool.query(completedLessonsQuery, [userId, letterId]),
     ]);
 
     const totalLessons = Number(totalRows[0].total);
@@ -508,7 +508,7 @@ const checkLetterCompletion = async (req, res) => {
       LIMIT 1
     `;
 
-    const nextLetterResult = await client.query(nextLetterQuery, [letterId]);
+    const nextLetterResult = await pool.query(nextLetterQuery, [letterId]);
 
     const nextLetter = nextLetterResult.rows[0] || null;
 
@@ -555,9 +555,9 @@ const getUserLettersStatus = async (req, res) => {
     `;
 
     const [lettersRes, totalLessonsRes, progressRes] = await Promise.all([
-      client.query(lettersQuery),
-      client.query(totalLessonsQuery),
-      client.query(progressQuery, [userId]),
+      pool.query(lettersQuery),
+      pool.query(totalLessonsQuery),
+      pool.query(progressQuery, [userId]),
     ]);
 
     const letters = lettersRes.rows;
@@ -603,7 +603,7 @@ const getUserLettersStatus = async (req, res) => {
 };
 const getStudentStats2 = async (studentId) => {
   // إحصائيات الليسون (الأساس)
-  const lessonStats = await client.query(
+  const lessonStats = await pool.query(
     `
     SELECT
       COUNT(*) FILTER (WHERE completed = true) AS completed_lessons,
@@ -616,7 +616,7 @@ const getStudentStats2 = async (studentId) => {
   );
 
   // الوقت من الألعاب (فرعي)
-  const timeResult = await client.query(
+  const timeResult = await pool.query(
     `
     SELECT COALESCE(SUM(duration), 0) AS total_time_spent
     FROM student_game_results
@@ -626,7 +626,7 @@ const getStudentStats2 = async (studentId) => {
   );
 
   // الحروف المكتملة (كل لِسونات الحرف مكتملة)
-  const completedLetters = await client.query(
+  const completedLetters = await pool.query(
     `
     SELECT l.symbol
     FROM letters l
@@ -650,7 +650,7 @@ const getStudentStats2 = async (studentId) => {
 };
 
 const getActivityScores = async (studentId) => {
-  const result = await client.query(
+  const result = await pool.query(
     `
     SELECT
       gl.game_type,
@@ -670,7 +670,7 @@ const getActivityScores = async (studentId) => {
 };
 
 const getRecentActivities = async (studentId) => {
-  const result = await client.query(
+  const result = await pool.query(
     `
     SELECT
       gl.game_type AS "activityType",
@@ -693,7 +693,7 @@ const getRecentActivities = async (studentId) => {
   return result.rows;
 };
 const getLessonScores = async (studentId) => {
-  const result = await client.query(
+  const result = await pool.query(
     `
     SELECT
       up.lesson_id,  up.lesson_type, 
@@ -731,7 +731,7 @@ const getLessonScores = async (studentId) => {
   }));
 };
 const getLessonGamesDetails = async (studentId, lessonId) => {
-  const result = await client.query(
+  const result = await pool.query(
     `
     SELECT
       gl.id AS game_id,
@@ -783,7 +783,7 @@ const getLessonActivities = async (studentId) => {
 };
 
 const getRecentLessonActivities = async (studentId) => {
-  const result = await client.query(
+  const result = await pool.query(
     `
     SELECT DISTINCT ON (up.lesson_id)
       up.lesson_id, up.lesson_type,
@@ -880,7 +880,7 @@ const getStudentProgress = async (req, res) => {
   const { studentId } = req.params;
 
   try {
-    const studentRes = await client.query(
+    const studentRes = await pool.query(
       `SELECT id, username, email FROM users WHERE id = $1`,
       [studentId]
     );

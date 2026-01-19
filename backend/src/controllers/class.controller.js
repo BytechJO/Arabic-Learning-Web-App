@@ -1,4 +1,4 @@
-const client = require("../models/db");
+const pool = require("../models/db");
 const crypto = require("crypto");
 
 const generateSecureCode = (length = 6) => {
@@ -37,7 +37,7 @@ const createNewClass = async (req, res) => {
   const values = [name, classCode, teacher_id];
 
   try {
-    const response = await client.query(query, values);
+    const response = await pool.query(query, values);
 
     res.status(201).json({
       success: true,
@@ -64,7 +64,7 @@ const createNewClass = async (req, res) => {
 const getAllClasses = async (req, res) => {
   const query = `SELECT * FROM  "class" WHERE is_deleted=0`;
   try {
-    const response = await client.query(query);
+    const response = await pool.query(query);
     if (response.rowCount) {
       res.status(200).json({
         status: true,
@@ -90,7 +90,7 @@ const getClassById = async (req, res) => {
   const id = req.params.id;
   const query = `SELECT * FROM  "class"  Where id=$1 and is_deleted=0`;
   try {
-    const response = await client.query(query, [id]);
+    const response = await pool.query(query, [id]);
     if (response.rowCount) {
       res.status(200).json({
         status: true,
@@ -125,7 +125,7 @@ const updateClassName = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [name, id, teacher_id]);
+    const response = await pool.query(query, [name, id, teacher_id]);
 
     if (response.rowCount) {
       res.status(200).json({
@@ -160,7 +160,7 @@ const deleteClass = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [id, teacher_id]);
+    const response = await pool.query(query, [id, teacher_id]);
 
     if (response.rowCount) {
       res.status(200).json({
@@ -200,7 +200,7 @@ const getClassByTeacherId = async (req, res) => {
     GROUP BY c.id
     ORDER BY c.created_at DESC;`;
   try {
-    const response = await client.query(query, [teacher_id]);
+    const response = await pool.query(query, [teacher_id]);
     if (response.rowCount) {
       res.status(200).json({
         status: true,
@@ -236,7 +236,7 @@ const getMyClass = async (req, res) => {
   `;
 
   try {
-    const result = await client.query(query, [student_id]);
+    const result = await pool.query(query, [student_id]);
 
     if (result.rowCount) {
       res.status(200).json({
@@ -272,7 +272,7 @@ RETURNING *;
   `;
 
   try {
-    const response = await client.query(query, [student_id, code]);
+    const response = await pool.query(query, [student_id, code]);
 
     if (response.rowCount) {
       res.status(201).json({
@@ -310,7 +310,7 @@ RETURNING *;
 
   `;
   try {
-    const response = await client.query(query, [class_id, student_id]);
+    const response = await pool.query(query, [class_id, student_id]);
 
     if (response.rowCount) {
       res.status(200).json({
@@ -349,7 +349,7 @@ WHERE cs.class_id = $1
   AND cs.is_deleted = 0;
 `;
   try {
-    const response = await client.query(query, [class_id]);
+    const response = await pool.query(query, [class_id]);
 
     if (response.rowCount) {
       res.status(200).json({

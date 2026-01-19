@@ -1,4 +1,4 @@
-const client = require("../models/db");
+const pool = require("../models/db");
 
 //===================createLetter ======================//
 const createLetter = async (req, res) => {
@@ -29,7 +29,7 @@ const createLetter = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, values);
+    const response = await pool.query(query, values);
 
     res.status(201).json({
       status: true,
@@ -53,7 +53,7 @@ const getAllLetter = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query);
+    const response = await pool.query(query);
 
     res.status(201).json({
       status: true,
@@ -78,7 +78,7 @@ const getLetterById = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [id]);
+    const response = await pool.query(query, [id]);
 
     res.status(201).json({
       status: true,

@@ -55,12 +55,12 @@ export function LetterDetails() {
 console.log(letter);
 
   return (
-    <div className="h-screen relative overflow-hidden" dir="rtl">
+    <div className="h-screen relative" dir="rtl">
       {/* خلفية متدرجة */}
       <div className="fixed inset-0 bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50"></div>
 
       {/* دوائر زخرفية */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none">
         <motion.div
           className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-10"
           style={{ backgroundColor: "#fad656" }}
@@ -267,7 +267,7 @@ console.log(letter);
 
       {/* النمر في الزاوية اليسرى السفلى */}
       <motion.div
-        className="fixed bottom-2 left-2 md:bottom-3 md:left-3 z-10"
+        className="hidden md:block fixed bottom-2 left-2 md:bottom-3 md:left-3 z-10"
         initial={{ x: -200, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{
@@ -280,7 +280,7 @@ console.log(letter);
         <motion.img
           src={tigerImg}
           alt="نمر"
-          className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl"
+          className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
           animate={{
             y: [0, -8, 0],
             rotate: [0, 3, -3, 0],

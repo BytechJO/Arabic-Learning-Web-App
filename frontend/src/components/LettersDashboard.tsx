@@ -213,15 +213,21 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                           <div className="text-[9px] md:text-[11px] text-gray-600 group-hover:text-white transition-colors mt-1">
                             {item.name}
                           </div>
-                          {isCompleted && !isTeacher && (
-                            <div className="absolute top-0 left-1 text-green-500 text-sm">
-                              ✅
-                            </div>
-                          )}
-
-                          {isLocked&& !isTeacher && (
-                            <div className="absolute top-0 left-1 text-gray-400 text-sm">
-                              🔒
+                           {!isTeacher && (isCompleted || isLocked) && (
+                            <div
+                              className="
+      absolute
+      top-0 left-1
+      flex items-center justify-center
+      w-4 h-4 md:w-3 md:h-3
+      rounded-full
+      bg-white/90
+      shadow
+      text-[10px] md:text-xs
+      leading-none
+    "
+                            >
+                              {isCompleted ? "✅" : "🔒"}
                             </div>
                           )}
                         </div>
@@ -263,7 +269,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
         <motion.img
           src={tigerImg}
           alt="نمر"
-          className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl"
+          className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
           animate={{
             y: [0, -8, 0],
             rotate: [0, 3, -3, 0],

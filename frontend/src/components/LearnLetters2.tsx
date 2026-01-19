@@ -49,7 +49,7 @@ export function LearnLetters2() {
   const dispatch = useDispatch<any>();
 
   const { video, loading } = useSelector(
-    (state: RootState) => state.videoLessons
+    (state: RootState) => state.videoLessons,
   );
   const { letters } = useSelector((state: RootState) => state.letters);
   const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
@@ -80,22 +80,21 @@ export function LearnLetters2() {
       fetchVideoLesson({
         letterId,
         lessonId: 2, // ⭐ هذا الفرق الوحيد
-      })
+      }),
     );
   }, [letterId, dispatch]);
 
   // تحميل YouTube IFrame API
-useEffect(() => {
-  if (!video.length) return;
-  if (!window.YT || !window.YT.Player) return;
+  useEffect(() => {
+    if (!video.length) return;
+    if (!window.YT || !window.YT.Player) return;
 
-  playerRef.current = new window.YT.Player("youtube-player-2", {
-    events: {
-      onStateChange: onPlayerStateChange,
-    },
-  });
-}, [video]);
-
+    playerRef.current = new window.YT.Player("youtube-player-2", {
+      events: {
+        onStateChange: onPlayerStateChange,
+      },
+    });
+  }, [video]);
 
   const onPlayerStateChange = (event: any) => {
     if (event.data === 0) {
@@ -151,75 +150,161 @@ useEffect(() => {
     lettersComp.find((l) => l.arabic === letter) || lettersComp[0];
 
   // تهيئة Canvas عند الدخول لسلايد التلوين
-  useEffect(() => {
-    if (currentSlide === 1 && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+  // useEffect(() => {
+  //   if (currentSlide === 1 && canvasRef.current) {
+  //     const canvas = canvasRef.current;
+  //     const ctx = canvas.getContext("2d");
+  //     if (!ctx) return;
 
-      // تعيين الأبعاد
-      const width = canvas.offsetWidth;
-      const height = canvas.offsetHeight;
+  //     // تعيين الأبعاد
+  //     const width = canvas.offsetWidth;
+  //     const height = canvas.offsetHeight;
+  //     canvas.width = width;
+  //     canvas.height = height;
+
+  //     // إنشاء canvas مؤقت لرسم الحرف
+  //     const tempCanvas = document.createElement("canvas");
+  //     tempCanvas.width = width;
+  //     tempCanvas.height = height;
+  //     const tempCtx = tempCanvas.getContext("2d");
+  //     if (!tempCtx) return;
+
+  //     // رسم الحرف على Canvas المؤقت
+  //     tempCtx.font = `bold ${Math.min(width, height) * 0.7}px Arial`;
+  //     tempCtx.textAlign = "center";
+  //     tempCtx.textBaseline = "middle";
+  //     tempCtx.fillStyle = "#000000";
+  //     tempCtx.fillText(currentLetter.arabic, width / 2, height / 2);
+
+  //     // حفظ mask الحرف
+  //     letterMaskRef.current = tempCtx.getImageData(0, 0, width, height);
+
+  //     // إنشاء ImageData فارغة للتلوين
+  //     setColoringData(ctx.createImageData(width, height));
+
+  //     // رسم الحرف الأولي
+  //     redrawCanvas();
+  //   }
+  // }, [currentSlide, currentLetter.arabic]);
+
+  useEffect(() => {
+    if (currentSlide !== 1) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // ✅ هاي هي init
+    const init = () => {
+      const rect = canvas.getBoundingClientRect();
+      const width = Math.floor(rect.width);
+      const height = Math.floor(rect.height);
+
+      if (width === 0 || height === 0) return;
+
+      // ✅ خلي أبعاد الكانفاس مساوية لـ CSS pixels (بدون dpr)
       canvas.width = width;
       canvas.height = height;
 
-      // إنشاء canvas مؤقت لرسم الحرف
+      // temp canvas للـ mask
       const tempCanvas = document.createElement("canvas");
       tempCanvas.width = width;
       tempCanvas.height = height;
       const tempCtx = tempCanvas.getContext("2d");
       if (!tempCtx) return;
 
-      // رسم الحرف على Canvas المؤقت
-      tempCtx.font = `bold ${Math.min(width, height) * 0.7}px Arial`;
-      tempCtx.textAlign = "center";
-      tempCtx.textBaseline = "middle";
-      tempCtx.fillStyle = "#000000";
-      tempCtx.fillText(currentLetter.arabic, width / 2, height / 2);
+      tempCtx.clearRect(0, 0, width, height);
+      const isPhone = width < 768;
+      const scale = isPhone ? 0.95 : 0.7;
+      tempCtx.font = `bold ${Math.min(width, height) * scale}px Arial`;
 
-      // حفظ mask الحرف
+      tempCtx.textAlign = "center";
+      tempCtx.textBaseline = "alphabetic";
+      tempCtx.fillStyle = "#000";
+
+      const text = currentLetter.arabic;
+      const metrics = tempCtx.measureText(text);
+      const ascent =
+        metrics.actualBoundingBoxAscent ?? Math.min(width, height) * 0.35;
+      const descent =
+        metrics.actualBoundingBoxDescent ?? Math.min(width, height) * 0.15;
+
+      const x = width / 2;
+      const y = height / 2 + (ascent - descent) / 2;
+
+      tempCtx.fillText(text, x, y);
+
+      // ✅ mask
       letterMaskRef.current = tempCtx.getImageData(0, 0, width, height);
 
-      // إنشاء ImageData فارغة للتلوين
-      setColoringData(ctx.createImageData(width, height));
+      // ✅ coloringData
+      const fresh = ctx.createImageData(width, height);
+      setColoringData(fresh);
 
-      // رسم الحرف الأولي
-      redrawCanvas();
-    }
+      // ✅ ارسم فوراً (بدون انتظار state)
+      redrawCanvas(fresh, width, height);
+    };
+
+    // استنى layout يثبت
+    requestAnimationFrame(() => requestAnimationFrame(init));
+
+    // راقب تغيّر الحجم
+    const ro = new ResizeObserver(() => {
+      requestAnimationFrame(init);
+    });
+    ro.observe(canvas);
+
+    return () => ro.disconnect();
   }, [currentSlide, currentLetter.arabic]);
 
   // إعادة رسم Canvas
-  const redrawCanvas = () => {
+  const redrawCanvas = (data?: ImageData, w?: number, h?: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const width = canvas.width;
-    const height = canvas.height;
+    const width = w ?? canvas.width;
+    const height = h ?? canvas.height;
+    if (width === 0 || height === 0) return;
 
-    // مسح Canvas
     ctx.clearRect(0, 0, width, height);
 
-    // رسم التلوين إذا كان موجوداً
-    if (coloringData) {
-      ctx.putImageData(coloringData, 0, 0);
-    }
+    const toDraw = data ?? coloringData;
+    if (toDraw) ctx.putImageData(toDraw, 0, 0);
 
-    // رسم حدود الحرف السكنية
-    ctx.font = `bold ${Math.min(width, height) * 0.7}px Arial`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.strokeStyle = "#c9b39c";
-    ctx.lineWidth = 6;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.strokeText(currentLetter.arabic, width / 2, height / 2);
+    const isPhone = width < 768; // نفس breakpoint تبع md في Tailwind
+    const scale = isPhone ? 0.95 : 0.7; // كبّر على الموبايل
+    ctx.font = `bold ${Math.min(width, height) * scale}px Arial`;
+
+  ctx.textAlign = "center";
+ctx.textBaseline = "alphabetic";
+ctx.strokeStyle = "#c9b39c";
+ctx.lineWidth = 6;
+ctx.lineJoin = "round";
+ctx.lineCap = "round";
+
+const text = currentLetter.arabic;
+const metrics = ctx.measureText(text);
+const ascent =
+  metrics.actualBoundingBoxAscent ?? Math.min(width, height) * 0.35;
+const descent =
+  metrics.actualBoundingBoxDescent ?? Math.min(width, height) * 0.15;
+
+const x = width / 2;
+const y = height / 2 + (ascent - descent) / 2;
+
+ctx.strokeText(text, x, y);
+
   };
 
   // الحصول على إحداثيات الماوس/اللمس
   const getCoordinates = (
-    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+    e:
+      | React.MouseEvent<HTMLCanvasElement>
+      | React.TouchEvent<HTMLCanvasElement>,
   ) => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -243,7 +328,9 @@ useEffect(() => {
 
   // بداية الرسم
   const startDrawing = (
-    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+    e:
+      | React.MouseEvent<HTMLCanvasElement>
+      | React.TouchEvent<HTMLCanvasElement>,
   ) => {
     e.preventDefault();
     const coords = getCoordinates(e);
@@ -262,7 +349,9 @@ useEffect(() => {
 
   // الرسم
   const draw = (
-    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+    e:
+      | React.MouseEvent<HTMLCanvasElement>
+      | React.TouchEvent<HTMLCanvasElement>,
   ) => {
     e.preventDefault();
     if (!isDrawing) return;
@@ -282,7 +371,7 @@ useEffect(() => {
 
     const width = canvas.width;
     const height = canvas.height;
-    const brushSize = 70; // حجم أكبر للفرشاة
+    const brushSize = Math.max(28, Math.floor(Math.min(width, height) * 0.12));
     const brushRadius = brushSize / 2;
 
     // تحويل اللون المحدد إلى RGB
@@ -412,7 +501,7 @@ useEffect(() => {
 
       {/* السلايد الأول: الفيديو فقط */}
       {currentSlide === 0 && (
-        <div className="relative z-10 h-screen flex flex-col">
+         <div className="relative z-10 h-screen flex flex-col justify-evenly md:justify-start">
           {/* المحتوى الرئيسي */}
           <div className="flex-1 flex flex-col px-6 pt-4 pb-32">
             {/* عنوان ترحيبي */}
@@ -429,7 +518,7 @@ useEffect(() => {
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 شاهد الفيديو ثم ابدأ في رسم وتلوين حرف{" "}
-                {`ال${currentLetterFromRedux?.name} `|| "الألف"}
+                {`ال${currentLetterFromRedux?.name} ` || "الألف"}
               </p>
             </motion.div>
 
@@ -477,6 +566,12 @@ useEffect(() => {
               >
                 <motion.button
                   onClick={async () => {
+                    if (!videoEnded) return;
+                    await saveLearnProgress(); // ✅ هون المكان الصح
+
+                    setCurrentSlide(1);
+                  }}
+                  onTouchEnd={async () => {
                     if (!videoEnded) return;
                     await saveLearnProgress(); // ✅ هون المكان الصح
 
@@ -547,7 +642,7 @@ useEffect(() => {
             <motion.img
               src={tigerImg}
               alt="نمر"
-              className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl"
+              className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
               animate={{
                 y: [0, -8, 0],
                 rotate: [0, 3, -3, 0],
@@ -598,14 +693,33 @@ useEffect(() => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <div className="grid md:grid-cols-4 gap-6 h-full">
-                  {/* لوحة الألوان والأدوات - على اليسار */}
-                  <div className="flex flex-col items-stretch justify-start gap-4">
-                    {/* عنوان */}
+                <div className="grid h-full gap-4 md:gap-6 grid-rows-[1fr_auto] md:grid-rows-1 md:grid-cols-4">
+                  {/* ✅ لوحة التلوين فوق على الموبايل / يمين على الديسكتوب */}
+                  <div className="md:col-span-3 flex flex-col order-1 md:order-2 min-h-[55vh] md:min-h-0">
+                    <div
+                      className="flex-1 relative rounded-3xl overflow-hidden border-2 border-gray-200"
+                      style={{ backgroundColor: "#f8f9fa" }}
+                    >
+                      <canvas
+                        ref={canvasRef}
+                        className="absolute inset-0 w-full h-full touch-none"
+                        style={{ cursor: "crosshair" }}
+                        onMouseDown={startDrawing}
+                        onMouseMove={draw}
+                        onMouseUp={stopDrawing}
+                        onMouseLeave={stopDrawing}
+                        onTouchStart={startDrawing}
+                        onTouchMove={draw}
+                        onTouchEnd={stopDrawing}
+                      />
+                    </div>
+                  </div>
+
+                  {/* ✅ الباليت تحت على الموبايل / يسار على الديسكتوب */}
+                  <div className="flex flex-col items-stretch justify-start gap-4 order-2 md:order-1">
                     <h3 className="text-lg text-gray-600 mb-2">اختر لونك</h3>
 
-                    {/* لوحة الألوان - 6 ألوان فقط */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-6 md:grid-cols-2 gap-2 md:gap-3">
                       {[
                         { color: "#fad656", icon: null },
                         { color: "#652b82", icon: "star" },
@@ -613,7 +727,7 @@ useEffect(() => {
                         { color: "#ef4444", icon: null },
                         { color: "#f97316", icon: null },
                         { color: "#22c55e", icon: null },
-                      ].map((item, index) => (
+                      ].map((item) => (
                         <motion.button
                           key={item.color}
                           onClick={() => setSelectedColor(item.color)}
@@ -645,10 +759,9 @@ useEffect(() => {
                       ))}
                     </div>
 
-                    {/* زر مسح الكل */}
                     <motion.button
                       onClick={clearColoring}
-                      className="w-full px-4 py-3 rounded-2xl flex items-center justify-center gap-2 text-white mt-auto"
+                      className="w-full px-4 py-3 rounded-2xl flex items-center justify-center gap-2 text-white mt-2 md:mt-auto"
                       style={{ backgroundColor: "#ef4444" }}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
@@ -657,28 +770,6 @@ useEffect(() => {
                       <span>مسح الكل</span>
                     </motion.button>
                   </div>
-
-                  {/* لوحة التلوين - على اليمين */}
-                  <div className="md:col-span-3 flex flex-col">
-                    <div
-                      className="flex-1 relative rounded-3xl overflow-hidden border-2 border-gray-200"
-                      style={{ backgroundColor: "#f8f9fa" }}
-                    >
-                      {/* Canvas الرئيسي (مرئي) */}
-                      <canvas
-                        ref={canvasRef}
-                        className="absolute inset-0 w-full h-full touch-none"
-                        style={{ cursor: "crosshair" }}
-                        onMouseDown={startDrawing}
-                        onMouseMove={draw}
-                        onMouseUp={stopDrawing}
-                        onMouseLeave={stopDrawing}
-                        onTouchStart={startDrawing}
-                        onTouchMove={draw}
-                        onTouchEnd={stopDrawing}
-                      />
-                    </div>
-                  </div>
                 </div>
               </motion.div>
             </div>
@@ -686,7 +777,7 @@ useEffect(() => {
 
           {/* النمر في الزاوية */}
           <motion.div
-            className="fixed bottom-28 left-2 md:bottom-32 md:left-4 z-0"
+            className="fixed bottom-2 left-2 md:bottom-4 md:left-4 z-20"
             initial={{ x: -200, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{
@@ -699,7 +790,7 @@ useEffect(() => {
             <motion.img
               src={tigerImg}
               alt="نمر"
-              className="w-24 h-24 md:w-40 md:h-40 lg:w-48 lg:h-48 object-contain drop-shadow-2xl"
+              className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
               animate={{
                 y: [0, -8, 0],
                 rotate: [0, 3, -3, 0],

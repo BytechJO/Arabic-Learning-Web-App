@@ -36,7 +36,7 @@ const loginApi = async (email: string, password: string) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
-    }
+    },
   );
 
   const data = await res.json();
@@ -80,7 +80,7 @@ const registerApi = async (
   email: string,
   password: string,
   activationCode: string,
-  userType: "student" | "teacher"
+  userType: "student" | "teacher",
 ) => {
   const res = await fetch(
     "https://arabic-learning-web-app.onrender.com/users/register",
@@ -94,7 +94,7 @@ const registerApi = async (
         activation_code: activationCode,
         requested_role: userType,
       }),
-    }
+    },
   );
 
   const data = await res.json();
@@ -133,7 +133,7 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
       console.log(mappedRole);
       if (mappedRole !== userType) {
         setError(
-          `هذا الحساب مسجل كـ ${mappedRole === "teacher" ? "معلم" : "طالب"}`
+          `هذا الحساب مسجل كـ ${mappedRole === "teacher" ? "معلم" : "طالب"}`,
         );
         return;
       }
@@ -152,7 +152,7 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
         loginSuccess({
           user,
           token: data.token,
-        })
+        }),
       );
 
       // إذا لسه محتاجة onLogin (تنقّل مثلاً)
@@ -227,7 +227,7 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
         formData.email,
         formData.password,
         activationCode,
-        userType
+        userType,
       );
 
       // بعد نجاح التسجيل → رجّعيه على تسجيل الدخول
@@ -513,6 +513,9 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
                     onClick={() =>
                       setMode(mode === "login" ? "register" : "login")
                     }
+                    onTouchEnd={() =>
+                      setMode(mode === "login" ? "register" : "login")
+                    }
                     className="text-gray-600 hover:text-purple-600 transition-colors text-sm md:text-base"
                   >
                     {mode === "login"
@@ -524,6 +527,9 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
                     <button
                       type="button"
                       onClick={() => {
+                        navigate("/");
+                      }}
+                      onTouchEnd={() => {
                         navigate("/");
                       }}
                       className="text-gray-600 hover:text-purple-600 transition-colors text-sm md:text-base flex items-center justify-center gap-1.5 mx-auto"
@@ -551,20 +557,23 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
           delay: 0.5,
         }}
       >
-        <motion.img
-          src={tigerImg}
-          alt="نمر"
-          className="w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain drop-shadow-2xl"
-          animate={{
-            y: [0, -8, 0],
-            rotate: [0, 3, -3, 0],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+        <div className="relative flex justify-center">
+          <motion.img
+            src={tigerImg}
+            alt="نمر"
+            className="
+  w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl
+    "
+            animate={{
+              y: [0, -6, 0],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
       </motion.div>
     </div>
   );

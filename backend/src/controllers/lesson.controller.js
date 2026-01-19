@@ -1,4 +1,4 @@
-const client = require("../models/db");
+const pool = require("../models/db");
 
 //================= create lessons ======================//
 const createLesson = async (req, res) => {
@@ -6,11 +6,11 @@ const createLesson = async (req, res) => {
     req.body;
 
   try {
-    await client.query("BEGIN");
+    await pool.query("BEGIN");
 
     // ✅ إذا بدنا نخليه آخر ليسون
     if (is_lastLesson === true) {
-      await client.query(
+      await pool.query(
         `UPDATE letter_lessons
          SET is_lastLesson = false
          WHERE letter_id = $1`,
@@ -32,7 +32,7 @@ const createLesson = async (req, res) => {
         RETURNING *;
       `;
 
-      response = await client.query(updateQuery, [
+      response = await pool.query(updateQuery, [
         type,
         title,
         order_index,
@@ -49,7 +49,7 @@ const createLesson = async (req, res) => {
         RETURNING *;
       `;
 
-      response = await client.query(insertQuery, [
+      response = await pool.query(insertQuery, [
         letter_id,
         type,
         title,
@@ -58,7 +58,7 @@ const createLesson = async (req, res) => {
       ]);
     }
 
-    await client.query("COMMIT");
+    await pool.query("COMMIT");
 
     res.status(201).json({
       success: true,
@@ -68,7 +68,7 @@ const createLesson = async (req, res) => {
       data: response.rows[0],
     });
   } catch (error) {
-    await client.query("ROLLBACK");
+    await pool.query("ROLLBACK");
 
     res.status(500).json({
       success: false,
@@ -91,7 +91,7 @@ const getLessonsByLetterId = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [letter_id]);
+    const response = await pool.query(query, [letter_id]);
 
     if (response.rowCount) {
       res.status(200).json({
@@ -125,7 +125,7 @@ const getLessonById = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [lesson_id]);
+    const response = await pool.query(query, [lesson_id]);
 
     if (response.rowCount) {
       res.status(200).json({
@@ -152,7 +152,7 @@ const deleteLesson = async (req, res) => {
   const lesson_id = req.params.id;
 
   try {
-    const response = await client.query(
+    const response = await pool.query(
       `
       UPDATE letter_lessons
       SET is_deleted = 1
@@ -189,7 +189,7 @@ const addVideoLesson = async (req, res) => {
 
   try {
     // 1️⃣ تحقق إن الليسون تابع لنفس الحرف
-    const lessonCheck = await client.query(
+    const lessonCheck = await pool.query(
       `
       SELECT id
       FROM letter_lessons
@@ -213,7 +213,7 @@ const addVideoLesson = async (req, res) => {
       RETURNING *;
     `;
 
-    const response = await client.query(insertQuery, [
+    const response = await pool.query(insertQuery, [
       letter_id,
       lesson_id,
       title,
@@ -267,7 +267,7 @@ const getVideoLessonsByLetterAndLesson = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [letter_id, lesson_id]);
+    const response = await pool.query(query, [letter_id, lesson_id]);
 
     if (response.rowCount) {
       res.status(200).json({
@@ -307,7 +307,7 @@ const addGameLesson = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [
+    const response = await pool.query(query, [
       lesson_id,
       letter_id,
       game_type,
@@ -361,7 +361,7 @@ const getGamesByLetter = async (req, res) => {
   query += ` ORDER BY gc.id ASC;`;
 
   try {
-    const response = await client.query(query, values);
+    const response = await pool.query(query, values);
 
     if (response.rowCount > 0) {
       res.status(200).json({
@@ -403,7 +403,7 @@ const createGameConfig = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [
+    const response = await pool.query(query, [
       letter_id,
       lesson_id,
       game_type,
@@ -438,7 +438,7 @@ const getGameById = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [id]);
+    const response = await pool.query(query, [id]);
 
     if (response.rowCount > 0) {
       res.status(200).json({
@@ -484,7 +484,7 @@ const saveGameResult = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [
+    const response = await pool.query(query, [
       student_id,
       games_lessons_id,
       score ?? 0,
@@ -526,7 +526,7 @@ const getStudentGameResults = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [student_id]);
+    const response = await pool.query(query, [student_id]);
 
     res.status(200).json({
       success: true,
@@ -559,7 +559,7 @@ const getStudentResultsByLetter = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [student_id, letter_id]);
+    const response = await pool.query(query, [student_id, letter_id]);
 
     res.status(200).json({
       success: true,
@@ -596,7 +596,7 @@ const getStudentProgress = async (req, res) => {
   `;
 
   try {
-    const response = await client.query(query, [student_id]);
+    const response = await pool.query(query, [student_id]);
 
     res.status(200).json({
       success: true,
@@ -632,7 +632,7 @@ const addQuestion = async (req, res) => {
     }
 
     // 2️⃣ تحقق أن الدرس موجود ويتبع للحرف
-    const lessonCheck = await client.query(
+    const lessonCheck = await pool.query(
       `
       SELECT id FROM letter_lessons
       WHERE id = $1 AND letter_id = $2
@@ -655,7 +655,7 @@ const addQuestion = async (req, res) => {
       RETURNING *;
     `;
 
-    const result = await client.query(insertQuery, [
+    const result = await pool.query(insertQuery, [
       letter_id,
       lesson_id,
       question_text,
@@ -703,7 +703,7 @@ const getQuestionsByLesson = async (req, res) => {
       ORDER BY q.id ASC;
     `;
 
-    const result = await client.query(query, [letter_id, lesson_id]);
+    const result = await pool.query(query, [letter_id, lesson_id]);
 
     res.status(200).json({
       success: true,
@@ -744,7 +744,7 @@ const updateQuestion = async (req, res) => {
       RETURNING *;
     `;
 
-    const result = await client.query(query, [
+    const result = await pool.query(query, [
       question_text,
       correct_answer,
       question_type,
@@ -784,7 +784,7 @@ const deleteQuestion = async (req, res) => {
       RETURNING *;
     `;
 
-    const result = await client.query(query, [id]);
+    const result = await pool.query(query, [id]);
 
     if (result.rowCount === 0) {
       return res.status(404).json({
@@ -831,7 +831,7 @@ const getLetterGamesProgress = async (req, res) => {
       ORDER BY gl.order_index;
     `;
 
-    const { rows } = await client.query(query, [
+    const { rows } = await pool.query(query, [
       studentId,
       Number(letterId),
     ]);
@@ -899,7 +899,7 @@ const getGameLessonByLetterAndType = async (req, res) => {
       LIMIT 1;
     `;
 
-    const result = await client.query(query, [letter, gameType]);
+    const result = await pool.query(query, [letter, gameType]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({

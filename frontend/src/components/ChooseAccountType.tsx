@@ -215,7 +215,7 @@ export function ChooseAccountType({ onChoose }: ChooseAccountTypeProps) {
         <motion.img
           src={tigerImg}
           alt="نمر"
-          className="w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain drop-shadow-2xl"
+          className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
           animate={{
             y: [0, -8, 0],
             rotate: [0, 3, -3, 0],

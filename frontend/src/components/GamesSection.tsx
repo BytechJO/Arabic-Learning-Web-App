@@ -137,12 +137,12 @@ export function GamesSection() {
   };
 
   return (
-    <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
+    <div className="relative overflow-hidden pb-24" dir="rtl">
       {/* خلفية متدرجة */}
       <div className="fixed inset-0 bg-gradient-to-br from-purple-100 via-yellow-50 to-purple-50"></div>
 
       {/* عناصر زخرفية متحركة */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none">
         <motion.div
           className="absolute -top-20 -right-20 w-56 h-56 md:w-64 md:h-64 rounded-full opacity-10"
           style={{ backgroundColor: "#fad656" }}

@@ -1,12 +1,12 @@
 // const { response } = require("express");
-const client = require("../models/db");
+const pool = require("../models/db");
 
 const createNewRole = (req, res) => {
   const { role } = req.body;
 
   const query = `INSERT INTO role (role) VALUES ($1) RETURNING *`;
   const data = [role];
-  client
+  pool
     .query(query, data)
     .then((result) => {
       res.status(201).json({
@@ -26,7 +26,7 @@ const createNewRole = (req, res) => {
 
 const getAllRoles = (req, res) => {
   const query = `SELECT * FROM role `;
-  client
+  pool
     .query(query)
     .then((result) => {
       res.status(201).json({
@@ -49,7 +49,7 @@ const createNewPermission = (req, res) => {
   const query = `INSERT INTO permission (permission) VALUES ($1) RETURNING *;`;
   const data = [permission];
 
-  client
+  pool
     .query(query, data)
     .then((result) => {
       res.status(201).json({
@@ -69,7 +69,7 @@ const createNewPermission = (req, res) => {
 
 const getAllPermissions = (req, res) => {
   const query = `SELECT * FROM permission `;
-  client
+  pool
     .query(query)
     .then((result) => {
       res.status(201).json({
@@ -94,7 +94,7 @@ const createNewRolePermission = (req, res) => {
       permission_id) VALUES ($1,$2) RETURNING *`;
   const data = [role_id, permission_id];
 
-  client
+  pool
     .query(query, data)
     .then((result) => {
       res.status(201).json({
@@ -116,7 +116,7 @@ const createNewRolePermission = (req, res) => {
 const GetALLRolePermission = (req, res) => {
   const query = `SELECT * FROM role_permissions;`;
 
-  client
+  pool
     .query(query)
     .then((result) => {
       res.status(201).json({
@@ -140,7 +140,7 @@ const DeleteRolePermissionById = async (req, res) => {
   const values = [id];
   const query = `DELETE FROM role_permissions WHERE role_permission_id =$1 RETURNING *`;
   try {
-    const response = await client.query(query, values);
+    const response = await pool.query(query, values);
     if (response.rowCount) {
       res.status(200).json({
         status: true,

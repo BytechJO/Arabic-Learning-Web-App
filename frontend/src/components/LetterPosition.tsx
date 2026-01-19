@@ -39,6 +39,10 @@ export function LetterPosition() {
         <div className="text-center">
           <p className="text-base text-gray-400">اختر حرفاً من صفحة الحروف</p>
         </div>
+        <ActivityFooter
+        currentLetter={propLetter}
+        letterName={currentLetterFromRedux?.name}
+      />
       </div>
     );
   }
@@ -61,7 +65,7 @@ export function LetterPosition() {
   };
 
   useEffect(() => {
-    if (!propLetter) return;
+    if (!letterId) return;
 
     const fetchQuestions = async () => {
       try {
@@ -78,12 +82,16 @@ export function LetterPosition() {
     };
 
     fetchQuestions();
-  }, [propLetter]);
+  }, [letterId]);
   // const questions = getQuestionsForLetter(propLetter);
   if (!questions.length || !questions[currentQuestion]) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500">جاري تحميل الأسئلة...</p>
+        <ActivityFooter
+        currentLetter={propLetter}
+        letterName={currentLetterFromRedux?.name}
+      />
       </div>
     );
   }
@@ -128,13 +136,7 @@ export function LetterPosition() {
     setCurrentQuestion(0);
     setShowFeedback(null);
   };
-  if (loading) {
-    return <div className="text-center mt-20">جاري تحميل الأسئلة...</div>;
-  }
 
-  if (!questions.length) {
-    return <div className="text-center mt-20">لا يوجد أسئلة لهذا الحرف</div>;
-  }
   return (
     <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
       {/* خلفية متدرجة */}
@@ -344,32 +346,32 @@ export function LetterPosition() {
         </div>
 
         {/* النمر في الزاوية */}
-        <motion.div
-          className="fixed bottom-28 left-2 md:bottom-32 md:left-4 z-0"
-          initial={{ x: -200, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{
-            type: "spring",
-            stiffness: 100,
-            damping: 15,
-            delay: 0.5,
-          }}
-        >
-          <motion.img
-            src={tigerImg}
-            alt="نمر"
-            className="w-24 h-24 md:w-40 md:h-40 lg:w-48 lg:h-48 object-contain drop-shadow-2xl"
-            animate={{
-              y: [0, -8, 0],
-              rotate: [0, 3, -3, 0],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        </motion.div>
+         <motion.div
+                 className="fixed bottom-2 left-2 md:bottom-4 md:left-4 z-20"
+                 initial={{ x: -200, opacity: 0 }}
+                 animate={{ x: 0, opacity: 1 }}
+                 transition={{
+                   type: "spring",
+                   stiffness: 100,
+                   damping: 15,
+                   delay: 0.5,
+                 }}
+               >
+                 <motion.img
+                   src={tigerImg}
+                   alt="نمر"
+                   className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
+                   animate={{
+                     y: [0, -8, 0],
+                     rotate: [0, 3, -3, 0],
+                   }}
+                   transition={{
+                     duration: 3,
+                     repeat: Infinity,
+                     ease: "easeInOut",
+                   }}
+                 />
+               </motion.div>
       </div>
       <AnimatePresence>
         {showFinishModal && (

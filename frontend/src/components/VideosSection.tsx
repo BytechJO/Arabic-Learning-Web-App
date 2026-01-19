@@ -84,6 +84,7 @@ export function VideosSection() {
   const { video, loading } = useSelector(
     (state: RootState) => state.videoLessons
   );
+    const propLetter = letter;
   useEffect(() => {
     if (!letters.length) {
       dispatch(fetchLetters());
@@ -130,6 +131,10 @@ export function VideosSection() {
         <p className="text-xl" style={{ color: "#652b82" }}>
           جاري تحميل الفيديو...
         </p>
+        <ActivityFooter
+        currentLetter={propLetter}
+        letterName={currentLetterFromRedux?.name}
+      />
       </div>
     );
   }
@@ -137,6 +142,10 @@ export function VideosSection() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p className="text-gray-500">لا يوجد فيديو لهذا الدرس</p>
+          <ActivityFooter
+        currentLetter={propLetter}
+        letterName={currentLetterFromRedux?.name}
+      />
       </div>
     );
   }

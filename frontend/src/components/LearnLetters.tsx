@@ -35,14 +35,14 @@ export function LearnLetters() {
   const user = useSelector((state: RootState) => state.auth.user);
   const dispatch = useDispatch<any>();
   const { video, loading } = useSelector(
-    (state: RootState) => state.videoLessons
+    (state: RootState) => state.videoLessons,
   );
 
   const { letters } = useSelector((state: RootState) => state.letters);
   const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
 
   const letterId = currentLetterFromRedux?.id;
-console.log(letterId);
+  console.log(letterId);
 
   useEffect(() => {
     if (!letters.length) {
@@ -70,7 +70,7 @@ console.log(letterId);
       fetchVideoLesson({
         letterId: letterId,
         lessonId: 1,
-      })
+      }),
     );
   }, [letterId, dispatch]);
 
@@ -87,7 +87,7 @@ console.log(letterId);
   }, []);
 
   useEffect(() => {
-   if (!video.length) return;
+    if (!video.length) return;
     if (!window.YT || !window.YT.Player) return;
 
     const videoId = getVideoId(video[0].youtube_url);
@@ -169,13 +169,12 @@ console.log(letterId);
     }
   };
 
-
   if (loading) {
     return <div className="text-center mt-20">جاري تحميل الفيديو...</div>;
   }
 
   return (
-    <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
+    <div className="h-screen relative pb-24" dir="rtl">
       {/* زر الرجوع */}
       <motion.button
         onClick={() => navigate(`/letter/${currentLetter.arabic}`)}
@@ -225,7 +224,8 @@ console.log(letterId);
 
       {/* السلايد الأول: الفيديو فقط */}
       {currentSlide === 0 && (
-        <div className="relative z-10 h-screen flex flex-col">
+       <div className="relative z-10 h-screen flex flex-col justify-evenly md:justify-start">
+
           {/* المحتوى الرئيسي */}
           <div className="flex-1 flex flex-col px-6 pt-4 pb-32">
             {/* عنوان ترحيبي */}
@@ -238,7 +238,8 @@ console.log(letterId);
                 className="text-2xl md:text-3xl mb-1"
                 style={{ color: "#652b82" }}
               >
-                مرحباً بك في درس حرف {`ال${currentLetterFromRedux?.name} `|| "الألف"}
+                مرحباً بك في درس حرف{" "}
+                {`ال${currentLetterFromRedux?.name} ` || "الألف"}
               </h1>
               <p className="text-xs md:text-sm text-gray-600">
                 شاهد الفيديو ثم ابدأ التعلم التفاعلي
@@ -280,6 +281,12 @@ console.log(letterId);
               >
                 <motion.button
                   onClick={async () => {
+                    if (!videoEnded) return;
+                    await saveLearnProgress(); // ✅ هون المكان الصح
+
+                    setCurrentSlide(1);
+                  }}
+                  onTouchEnd={async () => {
                     if (!videoEnded) return;
                     await saveLearnProgress(); // ✅ هون المكان الصح
 
@@ -350,7 +357,7 @@ console.log(letterId);
             <motion.img
               src={tigerImg}
               alt="نمر"
-              className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl"
+              className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
               animate={{
                 y: [0, -8, 0],
                 rotate: [0, 3, -3, 0],
@@ -546,7 +553,7 @@ console.log(letterId);
             <motion.img
               src={tigerImg}
               alt="نمر"
-              className="w-32 h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 object-contain drop-shadow-2xl"
+              className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
               animate={{
                 y: [0, -8, 0],
                 rotate: [0, 3, -3, 0],

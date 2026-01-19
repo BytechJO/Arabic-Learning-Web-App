@@ -1,4 +1,4 @@
-const client = require("../models/db");
+const pool = require("../models/db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const activationDB = require("../models/activationDB");
@@ -17,7 +17,7 @@ const activationDB = require("../models/activationDB");
 //   ];
 
 //   try {
-//     const response = await client.query(query, value);
+//     const response = await pool.query(query, value);
 //     if (response.rowCount) {
 //       res.status(201).json({
 //         success: true,
@@ -97,7 +97,7 @@ const register = async (req, res) => {
     /* ----------------------------------------------------
    2️⃣½ Check if email already exists (Book DB)
 ---------------------------------------------------- */
-    const emailCheck = await client.query(
+    const emailCheck = await pool.query(
       `SELECT id FROM users WHERE email = $1`,
       [email.toLowerCase()]
     );
@@ -145,7 +145,7 @@ const register = async (req, res) => {
       role_id,
     ];
 
-    const userResult = await client.query(insertUserQuery, insertValues);
+    const userResult = await pool.query(insertUserQuery, insertValues);
     const userId = userResult.rows[0].id;
 
     /* ----------------------------------------------------
@@ -186,7 +186,7 @@ const login = (req, res) => {
   const { email } = req.body;
   const query = `SELECT * FROM users WHERE email = $1`;
   const data = [email.toLowerCase()];
-  client
+  pool
     .query(query, data)
     .then((result) => {
       if (result.rows) {
@@ -240,7 +240,7 @@ const getUserById = async (req, res) => {
 
   const query = `SELECT * FROM  users WHERE id=$1 AND is_deleted=0`;
   try {
-    const response = await client.query(query, values);
+    const response = await pool.query(query, values);
     if (response.rowCount) {
       res.status(200).json({
         status: true,
@@ -265,7 +265,7 @@ const getUserById = async (req, res) => {
 const getAllUsers = async (req, res) => {
   const query = `SELECT * FROM  users`;
   try {
-    const response = await client.query(query, values);
+    const response = await pool.query(query, values);
     if (response.rowCount) {
       res.status(200).json({
         status: true,
@@ -311,7 +311,7 @@ const updateUser = async (req, res) => {
 
     const values = [email || null, password || null, userId];
 
-    const result = await client.query(query, values);
+    const result = await pool.query(query, values);
 
     if (result.rowCount === 0) {
       return res.status(404).json({
@@ -349,7 +349,7 @@ const deleteUser = async (req, res) => {
 
     const values = [userId];
 
-    const result = await client.query(query, values);
+    const result = await pool.query(query, values);
 
     if (result.rowCount === 0) {
       return res.status(404).json({
