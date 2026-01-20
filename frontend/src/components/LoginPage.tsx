@@ -10,16 +10,12 @@ import {
   Home,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { storage } from "../utils/storage";
 import { useNavigate } from "react-router-dom";
-// import { ACTIVATION_CODES } from "../utils/seedData";
-import { User } from "../types";
 import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { useAppDispatch } from "../redux/hooks";
 import { loginSuccess } from "../redux/reducers/auth";
 
 interface LoginPageProps {
-  // onLogin: (user: User) => void;
   userType: "teacher" | "student";
   onBack: () => void;
 }
@@ -452,7 +448,7 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
                 </motion.button>
 
                 {/* حسابات تجريبية */}
-                {mode === "login" && (
+                {/* {mode === "login" && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -505,7 +501,7 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
                       </button>
                     )}
                   </motion.div>
-                )}
+                )} */}
 
                 <div className="text-center space-y-2">
                   <button
@@ -529,9 +525,9 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
                       onClick={() => {
                         navigate("/");
                       }}
-                      onTouchEnd={() => {
-                        navigate("/");
-                      }}
+                      // onTouchEnd={() => {
+                      //   navigate("/");
+                      // }}
                       className="text-gray-600 hover:text-purple-600 transition-colors text-sm md:text-base flex items-center justify-center gap-1.5 mx-auto"
                     >
                       <Home className="w-4 h-4" />

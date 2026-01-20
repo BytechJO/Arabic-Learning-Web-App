@@ -10,6 +10,7 @@ import { ActivityFooter } from "./ActivityFooter";
 import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchVideoLesson,
@@ -73,7 +74,9 @@ import { upsertUserProgress } from "../API/userProgress";
 
 export function VideosSection() {
   const [currentPage, setCurrentPage] = useState(0);
-  const [progressSaved, setProgressSaved] = useState(false);
+  // const [progressSaved, setProgressSaved] = useState(false);
+  const [videosPerPage, setVideosPerPage] = useState(3);
+
   const { letter } = useParams();
   const navigate = useNavigate();
   const progressSavedRef = useRef(false);
@@ -82,26 +85,42 @@ export function VideosSection() {
   const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
   const letterId = currentLetterFromRedux?.id;
   const { video, loading } = useSelector(
-    (state: RootState) => state.videoLessons
+    (state: RootState) => state.videoLessons,
   );
-    const propLetter = letter;
+  const propLetter = letter;
   useEffect(() => {
-    if (!letters.length) {
-      dispatch(fetchLetters());
-    }
-  }, [dispatch, letters.length]);
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setVideosPerPage(1); // موبايل
+      } else if (window.innerWidth < 1024) {
+        setVideosPerPage(2); // تابلت
+      } else {
+        setVideosPerPage(3); // ديسكتوب
+      }
+    };
+
+    handleResize(); // تشغيل أول مرة
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    dispatch(fetchLetters());
+  }, [dispatch]);
+
   useEffect(() => {
     if (!letterId) return;
 
-    dispatch(clearVideo()); // 🔥 مهم جداً
+    dispatch(clearVideo());
 
     dispatch(
       fetchVideoLesson({
-        letterId: letterId,
+        letterId,
         lessonId: 4,
-      })
+      }),
     );
-  }, [letter, dispatch]);
+  }, [letterId, dispatch]);
 
   useEffect(() => {
     const saveProgress = async () => {
@@ -109,15 +128,13 @@ export function VideosSection() {
       if (!letterId) return;
       if (progressSavedRef.current) return;
 
-      dispatch(
-        await upsertUserProgress({
-          letter_id: letterId,
-          lesson_id: 4,
-          lesson_type: "video",
-          score: 1,
-          completed: true,
-        })
-      );
+      await upsertUserProgress({
+        letter_id: letterId,
+        lesson_id: 4,
+        lesson_type: "video",
+        score: 1,
+        completed: true,
+      });
 
       progressSavedRef.current = true;
     };
@@ -132,9 +149,9 @@ export function VideosSection() {
           جاري تحميل الفيديو...
         </p>
         <ActivityFooter
-        currentLetter={propLetter}
-        letterName={currentLetterFromRedux?.name}
-      />
+          currentLetter={propLetter}
+          letterName={currentLetterFromRedux?.name}
+        />
       </div>
     );
   }
@@ -142,30 +159,27 @@ export function VideosSection() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p className="text-gray-500">لا يوجد فيديو لهذا الدرس</p>
-          <ActivityFooter
-        currentLetter={propLetter}
-        letterName={currentLetterFromRedux?.name}
-      />
+        <ActivityFooter
+          currentLetter={propLetter}
+          letterName={currentLetterFromRedux?.name}
+        />
       </div>
     );
   }
 
   const currentLetter = letter;
   const letterName = currentLetterFromRedux?.name;
-  const videosPerPage = 3;
+  // const videosPerPage = 3;
   const totalPages = Math.ceil(video.length / videosPerPage);
-
   const handleNext = () => {
     setCurrentPage((prev) => (prev + 1) % totalPages);
   };
-
   const handlePrev = () => {
     setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
   };
-
   const currentVideos = video.slice(
     currentPage * videosPerPage,
-    (currentPage + 1) * videosPerPage
+    (currentPage + 1) * videosPerPage,
   );
 
   return (
@@ -206,7 +220,7 @@ export function VideosSection() {
         />
       </motion.button>
 
-      <div className="relative z-10 min-h-screen flex flex-col">
+      <div className="relative z-10 max-h-screen flex flex-col">
         {/* المحتوى الرئيسي */}
         <div className="flex-1 flex items-center justify-center px-6 py-6">
           <div className="max-w-7xl w-full">
@@ -217,7 +231,7 @@ export function VideosSection() {
               animate={{ opacity: 1, y: 0 }}
             >
               <h1
-                className="text-3xl md:text-4xl mb-2"
+                className="text-2xl md:text-4xl mb-2"
                 style={{ color: "#652b82" }}
               >
                 فيديوهات حرف ال{letterName || "ألف"}
@@ -255,7 +269,13 @@ export function VideosSection() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.3 }}
-                className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                className={`grid gap-4 ${
+                  videosPerPage === 1
+                    ? "grid-cols-1"
+                    : videosPerPage === 2
+                      ? "grid-cols-1 sm:grid-cols-2"
+                      : "grid-cols-1 md:grid-cols-3"
+                }`}
               >
                 {currentVideos.map((video, index) => {
                   const videoId = video.youtube_url.includes("embed")
@@ -344,6 +364,33 @@ export function VideosSection() {
                 })}
               </motion.div>
 
+              {/* النمر في الزاوية */}
+              <motion.div
+                className="fixed bottom-2 left-2 md:bottom-4 md:left-4 z-20"
+                initial={{ x: -200, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 100,
+                  damping: 15,
+                  delay: 0.5,
+                }}
+              >
+                <motion.img
+                  src={tigerImg}
+                  alt="نمر"
+                  className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
+                  animate={{
+                    y: [0, -8, 0],
+                    rotate: [0, 3, -3, 0],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+              </motion.div>
               {/* مؤشرات الصفحات */}
               {totalPages > 1 && (
                 <div className="flex justify-center gap-2 mt-6">

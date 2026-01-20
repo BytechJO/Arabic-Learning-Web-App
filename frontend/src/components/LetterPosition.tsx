@@ -170,7 +170,7 @@ export function LetterPosition() {
               animate={{ opacity: 1, y: 0 }}
             >
               <h1
-                className="text-xl md:text-2xl mb-1"
+                className="text-2xl md:text-4xl mb-2"
                 style={{ color: "#652b82" }}
               >
               حدد مكان حرف  ال{currentLetterFromRedux?.name}

@@ -40,9 +40,7 @@ export function LearnLetters() {
 
   const { letters } = useSelector((state: RootState) => state.letters);
   const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
-
   const letterId = currentLetterFromRedux?.id;
-  console.log(letterId);
 
   useEffect(() => {
     if (!letters.length) {
@@ -170,7 +168,15 @@ export function LearnLetters() {
   };
 
   if (loading) {
-    return <div className="text-center mt-20">جاري تحميل الفيديو...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">جاري تحميل الفيديو...</p>
+        <ActivityFooter
+          currentLetter={letter}
+          letterName={currentLetterFromRedux?.name}
+        />
+      </div>
+    );
   }
 
   return (
@@ -224,10 +230,9 @@ export function LearnLetters() {
 
       {/* السلايد الأول: الفيديو فقط */}
       {currentSlide === 0 && (
-       <div className="relative z-10 h-screen flex flex-col justify-evenly md:justify-start">
-
+        <div className="relative z-10 h-screen flex flex-col justify-evenly md:justify-start">
           {/* المحتوى الرئيسي */}
-          <div className="flex-1 flex flex-col px-6 pt-4 pb-32">
+          <div className="flex-1 flex flex-col px-6 pt-4 pb-32 md:justify-start">
             {/* عنوان ترحيبي */}
             <motion.div
               className="text-center mb-3"
@@ -235,7 +240,7 @@ export function LearnLetters() {
               animate={{ opacity: 1, y: 0 }}
             >
               <h1
-                className="text-2xl md:text-3xl mb-1"
+                className="text-xl md:text-4xl mb-2"
                 style={{ color: "#652b82" }}
               >
                 مرحباً بك في درس حرف{" "}
@@ -520,7 +525,7 @@ export function LearnLetters() {
               </motion.div>
 
               {/* رسالة تحفيزية */}
-              <motion.div
+              {/* <motion.div
                 className="text-center mt-3"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -534,7 +539,7 @@ export function LearnLetters() {
                     ✨ أحسنت! الآن جرّب الأنشطة الأخرى لتتعلم أكثر ✨
                   </p>
                 </div>
-              </motion.div>
+              </motion.div> */}
             </div>
           </div>
 

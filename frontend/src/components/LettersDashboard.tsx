@@ -49,7 +49,7 @@ interface LettersDashboardProps {
 export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
   const user = useAppSelector((state) => state.auth.user);
   const [lettersStatus, setLettersStatus] = useState<any[]>([]);
-
+  const [showLockedMessage, setShowLockedMessage] = useState(false);
   const dispatch = useAppDispatch();
   const { letters, loading } = useAppSelector((state) => state.letters);
   const navigate = useNavigate();
@@ -153,7 +153,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
               {letters.map((item, index) => {
                 const isTeacher = user?.type === "teacher";
                 const letterStatus = lettersStatus.find(
-                  (l) => l.id === item.id
+                  (l) => l.id === item.id,
                 )?.status;
 
                 const isLocked = letterStatus === "locked";
@@ -174,7 +174,10 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                     <button
                       onClick={() => {
                         // if (isTeacher) return; // المعلم: عرض فقط
-                        if (isLocked && !isTeacher) return;
+                        if (isLocked && !isTeacher) {
+                          setShowLockedMessage(true);
+                          return;
+                        }
 
                         navigate(`/letter/${item.symbol}`, {
                           state: { name: item.name },
@@ -213,25 +216,12 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                           <div className="text-[9px] md:text-[11px] text-gray-600 group-hover:text-white transition-colors mt-1">
                             {item.name}
                           </div>
-                           {!isTeacher && (isCompleted || isLocked) && (
-                            <div
-                              className="
-      absolute
-      top-0 left-1
-      flex items-center justify-center
-      w-4 h-4 md:w-3 md:h-3
-      rounded-full
-      bg-white/90
-      shadow
-      text-[10px] md:text-xs
-      leading-none
-    "
-                            >
+                          {!isTeacher && (isCompleted || isLocked) && (
+                            <div className="absolute top-0 left-0 z-20 flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full bg-white/90 shadow text-[10px] md:text-xl leading-none">
                               {isCompleted ? "✅" : "🔒"}
                             </div>
                           )}
                         </div>
-
                         {/* نجمة صغيرة في الزاوية */}
                         <motion.div
                           className="absolute top-0.5 right-0.5 text-[10px] opacity-0 group-hover:opacity-100"
@@ -253,6 +243,49 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
           </div>
         </div>
       </div>
+      {showLockedMessage && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-[90%] text-center"
+            initial={{ scale: 0.8, y: 50 }}
+            animate={{ scale: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 200 }}
+          >
+            {/* أيقونة لطيفة */}
+            <div className="text-5xl mb-3">🔒</div>
+
+            {/* النص */}
+            <h2 className="text-xl mb-2" style={{ color: "#652b82" }}>
+              لحظة يا بطل! 🌟
+            </h2>
+
+            <p className="text-sm text-gray-600 mb-5 leading-relaxed">
+              لا يمكنك فتح هذا الحرف الآن 😊
+              <br />
+              أكمل الحرف الحالي وتعلّم كتابته
+              <br />
+              ثم ستُفتح لك باقي الحروف 🎉
+            </p>
+
+            {/* زر */}
+            <button
+              onClick={() => setShowLockedMessage(false)}
+              className="px-6 py-2 rounded-full text-white shadow-md transition hover:scale-105"
+              style={{
+                background: "linear-gradient(135deg, #652b82, #7d3ba0)",
+              }}
+            >
+              حسناً 👍
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
 
       {/* صورة النمر في الأسفل على اليسار */}
       <motion.div

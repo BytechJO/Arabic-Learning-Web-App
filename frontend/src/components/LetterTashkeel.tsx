@@ -160,7 +160,7 @@ export function LetterTashkeel() {
         />
       </motion.button>
 
-      <div className="relative z-10 h-screen flex flex-col">
+      <div className="relative z-10 h-screen flex flex-col" dir="rtl">
         {/* المحتوى الرئيسي */}
         <div className="flex-1 flex flex-col px-6 py-4 pb-32 overflow-y-auto">
           <div className="max-w-4xl w-full mx-auto flex flex-col gap-4">
@@ -171,7 +171,7 @@ export function LetterTashkeel() {
               animate={{ opacity: 1, y: 0 }}
             >
               <h1
-                className="text-xl md:text-2xl mb-1"
+                className="text-2xl md:text-4xl mb-2"
                 style={{ color: "#652b82" }}
               >
                 تشكيل حرف ال{currentLetterFromRedux?.name}

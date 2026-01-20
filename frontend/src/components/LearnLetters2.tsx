@@ -55,7 +55,6 @@ export function LearnLetters2() {
   const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
 
   const letterId = currentLetterFromRedux?.id;
-  console.log(currentLetterFromRedux?.name);
 
   useEffect(() => {
     if (!letters.length) {
@@ -279,25 +278,24 @@ export function LearnLetters2() {
     const scale = isPhone ? 0.95 : 0.7; // كبّر على الموبايل
     ctx.font = `bold ${Math.min(width, height) * scale}px Arial`;
 
-  ctx.textAlign = "center";
-ctx.textBaseline = "alphabetic";
-ctx.strokeStyle = "#c9b39c";
-ctx.lineWidth = 6;
-ctx.lineJoin = "round";
-ctx.lineCap = "round";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.strokeStyle = "#c9b39c";
+    ctx.lineWidth = 6;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
 
-const text = currentLetter.arabic;
-const metrics = ctx.measureText(text);
-const ascent =
-  metrics.actualBoundingBoxAscent ?? Math.min(width, height) * 0.35;
-const descent =
-  metrics.actualBoundingBoxDescent ?? Math.min(width, height) * 0.15;
+    const text = currentLetter.arabic;
+    const metrics = ctx.measureText(text);
+    const ascent =
+      metrics.actualBoundingBoxAscent ?? Math.min(width, height) * 0.35;
+    const descent =
+      metrics.actualBoundingBoxDescent ?? Math.min(width, height) * 0.15;
 
-const x = width / 2;
-const y = height / 2 + (ascent - descent) / 2;
+    const x = width / 2;
+    const y = height / 2 + (ascent - descent) / 2;
 
-ctx.strokeText(text, x, y);
-
+    ctx.strokeText(text, x, y);
   };
 
   // الحصول على إحداثيات الماوس/اللمس
@@ -455,30 +453,35 @@ ctx.strokeText(text, x, y);
   const stopDrawing = () => {
     setIsDrawing(false);
   };
+useEffect(() => {
+  redrawCanvas();
+}, [coloringData]);
 
   // مسح التلوين
   const clearColoring = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  const canvas = canvasRef.current;
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
 
-    // إنشاء ImageData فارغة جديدة
-    setColoringData(ctx.createImageData(canvas.width, canvas.height));
-
-    // إعادة تعيين الحالة
-    setIsComplete(false);
-
-    // إعادة رسم Canvas
-    setTimeout(() => redrawCanvas(), 0);
-  };
+  setColoringData(ctx.createImageData(canvas.width, canvas.height));
+  setIsComplete(false);
+};
 
   if (loading) {
-    return <div className="text-center mt-20">جاري تحميل الفيديو...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">جاري تحميل الفيديو...</p>
+        <ActivityFooter
+          currentLetter={letter}
+          letterName={currentLetterFromRedux?.name}
+        />
+      </div>
+    );
   }
 
   return (
-    <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
+    <div className="h-screen relative pb-24" dir="rtl">
       {/* خلفية متدرجة ملونة */}
       <div className="fixed inset-0 bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50"></div>
 
@@ -501,9 +504,9 @@ ctx.strokeText(text, x, y);
 
       {/* السلايد الأول: الفيديو فقط */}
       {currentSlide === 0 && (
-         <div className="relative z-10 h-screen flex flex-col justify-evenly md:justify-start">
+        <div className="relative z-10 h-screen flex flex-col justify-evenly md:justify-start">
           {/* المحتوى الرئيسي */}
-          <div className="flex-1 flex flex-col px-6 pt-4 pb-32">
+          <div className="flex-1 flex flex-col px-6 pt-4 pb-32 md:justify-start">
             {/* عنوان ترحيبي */}
             <motion.div
               className="text-center mb-3"
@@ -511,7 +514,7 @@ ctx.strokeText(text, x, y);
               animate={{ opacity: 1, y: 0 }}
             >
               <h1
-                className="text-2xl md:text-3xl mb-1"
+                className="text-xl md:text-4xl mb-2"
                 style={{ color: "#652b82" }}
               >
                 مرحباً بك في نشاط الرسم والتلوين

@@ -17,15 +17,15 @@ export function GamesSection() {
   const progressSavedRef = useRef(false);
   const [gamesCompleted, setGamesCompleted] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
-
+  const [gamesProgress, setGamesProgress] = useState<Record<string, boolean>>(
+    {},
+  );
+  const user = useSelector((state: RootState) => state.auth.user);
   const { letters } = useSelector((state: RootState) => state.letters);
   const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
-
   const letterId = currentLetterFromRedux?.id;
-
   const currentLetter = letter;
   const letterName = currentLetterFromRedux?.name;
-
   const [availableGames, setAvailableGames] = useState<string[]>([]);
   const [loadingGames, setLoadingGames] = useState(true);
 
@@ -89,38 +89,54 @@ export function GamesSection() {
   }, [letterId]);
 
   useEffect(() => {
-    if (!letterId) return;
+  if (!letterId) return;
 
-    const checkGamesCompletion = async () => {
-      try {
-        const res = await api.get(`/lessons/${letterId}/games/progress`);
+  // ✅ لا تعرض المودال للمعلم
+  if (user?.type === "teacher") return;
 
-        const { isCompleted } = res.data;
+  const checkGamesCompletion = async () => {
+    try {
+      const res = await api.get(`/lessons/${letterId}/games/progress`);
 
-        setGamesCompleted(isCompleted);
-        console.log(res.data);
+      const {
+        isCompleted,
+        playedGamesCount,
+        totalGames,
+      } = res.data;
 
-        // لو الطالب خلص كل الألعاب ولسا ما حفظنا التقدم
-        if (isCompleted && !progressSavedRef.current) {
+      // ✅ حماية لو ما في ألعاب
+      const trulyCompleted = totalGames > 0 && playedGamesCount === totalGames;
+
+      setGamesCompleted(trulyCompleted);
+
+      // ✅ منع تكرار المودال بعد الريفريش
+      const modalKey = `games_complete_modal_letter_${letterId}`;
+
+      if (trulyCompleted && !localStorage.getItem(modalKey)) {
+        localStorage.setItem(modalKey, "1");
+
+        // ✅ حفظ التقدم (مرة واحدة)
+        if (!progressSavedRef.current) {
           progressSavedRef.current = true;
-
           await upsertUserProgress({
             letter_id: letterId,
-            lesson_id: 5, // درس التعلم
+            lesson_id: 5,
             lesson_type: "game",
             score: 1,
             completed: true,
           });
-
-          setShowCompleteModal(true);
         }
-      } catch (error) {
-        console.error("Error checking games progress:", error);
-      }
-    };
 
-    checkGamesCompletion();
-  }, [letterId]);
+        setShowCompleteModal(true);
+      }
+    } catch (error) {
+      console.error("Error checking games progress:", error);
+    }
+  };
+
+  checkGamesCompletion();
+}, [letterId, user?.type]);
+
   const handleGoToNextLetter = async () => {
     try {
       // الانتقال للحرف التالي
@@ -280,7 +296,7 @@ export function GamesSection() {
         <motion.img
           src={tigerImg}
           alt="نمر"
-          className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl"
+          className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
           animate={{
             y: [0, -8, 0],
             rotate: [0, 3, -3, 0],
