@@ -10,14 +10,8 @@ createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
       <Provider store={store}>
-        <GoogleOAuthProvider
-          clientId={
-            "13731839668-jgplhiovq2shum5insp4q486oj94rf40.apps.googleusercontent.com"
-          }
-        >
-          <App />
-        </GoogleOAuthProvider>
+        <App />
       </Provider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
