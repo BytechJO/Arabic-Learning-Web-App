@@ -65,20 +65,22 @@ const register = async (req, res) => {
     });
   }
 
+  let projectUserId; // نحتاجه لو بدنا نعمل rollback
+
   try {
     /* ----------------------------------------------------
-       1️⃣ Check activation code (Central DB)
+       1️⃣ Check activation code (External API)
     ---------------------------------------------------- */
     const codeResult = await activationDB.query(
       `
-      SELECT id, book_id, role, is_used
+      SELECT id, book_id, role, is_used, validity_months
       FROM activation_codes
       WHERE code = $1
       `,
       [activation_code]
     );
 
-    if (!codeResult.rowCount) {
+    if (codeResult.rowCount === 0) {
       return res.status(400).json({
         success: false,
         message: "كود تفعيل غير صالح",
@@ -90,27 +92,12 @@ const register = async (req, res) => {
     if (code.is_used) {
       return res.status(400).json({
         success: false,
-        message: "كود تفعيل مستخدم يرجى ادخال كود التفعيل الصحيح",
+        message: "كود التفعيل مستخدم مسبقاً",
       });
     }
 
     /* ----------------------------------------------------
-   2️⃣½ Check if email already exists (Book DB)
----------------------------------------------------- */
-    const emailCheck = await pool.query(
-      `SELECT id FROM users WHERE email = $1`,
-      [email.toLowerCase()]
-    );
-
-    if (emailCheck.rowCount > 0) {
-      return res.status(409).json({
-        success: false,
-        message: "هذا البريد الإلكتروني مستخدم مسبقاً",
-      });
-    }
-
-    /* ----------------------------------------------------
-       2️⃣ Check role match (IMPORTANT PART)
+       2️⃣ Check role match
     ---------------------------------------------------- */
     if (code.role !== requested_role) {
       return res.status(403).json({
@@ -123,33 +110,94 @@ const register = async (req, res) => {
     }
 
     /* ----------------------------------------------------
-       3️⃣ Register user (Book DB)
+       3️⃣ Check email exists (Project API)
+    ---------------------------------------------------- */
+    const emailCheckProject = await pool.query(
+      `SELECT id FROM users WHERE email = $1`,
+      [email.toLowerCase()]
+    );
+
+    if (emailCheckProject.rowCount > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "هذا البريد الإلكتروني مستخدم مسبقاً",
+      });
+    }
+
+    /* ----------------------------------------------------
+       4️⃣ Check email exists (External API)
+    ---------------------------------------------------- */
+    const emailCheckExternal = await activationDB.query(
+      `SELECT id FROM users WHERE email = $1`,
+      [email.toLowerCase()]
+    );
+
+    if (emailCheckExternal.rowCount > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "هذا البريد الإلكتروني مسجل مسبقاً",
+      });
+    }
+
+    /* ----------------------------------------------------
+       5️⃣ Create user (Project API)
     ---------------------------------------------------- */
     const encryptedPassword = await bcrypt.hash(password, 10);
-
     const role_id = requested_role === "teacher" ? 3 : 2;
 
-    const insertUserQuery = `
+    const userResult = await pool.query(
+      `
       INSERT INTO users
         (username, email, password, avatar_url, role_id, created_at)
       VALUES
         ($1, $2, $3, $4, $5, NOW())
       RETURNING id
-    `;
+      `,
+      [
+        username,
+        email.toLowerCase(),
+        encryptedPassword,
+        "https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg",
+        role_id,
+      ]
+    );
 
-    const insertValues = [
-      username,
-      email.toLowerCase(),
-      encryptedPassword,
-      "https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg",
-      role_id,
-    ];
-
-    const userResult = await pool.query(insertUserQuery, insertValues);
-    const userId = userResult.rows[0].id;
+    projectUserId = userResult.rows[0].id;
 
     /* ----------------------------------------------------
-       4️⃣ Mark activation code as used
+       6️⃣ Create user (External API)
+    ---------------------------------------------------- */
+    const externalUserResult = await activationDB.query(
+      `
+      INSERT INTO users (email, username, role, created_at)
+      VALUES ($1, $2, $3, NOW())
+      RETURNING id
+      `,
+      [email.toLowerCase(), username, requested_role]
+    );
+
+    const externalUserId = externalUserResult.rows[0].id;
+
+    /* ----------------------------------------------------
+       7️⃣ Create user_books (External API)
+    ---------------------------------------------------- */
+    await activationDB.query(
+      `
+      INSERT INTO user_books
+        (user_id, book_id, activation_code_id, expires_at, is_active)
+      VALUES
+        ($1, $2, $3, NOW() + ($4 || ' months')::INTERVAL, TRUE)
+      `,
+      [
+        externalUserId,
+        code.book_id,
+        code.id,
+        code.validity_months || 12,
+      ]
+    );
+
+    /* ----------------------------------------------------
+       8️⃣ Mark activation code as used (External API)
     ---------------------------------------------------- */
     await activationDB.query(
       `
@@ -157,21 +205,28 @@ const register = async (req, res) => {
       SET
         is_used = TRUE,
         used_at = NOW()
-      WHERE id = $1
+      WHERE id = $1 AND is_used = FALSE
       `,
       [code.id]
     );
 
     /* ----------------------------------------------------
-       5️⃣ Success
+       9️⃣ Success
     ---------------------------------------------------- */
     return res.status(201).json({
       success: true,
-      message: "User registered successfully",
-      user_id: userId,
+      message: "User registered and activated successfully",
+      user_id: projectUserId,
     });
   } catch (error) {
-    console.error("REGISTER WITH ACTIVATION ERROR:", error);
+    console.error("REGISTER ERROR:", error);
+
+    /* ----------------------------------------------------
+       🔁 Rollback (Project API)
+    ---------------------------------------------------- */
+    if (projectUserId) {
+      await pool.query(`DELETE FROM users WHERE id = $1`, [projectUserId]);
+    }
 
     return res.status(500).json({
       success: false,
@@ -181,55 +236,142 @@ const register = async (req, res) => {
 };
 
 //=================== login ======================//
-const login = (req, res) => {
-  const { password } = req.body;
-  const { email } = req.body;
-  const query = `SELECT * FROM users WHERE email = $1`;
-  const data = [email.toLowerCase()];
-  pool
-    .query(query, data)
-    .then((result) => {
-      if (result.rows) {
-        bcrypt.compare(password, result.rows[0].password, (err, response) => {
-          if (err) res.json(err);
+// const login = (req, res) => {
+//   const { password } = req.body;
+//   const { email } = req.body;
+//   const query = `SELECT * FROM users WHERE email = $1`;
+//   const data = [email.toLowerCase()];
+//   pool
+//     .query(query, data)
+//     .then((result) => {
+//       if (result.rows) {
+//         bcrypt.compare(password, result.rows[0].password, (err, response) => {
+//           if (err) res.json(err);
 
-          if (response) {
-            const payload = {
-              userId: result.rows[0].id,
-              role: result.rows[0].role_id,
-            };
-            const options = { expiresIn: "10d" };
-            const secret = process.env.SECRET;
-            const token = jwt.sign(payload, secret, options);
-            if (token) {
-              return res.status(200).json({
-                token,
-                success: true,
-                message: `Valid login credentials`,
-                userId: result.rows[0].id,
-                role: result.rows[0].role_id,
-                username: result.rows[0].username,
-              });
-            } else {
-              throw Error;
-            }
-          } else {
-            res.status(403).json({
-              success: false,
-              message: `The email doesn’t exist or the password you’ve entered is incorrect`,
-            });
-          }
-        });
-      } else throw Error;
-    })
-    .catch((err) => {
-      res.status(403).json({
+//           if (response) {
+//             const payload = {
+//               userId: result.rows[0].id,
+//               role: result.rows[0].role_id,
+//             };
+//             const options = { expiresIn: "10d" };
+//             const secret = process.env.SECRET;
+//             const token = jwt.sign(payload, secret, options);
+//             if (token) {
+//               return res.status(200).json({
+//                 token,
+//                 success: true,
+//                 message: `Valid login credentials`,
+//                 userId: result.rows[0].id,
+//                 role: result.rows[0].role_id,
+//                 username: result.rows[0].username,
+//               });
+//             } else {
+//               throw Error;
+//             }
+//           } else {
+//             res.status(403).json({
+//               success: false,
+//               message: `The email doesn’t exist or the password you’ve entered is incorrect`,
+//             });
+//           }
+//         });
+//       } else throw Error;
+//     })
+//     .catch((err) => {
+//       res.status(403).json({
+//         success: false,
+//         message:
+//           "The email doesn’t exist or the password you’ve entered is incorrect",
+//         err,
+//       });
+//     });
+// };
+
+
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    /* ----------------------------------------------------
+       1️⃣ Get user (Project API)
+    ---------------------------------------------------- */
+    const userResult = await pool.query(
+      `SELECT * FROM users WHERE email = $1`,
+      [email.toLowerCase()]
+    );
+
+    if (userResult.rowCount === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    /* ----------------------------------------------------
+       2️⃣ Compare password
+    ---------------------------------------------------- */
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(403).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    /* ----------------------------------------------------
+       3️⃣ Check activation (External API)
+    ---------------------------------------------------- */
+    const activationResult = await activationDB.query(
+      `
+      SELECT 1
+      FROM users u
+      JOIN user_books ub ON ub.user_id = u.id
+      WHERE u.email = $1
+        AND ub.is_active = true
+        AND ub.expires_at > NOW()
+      LIMIT 1
+      `,
+      [email.toLowerCase()]
+    );
+
+    if (activationResult.rowCount === 0) {
+      return res.status(403).json({
         success: false,
         message:
-          "The email doesn’t exist or the password you’ve entered is incorrect",
-        err,
+          "انتهت صلاحية التفعيل. لا يمكنك الدخول إلى الموقع، يرجى إعادة التفعيل.",
       });
+    }
+
+    /* ----------------------------------------------------
+       4️⃣ Generate token
+    ---------------------------------------------------- */
+    const payload = {
+      userId: user.id,
+      role: user.role_id,
+    };
+
+    const token = jwt.sign(payload, process.env.SECRET, {
+      expiresIn: "10d",
     });
+
+    return res.status(200).json({
+      success: true,
+      token,
+      userId: user.id,
+      role: user.role_id,
+      username: user.username,
+    });
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
 };
 
 //===================get user by id ======================//
