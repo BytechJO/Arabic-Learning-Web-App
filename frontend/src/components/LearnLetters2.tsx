@@ -875,7 +875,9 @@ useEffect(() => {
 
               {/* زر الإغلاق */}
               <motion.button
-                onClick={() => setIsComplete(false)}
+                onClick={() => {setIsComplete(false)
+                  navigate(`/letter/${letter}/position`)
+                }}
                 className="px-6 py-2.5 rounded-xl text-white shadow-lg"
                 style={{
                   background: "linear-gradient(135deg, #652b82, #7d3ba0)",

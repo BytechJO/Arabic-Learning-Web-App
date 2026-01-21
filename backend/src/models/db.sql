@@ -23,10 +23,10 @@ CREATE TABLE role_permissions (
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   username VARCHAR,
-  email VARCHAR,
+  email UNIQUE VARCHAR NOT NULL, 
   password VARCHAR,
   avatar_url VARCHAR,
-  activation_code VARCHAR, 
+  activation_code UNIQUE VARCHAR, 
   role_id INTEGER NOT NULL,
   created_at TIMESTAMP,
   CONSTRAINT fk_users_role

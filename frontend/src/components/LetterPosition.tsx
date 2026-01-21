@@ -11,7 +11,7 @@ import { upsertUserProgress } from "../API/userProgress";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { fetchLetters } from "../redux/reducers/lettersSlice";
-
+  import { useRef } from "react";
 export function LetterPosition() {
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
@@ -19,6 +19,10 @@ export function LetterPosition() {
   const [showFeedback, setShowFeedback] = useState<"correct" | "wrong" | null>(
     null
   );
+
+
+const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const { symbol } = useParams();
   const navigate = useNavigate();
   const [questions, setQuestions] = useState<any[]>([]);
@@ -98,24 +102,25 @@ export function LetterPosition() {
 
   const question = questions[currentQuestion];
   const parsedQuestionText = JSON.parse(question.question_text);
-  const handleAnswer = async (position: string) => {
-  // ✅ 1. تحقق فوري
-  const isCorrect = position === question.correct_answer;
+ const handleAnswer = async (position: string) => {
+  // 🔴 امنع أي ضغط إضافي
+  if (showFeedback !== null) return;
 
-  // ✅ 2. عرض النتيجة فورًا
+  // 🔴 نظف أي timeout قديم
+  if (timeoutRef.current) {
+    clearTimeout(timeoutRef.current);
+  }
+
+  const isCorrect = position === question.correct_answer;
   setShowFeedback(isCorrect ? "correct" : "wrong");
 
   if (isCorrect) {
-    setScore((prev) => prev + 1); // أو result.score
+    setScore((prev) => prev + 1);
   }
 
-  // ✅ 3. أرسل للباك إند بدون انتظار
-  submitAnswer(12, question.id, position).catch((err) =>
-    console.error("Submit answer error:", err)
-  );
+  submitAnswer(12, question.id, position).catch(console.error);
 
-  // ✅ 4. انتقل للسؤال التالي
-  setTimeout(async () => {
+  timeoutRef.current = setTimeout(async () => {
     setShowFeedback(null);
 
     if (currentQuestion < questions.length - 1) {
@@ -123,12 +128,12 @@ export function LetterPosition() {
     } else {
       const data = await calculateLessonResult(12);
       setTotalScore(data.total_score);
-
       await saveLearnProgress();
       setShowFinishModal(true);
     }
-  }, 1000); // ⬅️ أسرع من قبل
+  }, 1000);
 };
+
 
 
   const resetGame = () => {

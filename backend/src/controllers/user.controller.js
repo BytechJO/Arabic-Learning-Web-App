@@ -61,7 +61,7 @@ const register = async (req, res) => {
   if (!username || !email || !password || !activation_code || !requested_role) {
     return res.status(400).json({
       success: false,
-      message: "Missing required fields",
+      message: "جميع الحقول مطلوبة",
     });
   }
 
@@ -176,7 +176,7 @@ const register = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Server error",
+      message:"خطأ في الشبكة",
     });
   }
 };
@@ -202,7 +202,7 @@ const login = async (req, res) => {
     if (userResult.rowCount === 0) {
       return res.status(403).json({
         success: false,
-        message: "Invalid email or password",
+        message: "البريد الاكتروني او كلمة السر غير صحيحة ",
       });
     }
 

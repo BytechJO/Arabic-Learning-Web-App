@@ -100,37 +100,36 @@ export function LetterTashkeel() {
 
   const question = questions[currentQuestion];
   const parsedQuestionText = JSON.parse(question.question_text);
-  const handleAnswer = async (answer: string) => {
-    // ✅ عرض الفيدباك مباشرة (مؤقت)
-    setShowFeedback("correct"); // مؤقت – بيتعدل حسب الرد
+ const handleAnswer = async (answer: string) => {
+  if (showFeedback !== null) return; // 🔒 حماية
 
-    try {
-      const result = await submitAnswer(3, question.id, answer);
+  try {
+    const result = await submitAnswer(3, question.id, answer);
 
-      // ✅ حدّث الفيدباك الحقيقي
-      setShowFeedback(result.is_correct ? "correct" : "wrong");
+    setShowFeedback(result.is_correct ? "correct" : "wrong");
 
-      if (result.is_correct) {
-        setScore((prev) => prev + result.score);
-      }
-
-      setTimeout(async () => {
-        setShowFeedback(null);
-
-        if (currentQuestion < questions.length - 1) {
-          setCurrentQuestion((prev) => prev + 1);
-        } else {
-          const data = await calculateLessonResult(3);
-          setTotalScore(data.total_score);
-          await saveLearnProgress();
-          setShowFinishModal(true);
-        }
-      }, 800); // ⏱️ أقل زمن
-    } catch (err) {
-      console.error(err);
-      setShowFeedback("wrong");
+    if (result.is_correct) {
+      setScore((prev) => prev + result.score);
     }
-  };
+
+    setTimeout(async () => {
+      setShowFeedback(null);
+
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion((prev) => prev + 1);
+      } else {
+        const data = await calculateLessonResult(3);
+        setTotalScore(data.total_score);
+        await saveLearnProgress();
+        setShowFinishModal(true);
+      }
+    }, 800);
+  } catch (err) {
+    console.error(err);
+    setShowFeedback("wrong");
+  }
+};
+
 
   const resetGame = () => {
     setScore(0);
