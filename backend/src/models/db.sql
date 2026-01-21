@@ -26,6 +26,7 @@ CREATE TABLE users (
   email VARCHAR,
   password VARCHAR,
   avatar_url VARCHAR,
+  activation_code VARCHAR, 
   role_id INTEGER NOT NULL,
   created_at TIMESTAMP,
   CONSTRAINT fk_users_role

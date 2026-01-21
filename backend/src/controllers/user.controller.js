@@ -67,11 +67,11 @@ const register = async (req, res) => {
 
   try {
     /* ----------------------------------------------------
-       1️⃣ Check activation code (Central DB)
+       1️⃣ Check activation code (activationDB)
     ---------------------------------------------------- */
     const codeResult = await activationDB.query(
       `
-      SELECT id, book_id, role, is_used
+      SELECT id, role, is_used
       FROM activation_codes
       WHERE code = $1
       `,
@@ -90,13 +90,13 @@ const register = async (req, res) => {
     if (code.is_used) {
       return res.status(400).json({
         success: false,
-        message: "كود تفعيل مستخدم يرجى ادخال كود التفعيل الصحيح",
+        message: "كود التفعيل مستخدم مسبقاً",
       });
     }
 
     /* ----------------------------------------------------
-   2️⃣½ Check if email already exists (Book DB)
----------------------------------------------------- */
+       2️⃣ Check email uniqueness (Project DB)
+    ---------------------------------------------------- */
     const emailCheck = await pool.query(
       `SELECT id FROM users WHERE email = $1`,
       [email.toLowerCase()]
@@ -110,7 +110,7 @@ const register = async (req, res) => {
     }
 
     /* ----------------------------------------------------
-       2️⃣ Check role match (IMPORTANT PART)
+       3️⃣ Check role match
     ---------------------------------------------------- */
     if (code.role !== requested_role) {
       return res.status(403).json({
@@ -123,17 +123,16 @@ const register = async (req, res) => {
     }
 
     /* ----------------------------------------------------
-       3️⃣ Register user (Book DB)
+       4️⃣ Create user (Project DB)
     ---------------------------------------------------- */
     const encryptedPassword = await bcrypt.hash(password, 10);
-
     const role_id = requested_role === "teacher" ? 3 : 2;
 
     const insertUserQuery = `
       INSERT INTO users
-        (username, email, password, avatar_url, role_id, created_at)
+        (username, email, password, avatar_url, role_id, activation_code, created_at)
       VALUES
-        ($1, $2, $3, $4, $5, NOW())
+        ($1, $2, $3, $4, $5, $6, NOW())
       RETURNING id
     `;
 
@@ -143,27 +142,29 @@ const register = async (req, res) => {
       encryptedPassword,
       "https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg",
       role_id,
+      activation_code,
     ];
 
     const userResult = await pool.query(insertUserQuery, insertValues);
     const userId = userResult.rows[0].id;
 
     /* ----------------------------------------------------
-       4️⃣ Mark activation code as used
+       5️⃣ Mark activation code as used (activationDB)
     ---------------------------------------------------- */
     await activationDB.query(
       `
       UPDATE activation_codes
       SET
         is_used = TRUE,
-        used_at = NOW()
-      WHERE id = $1
+        used_at = NOW(),
+        used_by = $1
+      WHERE id = $2
       `,
-      [code.id]
+      [userId, code.id]
     );
 
     /* ----------------------------------------------------
-       5️⃣ Success
+       6️⃣ Success
     ---------------------------------------------------- */
     return res.status(201).json({
       success: true,
@@ -171,7 +172,7 @@ const register = async (req, res) => {
       user_id: userId,
     });
   } catch (error) {
-    console.error("REGISTER WITH ACTIVATION ERROR:", error);
+    console.error("REGISTER ERROR:", error);
 
     return res.status(500).json({
       success: false,
@@ -179,62 +180,103 @@ const register = async (req, res) => {
     });
   }
 };
+
 // =================== login ======================//
 
 
 
 
 
+const login = async (req, res) => {
+  const { email, password } = req.body;
 
-const login = (req, res) => {
-  const { password } = req.body;
-  const { email } = req.body;
-  const query = `SELECT * FROM users WHERE email = $1`;
-  const data = [email.toLowerCase()];
-  pool
-    .query(query, data)
-    .then((result) => {
-      if (result.rows) {
-        bcrypt.compare(password, result.rows[0].password, (err, response) => {
-          if (err) res.json(err);
+  try {
+    /* ----------------------------------------------------
+       1️⃣ Get user (Project DB)
+    ---------------------------------------------------- */
+    const userResult = await pool.query(
+      `SELECT * FROM users WHERE email = $1`,
+      [email.toLowerCase()]
+    );
 
-          if (response) {
-            const payload = {
-              userId: result.rows[0].id,
-              role: result.rows[0].role_id,
-            };
-            const options = { expiresIn: "10d" };
-            const secret = process.env.SECRET;
-            const token = jwt.sign(payload, secret, options);
-            if (token) {
-              return res.status(200).json({
-                token,
-                success: true,
-                message: `Valid login credentials`,
-                userId: result.rows[0].id,
-                role: result.rows[0].role_id,
-                username: result.rows[0].username,
-              });
-            } else {
-              throw Error;
-            }
-          } else {
-            res.status(403).json({
-              success: false,
-              message: `The email doesn’t exist or the password you’ve entered is incorrect`,
-            });
-          }
-        });
-      } else throw Error;
-    })
-    .catch((err) => {
-      res.status(403).json({
+    if (userResult.rowCount === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    /* ----------------------------------------------------
+       2️⃣ Compare password
+    ---------------------------------------------------- */
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(403).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    if (!user.activation_code) {
+      return res.status(403).json({
+        success: false,
+        message: "لا يوجد كود تفعيل مرتبط بهذا الحساب",
+      });
+    }
+
+    /* ----------------------------------------------------
+       3️⃣ Check activation via code (External DB)
+    ---------------------------------------------------- */
+    const activationResult = await activationDB.query(
+      `
+      SELECT 1
+      FROM activation_codes
+      WHERE code = $1
+        AND is_used = true
+        AND used_at IS NOT NULL
+        AND used_at + (validity_months || ' months')::INTERVAL > NOW()
+      LIMIT 1
+      `,
+      [user.activation_code]
+    );
+
+    if (activationResult.rowCount === 0) {
+      return res.status(403).json({
         success: false,
         message:
-          "The email doesn’t exist or the password you’ve entered is incorrect",
-        err,
+          "انتهت صلاحية كود التفعيل، لا يمكنك تسجيل الدخول إلى الموقع",
       });
+    }
+
+    /* ----------------------------------------------------
+       4️⃣ Generate token
+    ---------------------------------------------------- */
+    const payload = {
+      userId: user.id,
+      role: user.role_id,
+    };
+
+    const token = jwt.sign(payload, process.env.SECRET, {
+      expiresIn: "10d",
     });
+
+    return res.status(200).json({
+      success: true,
+      token,
+      userId: user.id,
+      role: user.role_id,
+      username: user.username,
+    });
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
 };
 
 
