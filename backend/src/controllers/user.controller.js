@@ -75,7 +75,7 @@ const register = async (req, res) => {
       FROM activation_codes
       WHERE code = $1 AND book_id = 7
       `,
-      [activation_code]
+      [activation_code],
     );
 
     if (!codeResult.rowCount) {
@@ -99,7 +99,7 @@ const register = async (req, res) => {
     ---------------------------------------------------- */
     const emailCheck = await pool.query(
       `SELECT id FROM users WHERE email = $1`,
-      [email.toLowerCase()]
+      [email.toLowerCase()],
     );
 
     if (emailCheck.rowCount > 0) {
@@ -157,9 +157,9 @@ const register = async (req, res) => {
       SET
         is_used = TRUE,
         used_at = NOW()
-      WHERE id = $2
+      WHERE id = $1
       `,
-      [ code.id]
+      [code.id],
     );
 
     /* ----------------------------------------------------
@@ -175,17 +175,13 @@ const register = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message:"خطأ في الشبكة",
-      err :error
+      message: "خطأ في الشبكة",
+      err: error,
     });
   }
 };
 
 // =================== login ======================//
-
-
-
-
 
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -196,7 +192,7 @@ const login = async (req, res) => {
     ---------------------------------------------------- */
     const userResult = await pool.query(
       `SELECT * FROM users WHERE email = $1`,
-      [email.toLowerCase()]
+      [email.toLowerCase()],
     );
 
     if (userResult.rowCount === 0) {
@@ -239,14 +235,13 @@ const login = async (req, res) => {
         AND used_at + (validity_months || ' months')::INTERVAL > NOW()
       LIMIT 1
       `,
-      [user.activation_code]
+      [user.activation_code],
     );
 
     if (activationResult.rowCount === 0) {
       return res.status(403).json({
         success: false,
-        message:
-          "انتهت صلاحية كود التفعيل، لا يمكنك تسجيل الدخول إلى الموقع",
+        message: "انتهت صلاحية كود التفعيل، لا يمكنك تسجيل الدخول إلى الموقع",
       });
     }
 
@@ -278,7 +273,6 @@ const login = async (req, res) => {
     });
   }
 };
-
 
 // const login = async (req, res) => {
 //   const { email, password } = req.body;
@@ -367,10 +361,6 @@ const login = async (req, res) => {
 // };
 
 //===================get user by id ======================//
-
-
-
-
 
 const getUserById = async (req, res) => {
   const id = req.token.userId;
