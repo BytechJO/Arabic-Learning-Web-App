@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState ,useEffect } from "react";
 import {
   ArrowRight,
   Mail,
@@ -8,6 +8,8 @@ import {
   Users,
   Sparkles,
   Home,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
@@ -109,12 +111,16 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
   const [activationCode, setActivationCode] = useState("");
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
   });
-
+useEffect(() => {
+  setShowPassword(false);
+}, [mode]);
   const [error, setError] = useState("");
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,6 +168,7 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
       }
     }
   };
+
 
   // const handleRegister = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -380,20 +387,38 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
                   <label className="block text-gray-700 mb-1.5 text-sm md:text-base">
                     كلمة المرور
                   </label>
+
                   <div className="relative">
                     <Lock
                       className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5"
                       style={{ color: "#652b82" }}
                     />
+
                     <input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={(e) =>
                         setFormData({ ...formData, password: e.target.value })
                       }
-                      className="w-full pr-10 pl-3 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 outline-none text-sm md:text-base transition-all"
+                      className="w-full pr-10 pl-10 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 outline-none text-sm md:text-base transition-all"
                       placeholder="••••••••"
                     />
+
+                    {/* زر إظهار / إخفاء */}
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 pl-3 text-gray-500 hover:text-purple-600 transition"
+                      aria-label={
+                        showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
+                      }
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4 md:w-5 md:h-5" />
+                      ) : (
+                        <Eye className="w-4 h-4 md:w-5 md:h-5" />
+                      )}
+                    </button>
                   </div>
                 </motion.div>
 

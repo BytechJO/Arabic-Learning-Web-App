@@ -50,8 +50,6 @@ const activationDB = require("../models/activationDB");
  * POST /auth/register-with-activation
  */
 const register = async (req, res) => {
-
-
   const {
     username,
     email,
@@ -68,25 +66,23 @@ const register = async (req, res) => {
   }
   const normalizedEmail = email.toLowerCase().trim();
 
-const strictGmailRegex = /^[a-zA-Z0-9]+@gmail\.com$/;
+  const strictGmailRegex = /^[a-zA-Z0-9._%+-]+@(gmail|outlook)\.com$/;
 
+  if (!strictGmailRegex.test(normalizedEmail)) {
+    return res.status(400).json({
+      success: false,
+      message: "يجب استخدام بريد إلكتروني من نوع @gmail.com فقط",
+    });
+  }
+  const veryStrongPasswordRegex =
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
 
-if (!strictGmailRegex.test(normalizedEmail)) {
-  return res.status(400).json({
-    success: false,
-    message: "يجب استخدام بريد إلكتروني من نوع @gmail.com فقط",
-  });
-}
-const allowedDomains = ["gmail.com", "outlook.com"];
-
-const domain = normalizedEmail.split("@")[1];
-
-if (!allowedDomains.includes(domain)) {
-  return res.status(400).json({
-    success: false,
-    message: "الدومين غير مدعوم",
-  });
-}
+  if (!veryStrongPasswordRegex.test(password)) {
+    return res.status(400).json({
+      success: false,
+      message: "كلمة المرور يجب أن تحتوي على 8 أحرف على الاقل، حروف، ارقام، ورمز خاص",
+    });
+  }
 
   try {
     /* ----------------------------------------------------
