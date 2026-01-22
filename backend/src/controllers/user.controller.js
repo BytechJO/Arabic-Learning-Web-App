@@ -73,7 +73,7 @@ const register = async (req, res) => {
       `
       SELECT id, role, is_used
       FROM activation_codes
-      WHERE code = $1
+      WHERE code = $1 AND book_id = 7
       `,
       [activation_code]
     );
@@ -156,7 +156,7 @@ const register = async (req, res) => {
       UPDATE activation_codes
       SET
         is_used = TRUE,
-        used_at = NOW(),
+        used_at = NOW()
       WHERE id = $2
       `,
       [ code.id]
