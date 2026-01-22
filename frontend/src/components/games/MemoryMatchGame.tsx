@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { Star, Award, RotateCcw, X } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+
 import api from "../../API/axios";
 import { saveGameResult } from "../../API/gameResult";
 import { RootState } from "../../redux/store";
 import { fetchLetters } from "../../redux/reducers/lettersSlice";
-import { useDispatch, useSelector } from "react-redux";
+
+/* ===================== Types ===================== */
 
 interface Card {
   id: number;
@@ -16,41 +19,85 @@ interface Card {
   flipped: boolean;
 }
 
+/* ===================== Toast ===================== */
+
+function MovesToast({ text }: { text: string | null }) {
+  if (!text) return null;
+
+  return (
+    <motion.div
+      className="fixed top-24 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-lg border-4 text-xl"
+      style={{
+        backgroundColor: "#ffffff",
+        borderColor: "#652b82",
+        color: "#652b82",
+      }}
+      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+    >
+      {text}
+    </motion.div>
+  );
+}
+
+/* ===================== Game ===================== */
+
 export function MemoryMatchGame() {
+  /* ---------- State ---------- */
   const [cards, setCards] = useState<Card[]>([]);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
+  const [pairs, setPairs] = useState<{ letter: string; word: string }[]>([]);
+
   const [score, setScore] = useState(0);
   const [moves, setMoves] = useState(0);
+  const [movesToastText, setMovesToastText] = useState<string | null>(null);
+
   const [gameWon, setGameWon] = useState(false);
   const [gameLost, setGameLost] = useState(false);
-  const [startTime] = useState(Date.now());
+
   const [gameLessonId, setGameLessonId] = useState<number | null>(null);
+  const [startTime] = useState(Date.now());
+
+  /* ---------- Router / Redux ---------- */
   const { letter } = useParams();
   const navigate = useNavigate();
-  const [pairs, setPairs] = useState<{ letter: string; word: string }[]>([]);
-  const propLetter = letter;
-  const { letters } = useSelector((state: RootState) => state.letters);
-  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
-
-  const letterId = currentLetterFromRedux?.id;
-
   const dispatch = useDispatch<any>();
 
-  const getDuration = () => {
-    return Math.floor((Date.now() - startTime) / 1000);
-  };
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetter = letters.find((l) => l.symbol === letter);
+  const letterId = currentLetter?.id;
 
+  /* ---------- Helpers ---------- */
+
+  const getDuration = () =>
+    Math.floor((Date.now() - startTime) / 1000);
+
+  /* ---------- Effects ---------- */
+
+  // Fetch letters if not loaded
+  useEffect(() => {
+    if (!letters.length) {
+      dispatch(fetchLetters());
+    }
+  }, [dispatch, letters.length]);
+
+  // Fetch game data
   useEffect(() => {
     if (!letterId) return;
 
     const fetchGameData = async () => {
       try {
-        const res = await api.get(`/lessons/games-lessons/by-letter-and-type`, {
-          params: {
-            letter: letter,
-            gameType: "memory_match",
-          },
-        });
+        const res = await api.get(
+          "/lessons/games-lessons/by-letter-and-type",
+          {
+            params: {
+              letter,
+              gameType: "memory_match",
+            },
+          }
+        );
+
         const game = res.data.data;
         if (!game || !game.data?.pairs) return;
 
@@ -68,39 +115,33 @@ export function MemoryMatchGame() {
     };
 
     fetchGameData();
-  }, [letter]);
-  
+  }, [letterId]);
+
+  // Save result on end
   useEffect(() => {
-    if (!gameWon && !gameLost) return;
-    if (!gameLessonId) return;
+    if ((!gameWon && !gameLost) || !gameLessonId) return;
 
-    const saveResult = async () => {
-      try {
-        const res = await saveGameResult({
-          games_lessons_id: gameLessonId,
-          score: score,
-          duration: getDuration(),
-        });
-
-        console.log("Game result saved ✅", res);
-      } catch (error) {
-        console.error("Error saving game result", error);
-      }
-    };
-
-    saveResult();
+    saveGameResult({
+      games_lessons_id: gameLessonId,
+      score,
+      duration: getDuration(),
+    }).catch(console.error);
   }, [gameWon, gameLost, gameLessonId]);
 
+  // Lose condition
   useEffect(() => {
     if (moves >= 10 && !gameWon) {
       setGameLost(true);
     }
   }, [moves, gameWon]);
 
+  /* ---------- Game Logic ---------- */
+
   const initializeGame = (gamePairs = pairs) => {
     setGameLost(false);
+    setGameWon(false);
 
-    const selectedPairs = gamePairs.slice(0, 6); // عدد الأزواج
+    const selectedPairs = gamePairs.slice(0, 6);
     const gameCards: Card[] = [];
 
     selectedPairs.forEach((pair, index) => {
@@ -121,17 +162,14 @@ export function MemoryMatchGame() {
       });
     });
 
-    const shuffled = gameCards.sort(() => Math.random() - 0.5);
-
-    setCards(shuffled);
+    setCards(gameCards.sort(() => Math.random() - 0.5));
     setFlippedCards([]);
     setScore(0);
     setMoves(0);
-    setGameWon(false);
   };
 
   const handleCardClick = (cardId: number) => {
-    if (gameLost) return; // 👈 مهم
+    if (gameLost) return;
     if (flippedCards.length === 2) return;
     if (flippedCards.includes(cardId)) return;
     if (cards.find((c) => c.id === cardId)?.matched) return;
@@ -146,7 +184,13 @@ export function MemoryMatchGame() {
     );
 
     if (newFlipped.length === 2) {
-      setMoves((prev) => prev + 1);
+      setMoves((prev) => {
+        const next = prev + 1;
+        setMovesToastText(`حركة: ${next} / 10`);
+        setTimeout(() => setMovesToastText(null), 1200);
+        return next;
+      });
+
       checkMatch(newFlipped);
     }
   };
@@ -159,15 +203,15 @@ export function MemoryMatchGame() {
     if (!firstCard || !secondCard) return;
 
     setTimeout(() => {
-      if (
+      const isMatch =
         (firstCard.type === "letter" &&
           secondCard.type === "word" &&
           secondCard.content.startsWith(firstCard.content)) ||
         (secondCard.type === "letter" &&
           firstCard.type === "word" &&
-          firstCard.content.startsWith(secondCard.content))
-      ) {
-        // Match found!
+          firstCard.content.startsWith(secondCard.content));
+
+      if (isMatch) {
         setCards((prev) =>
           prev.map((card) =>
             card.id === first || card.id === second
@@ -175,17 +219,16 @@ export function MemoryMatchGame() {
               : card
           )
         );
-        setScore((prev) => prev + 10);
+        setScore((s) => s + 10);
 
-        // Check if game is won
         const allMatched = cards
           .filter((c) => c.id !== first && c.id !== second)
           .every((c) => c.matched);
+
         if (allMatched) {
           setTimeout(() => setGameWon(true), 500);
         }
       } else {
-        // No match
         setCards((prev) =>
           prev.map((card) =>
             card.id === first || card.id === second
@@ -194,9 +237,12 @@ export function MemoryMatchGame() {
           )
         );
       }
+
       setFlippedCards([]);
     }, 1000);
   };
+
+  /* ---------- Render ---------- */
 
   return (
     <div
@@ -229,10 +275,7 @@ export function MemoryMatchGame() {
               </span>
             </div>
 
-            <div
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg"
-              style={{ backgroundColor: "#ffffff" }}
-            >
+            <div className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg bg-white">
               <span className="text-xl" style={{ color: "#652b82" }}>
                 حركات: {moves}
               </span>
@@ -282,8 +325,12 @@ export function MemoryMatchGame() {
         </div>
       </div>
 
-      {/* Game Won Modal */}
-      {gameWon && (
+      <AnimatePresence>
+        <MovesToast text={movesToastText} />
+      </AnimatePresence>
+
+      {/* Game Won */}
+      {gameWon && !gameLost && (
         <motion.div
           className="fixed inset-0 z-40 flex items-center justify-center"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
@@ -296,15 +343,10 @@ export function MemoryMatchGame() {
             initial={{ scale: 0, rotate: -10 }}
             animate={{ scale: 1, rotate: 0 }}
           >
-            <Award
-              className="w-24 h-24 mx-auto mb-4"
-              style={{ color: "#fad656" }}
-            />
-
+            <Award className="w-24 h-24 mx-auto mb-4" style={{ color: "#fad656" }} />
             <h2 className="text-4xl mb-3" style={{ color: "#652b82" }}>
               أحسنت!
             </h2>
-
             <p className="text-2xl text-gray-700 mb-2">نقاطك: {score}</p>
             <p className="text-xl text-gray-600 mb-6">عدد الحركات: {moves}</p>
 
@@ -315,7 +357,7 @@ export function MemoryMatchGame() {
                 style={{ backgroundColor: "#652b82" }}
               >
                 <RotateCcw className="w-6 h-6" />
-                <span>العب مرة أخرى</span>
+                العب مرة أخرى
               </button>
 
               <button
@@ -329,6 +371,8 @@ export function MemoryMatchGame() {
           </motion.div>
         </motion.div>
       )}
+
+      {/* Game Lost */}
       {gameLost && (
         <motion.div
           className="fixed inset-0 z-40 flex items-center justify-center"
@@ -345,7 +389,6 @@ export function MemoryMatchGame() {
             <h2 className="text-4xl mb-4" style={{ color: "#ef4444" }}>
               حظاً أوفر 😔
             </h2>
-
             <p className="text-xl text-gray-700 mb-6">
               وصلت إلى الحد الأقصى من المحاولات
             </p>
@@ -357,7 +400,7 @@ export function MemoryMatchGame() {
                 style={{ backgroundColor: "#652b82" }}
               >
                 <RotateCcw className="w-6 h-6" />
-                <span>العب مرة أخرى</span>
+                العب مرة أخرى
               </button>
 
               <button

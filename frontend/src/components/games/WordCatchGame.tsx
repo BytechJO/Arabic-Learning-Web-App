@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Star, Award, RotateCcw, X } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+
 import api from "../../API/axios";
 import { saveGameResult } from "../../API/gameResult";
 import { RootState } from "../../redux/store";
 import { fetchLetters } from "../../redux/reducers/lettersSlice";
-import { useDispatch, useSelector } from "react-redux";
+
+/* ===================== Types ===================== */
+
 interface FallingWord {
   id: number;
   word: string;
@@ -14,6 +18,7 @@ interface FallingWord {
   x: number;
   speed: number;
 }
+
 interface WordCatchConfig {
   correctWords: string[];
   wrongWords: string[];
@@ -25,80 +30,147 @@ interface WordCatchConfig {
   instruction: string;
 }
 
+/* ===================== Toast ===================== */
+
+function MistakeToast({ text }: { text: string | null }) {
+  if (!text) return null;
+
+  return (
+    <motion.div
+      className="fixed top-24 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-lg border-4 text-xl"
+      style={{
+        backgroundColor: "#ffffff",
+        borderColor: "#ef4444",
+        color: "#ef4444",
+      }}
+      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+    >
+      {text}
+    </motion.div>
+  );
+}
+
+/* ===================== Game ===================== */
+
 export function WordCatchGame() {
+  /* ---------- State ---------- */
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+
   const [words, setWords] = useState<FallingWord[]>([]);
-  const [startTime] = useState(Date.now()); 
-   const [config, setConfig] = useState<WordCatchConfig | null>(null);
+  const [nextId, setNextId] = useState(0);
+
+  const [mistakeText, setMistakeText] = useState<string | null>(null);
+  const [config, setConfig] = useState<WordCatchConfig | null>(null);
+  const [gameLessonId, setGameLessonId] = useState<number | null>(null);
+
+  const [startTime] = useState(Date.now());
+
+  /* ---------- Constants ---------- */
   const MAX_MISTAKES = 3;
   const MAX_CORRECT_WORDS = 10;
 
-  const [correctCount, setCorrectCount] = useState(0);
-
-  const [nextId, setNextId] = useState(0);
+  /* ---------- Router / Redux ---------- */
   const { letter } = useParams();
   const navigate = useNavigate();
-  const [gameLessonId, setGameLessonId] = useState<number | null>(null);
-  const user = useSelector((state: RootState) => state.auth.user);
-  const { letters } = useSelector((state: RootState) => state.letters);
-  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
-
-  const letterId = currentLetterFromRedux?.id;
-
   const dispatch = useDispatch<any>();
-  const getDuration = () => {
-    return Math.floor((Date.now() - startTime) / 1000);
+
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetter = letters.find((l) => l.symbol === letter);
+  const letterId = currentLetter?.id;
+
+  /* ---------- Helpers ---------- */
+
+  const getDuration = () =>
+    Math.floor((Date.now() - startTime) / 1000);
+
+  const getSpeedMultiplier = (count: number) => {
+    if (count < 3) return 1;
+    if (count < 6) return 1.2;
+    if (count < 9) return 1.4;
+    return 1.6;
   };
 
+  const triggerMistake = () => {
+    setMistakes((prev) => {
+      const next = prev + 1;
 
+      setMistakeText(`خطأ ❌ ${next} / ${MAX_MISTAKES}`);
+      setTimeout(() => setMistakeText(null), 1200);
 
+      if (next >= MAX_MISTAKES) {
+        setGameOver(true);
+      }
+
+      return next;
+    });
+  };
+
+  const resetGame = () => {
+    setScore(0);
+    setMistakes(0);
+    setCorrectCount(0);
+    setWords([]);
+    setNextId(0);
+    setGameOver(false);
+  };
+
+  /* ---------- Effects ---------- */
+
+  // Fetch letters
   useEffect(() => {
     if (!letters.length) {
       dispatch(fetchLetters());
     }
   }, [dispatch, letters.length]);
 
-useEffect(() => {
-  if (!letter) return;
-  if (!letterId) return;
+  // Fetch game config
+  useEffect(() => {
+    if (!letter || !letterId) return;
 
-  const fetchGameConfig = async () => {
-    try {
-      const res = await api.get(
-        `/lessons/games-lessons/by-letter-and-type`,
-        {
-          params: {
-            letter: letter,
-            gameType: "word_catch",
-          },
-        }
-      );
+    const fetchConfig = async () => {
+      try {
+        const res = await api.get(
+          "/lessons/games-lessons/by-letter-and-type",
+          {
+            params: { letter, gameType: "word_catch" },
+          }
+        );
 
-      const gameLesson = res.data.data;
+        setGameLessonId(res.data.data.game_lesson_id);
+        setConfig(res.data.data.data);
+      } catch (err) {
+        console.error("Error fetching game config", err);
+      }
+    };
 
-  setGameLessonId(res.data.data.game_lesson_id);
-setConfig(res.data.data.data);
-    } catch (err) {
-      console.error("Error fetching game config", err);
-    }
-  };
+    fetchConfig();
+  }, [letter, letterId]);
 
-  fetchGameConfig();
-}, [letter, letterId]);
-
-
+  // Spawn words
   useEffect(() => {
     if (!config || gameOver) return;
 
     const interval = setInterval(() => {
       const allWords = [
-        ...config.correctWords.map((w) => ({ word: w, startsWithAlef: true })),
-        ...config.wrongWords.map((w) => ({ word: w, startsWithAlef: false })),
+        ...config.correctWords.map((w) => ({
+          word: w,
+          startsWithAlef: true,
+        })),
+        ...config.wrongWords.map((w) => ({
+          word: w,
+          startsWithAlef: false,
+        })),
       ];
 
-      const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+      const randomWord =
+        allWords[Math.floor(Math.random() * allWords.length)];
+
+      const multiplier = getSpeedMultiplier(correctCount);
 
       setWords((prev) => [
         ...prev,
@@ -108,100 +180,59 @@ setConfig(res.data.data.data);
           startsWithAlef: randomWord.startsWithAlef,
           x: Math.random() * 80 + 10,
           speed:
-            Math.random() * (config.maxSpeed - config.minSpeed) +
-            config.minSpeed,
+            (Math.random() *
+              (config.maxSpeed - config.minSpeed) +
+              config.minSpeed) /
+            multiplier,
         },
       ]);
 
-      setNextId((prev) => prev + 1);
+      setNextId((id) => id + 1);
     }, config.spawnIntervalMs);
 
     return () => clearInterval(interval);
-  }, [config, gameOver, nextId]);
+  }, [config, gameOver, correctCount, nextId]);
 
+  // Save result on game over
   useEffect(() => {
-    const animationFrame = setInterval(() => {
-      setWords((prev) =>
-        prev.filter((word) => {
-          // إذا وصلت الكلمة للأسفل ولم يتم النقر عليها
-          return true;
-        })
-      );
-    }, 50);
+    if (!gameOver || !gameLessonId) return;
 
-    return () => clearInterval(animationFrame);
-  }, []);
+    saveGameResult({
+      games_lessons_id: gameLessonId,
+      score,
+      duration: getDuration(),
+    }).catch(console.error);
+  }, [gameOver, gameLessonId]);
 
-  
- useEffect(() => {
-  if (!gameOver) return;
-  if (!gameLessonId) return;
-
-  const saveResult = async () => {
-    try {
-      await saveGameResult({
-        games_lessons_id: gameLessonId,
-        score: score,
-        duration: getDuration(),
-      });
-
-      console.log("Game result saved ✅");
-    } catch (error) {
-      console.error("Error saving game result", error);
-    }
-  };
-
-  saveResult();
-}, [gameOver, gameLessonId]);
-
+  /* ---------- Handlers ---------- */
 
   const handleWordClick = (word: FallingWord) => {
     if (word.startsWithAlef) {
-      setScore((prev) => prev + config!.scorePerCorrect);
+      setScore((s) => s + config!.scorePerCorrect);
 
-      setCorrectCount((prev) => {
-        const newCount = prev + 1;
-        if (newCount >= MAX_CORRECT_WORDS) {
-          setGameOver(true);
-        }
-        return newCount;
+      setCorrectCount((c) => {
+        const next = c + 1;
+        if (next >= MAX_CORRECT_WORDS) setGameOver(true);
+        return next;
       });
 
       setWords((prev) => prev.filter((w) => w.id !== word.id));
     } else {
-      setMistakes((prev) => {
-        const newMistakes = prev + 1;
-        if (newMistakes >= MAX_MISTAKES) {
-          setGameOver(true);
-        }
-        return newMistakes;
-      });
+      triggerMistake();
     }
   };
 
   const handleWordMiss = (wordId: number) => {
-    const word = words.find((w) => w.id === wordId);
+    const missed = words.find((w) => w.id === wordId);
 
-    if (word && word.startsWithAlef) {
-      setMistakes((prev) => {
-        const newMistakes = prev + 1;
-        if (newMistakes >= MAX_MISTAKES) {
-          setGameOver(true);
-        }
-        return newMistakes;
-      });
+    if (missed?.startsWithAlef) {
+      triggerMistake();
     }
 
     setWords((prev) => prev.filter((w) => w.id !== wordId));
   };
 
-  const resetGame = () => {
-    setScore(0);
-    setMistakes(0);
-    setCorrectCount(0);
-    setGameOver(false);
-    setWords([]);
-  };
+  /* ---------- Loading ---------- */
 
   if (!config) {
     return (
@@ -210,6 +241,8 @@ setConfig(res.data.data.data);
       </div>
     );
   }
+
+  /* ---------- Render ---------- */
 
   return (
     <div
@@ -244,11 +277,15 @@ setConfig(res.data.data.data);
 
             <div
               className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg"
-              style={{ backgroundColor: mistakes >= 3 ? "#ef4444" : "#ffffff" }}
+              style={{
+                backgroundColor: mistakes >= 3 ? "#ef4444" : "#ffffff",
+              }}
             >
               <span
                 className="text-xl"
-                style={{ color: mistakes >= 3 ? "#ffffff" : "#ef4444" }}
+                style={{
+                  color: mistakes >= 3 ? "#ffffff" : "#ef4444",
+                }}
               >
                 أخطاء: {mistakes}/{config.maxMistakes}
               </span>
@@ -264,16 +301,19 @@ setConfig(res.data.data.data);
             {words.map((word) => (
               <motion.button
                 key={word.id}
-                initial={{ y: -100, x: `${word.x}%` }}
+                initial={{ y: -100 }}
                 animate={{ y: window.innerHeight }}
                 transition={{ duration: word.speed * 5, ease: "linear" }}
                 onAnimationComplete={() => handleWordMiss(word.id)}
                 onClick={() => handleWordClick(word)}
                 className="absolute px-8 py-4 rounded-3xl shadow-2xl text-2xl cursor-pointer border-4"
                 style={{
-                  left: 0,
+                  left: `${word.x}%`,
+                  transform: "translateX(-50%)",
                   backgroundColor: "#ffffff",
-                  borderColor: word.startsWithAlef ? "#fad656" : "#e5e5e5",
+                  borderColor: word.startsWithAlef
+                    ? "#fad656"
+                    : "#e5e5e5",
                   color: "#652b82",
                 }}
                 whileHover={{ scale: 1.1 }}
@@ -284,7 +324,7 @@ setConfig(res.data.data.data);
             ))}
           </AnimatePresence>
 
-          {/* Instructions */}
+          {/* Instruction */}
           <motion.div
             className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white rounded-3xl px-8 py-4 shadow-xl border-4"
             style={{ borderColor: "#652b82" }}
@@ -292,13 +332,18 @@ setConfig(res.data.data.data);
             animate={{ opacity: 1, y: 0 }}
           >
             <p className="text-xl" style={{ color: "#652b82" }}>
-              {config?.instruction}
+              {config.instruction}
             </p>
           </motion.div>
         </div>
       </div>
 
-      {/* Game Over Modal */}
+      {/* Mistake Toast */}
+      <AnimatePresence>
+        <MistakeToast text={mistakeText} />
+      </AnimatePresence>
+
+      {/* Game Over */}
       {gameOver && (
         <motion.div
           className="fixed inset-0 z-40 flex items-center justify-center"
@@ -321,7 +366,9 @@ setConfig(res.data.data.data);
               انتهت اللعبة!
             </h2>
 
-            <p className="text-2xl text-gray-700 mb-6">نقاطك: {score}</p>
+            <p className="text-2xl text-gray-700 mb-6">
+              نقاطك: {score}
+            </p>
 
             <div className="flex gap-4 justify-center">
               <button
@@ -334,9 +381,14 @@ setConfig(res.data.data.data);
               </button>
 
               <button
-                onClick={() => navigate(`/letter/${letter}/games`)}
+                onClick={() =>
+                  navigate(`/letter/${letter}/games`)
+                }
                 className="px-8 py-4 rounded-2xl shadow-lg text-xl"
-                style={{ backgroundColor: "#fad656", color: "#652b82" }}
+                style={{
+                  backgroundColor: "#fad656",
+                  color: "#652b82",
+                }}
               >
                 رجوع
               </button>
