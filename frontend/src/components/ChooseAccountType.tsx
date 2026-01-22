@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { BookOpen, Users, ArrowLeft } from "lucide-react";
+import { BookOpen, Users, ArrowLeft, ArrowRight } from "lucide-react";
 import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { useNavigate } from "react-router-dom";
 interface ChooseAccountTypeProps {
@@ -117,7 +117,7 @@ export function ChooseAccountType({ onChoose }: ChooseAccountTypeProps) {
                   animate={{ x: [-3, 3, -3] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  <ArrowLeft
+                  <ArrowRight
                     className="w-6 h-6 md:w-7 md:h-7"
                     style={{ color: "#652b82" }}
                   />

@@ -71,7 +71,7 @@ const register = async (req, res) => {
   if (!strictGmailRegex.test(normalizedEmail)) {
     return res.status(400).json({
       success: false,
-      message: "يجب استخدام بريد إلكتروني من نوع @gmail.com فقط",
+      message: "يجب استخدام بريد إلكتروني من نوع @gmail.com او outlook فقط",
     });
   }
   const veryStrongPasswordRegex =
