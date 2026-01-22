@@ -50,6 +50,8 @@ const activationDB = require("../models/activationDB");
  * POST /auth/register-with-activation
  */
 const register = async (req, res) => {
+
+
   const {
     username,
     email,
@@ -64,6 +66,27 @@ const register = async (req, res) => {
       message: "جميع الحقول مطلوبة",
     });
   }
+  const normalizedEmail = email.toLowerCase().trim();
+
+const strictGmailRegex = /^[a-zA-Z0-9]+@gmail\.com$/;
+
+
+if (!strictGmailRegex.test(normalizedEmail)) {
+  return res.status(400).json({
+    success: false,
+    message: "يجب استخدام بريد إلكتروني من نوع @gmail.com فقط",
+  });
+}
+const allowedDomains = ["gmail.com", "outlook.com"];
+
+const domain = normalizedEmail.split("@")[1];
+
+if (!allowedDomains.includes(domain)) {
+  return res.status(400).json({
+    success: false,
+    message: "الدومين غير مدعوم",
+  });
+}
 
   try {
     /* ----------------------------------------------------
@@ -99,7 +122,7 @@ const register = async (req, res) => {
     ---------------------------------------------------- */
     const emailCheck = await pool.query(
       `SELECT id FROM users WHERE email = $1`,
-      [email.toLowerCase()],
+      [normalizedEmail],
     );
 
     if (emailCheck.rowCount > 0) {
@@ -138,7 +161,7 @@ const register = async (req, res) => {
 
     const insertValues = [
       username,
-      email.toLowerCase(),
+      normalizedEmail,
       encryptedPassword,
       "https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg",
       role_id,

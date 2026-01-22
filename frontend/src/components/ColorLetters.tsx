@@ -19,13 +19,10 @@ interface Stroke {
 interface ColorLettersProps {
   currentLetter?: string;
   letterName?: string;
-  onBack?: () => void;
-  onActivityChange?: (activity: string) => void;
-  user?: User;
-  onLogout?: () => void;
+ 
 }
 
-export function ColorLetters({ currentLetter: propLetter, letterName, onBack, onActivityChange, user, onLogout }: ColorLettersProps) {
+export function ColorLetters({ currentLetter: propLetter, letterName}: ColorLettersProps) {
   const [selectedColor, setSelectedColor] = useState('#652b82');
   const [isDrawing, setIsDrawing] = useState(false);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -45,7 +42,7 @@ export function ColorLetters({ currentLetter: propLetter, letterName, onBack, on
     { name: 'أرجواني', value: '#A855F7' },
   ];
 
-  if (!propLetter || !letterName || !onBack) {
+  if (!propLetter || !letterName) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50 flex items-center justify-center p-6">
         <div className="text-center">
@@ -441,15 +438,11 @@ export function ColorLetters({ currentLetter: propLetter, letterName, onBack, on
       </div>
 
       {/* Activity Footer */}
-      {onActivityChange && (
+     
         <ActivityFooter 
-          currentActivity="tashkeel" 
-          onActivityChange={onActivityChange}
-          onHomeClick={onBack}
           currentLetter={currentLetter}
           letterName={letterName}
         />
-      )}
     </div>
   );
 }
