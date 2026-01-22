@@ -157,10 +157,9 @@ const register = async (req, res) => {
       SET
         is_used = TRUE,
         used_at = NOW(),
-        used_by = $1
       WHERE id = $2
       `,
-      [userId, code.id]
+      [ code.id]
     );
 
     /* ----------------------------------------------------
@@ -172,11 +171,12 @@ const register = async (req, res) => {
       user_id: userId,
     });
   } catch (error) {
-    console.error("REGISTER ERROR:", error);
+    console.log("REGISTER ERROR:", error);
 
     return res.status(500).json({
       success: false,
       message:"خطأ في الشبكة",
+      err :error
     });
   }
 };

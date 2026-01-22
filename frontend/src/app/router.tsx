@@ -20,7 +20,6 @@ import { MemoryMatchGame } from "../components/games/MemoryMatchGame";
 import { SortingGame } from "../components/games/SortingGame";
 import { WordCatchGame } from "../components/games/WordCatchGame";
 import { TeacherResources } from "../components/TeacherResources";
-import { ClassroomManagement } from "../components/ClassroomManagement";
 import { StudentsManagement } from "../components/StudentsManagement";
 
 interface AppRouterProps {
