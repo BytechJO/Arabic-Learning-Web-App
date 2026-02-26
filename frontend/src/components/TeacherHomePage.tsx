@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../redux/store";
+import tiger from "../assets/tiger.svg"
 import { logout } from "../redux/reducers/auth";
 
 interface TeacherHomePageProps {
@@ -52,7 +53,9 @@ export function TeacherHomePage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* خلفية متدرجة */}
-      <div className="fixed inset-0 bg-gradient-to-br from-purple-100 via-yellow-50 to-purple-50"></div>
+      <div className="fixed inset-0"  style={{
+       background: "white",
+    }}></div>
 
       {/* عناصر زخرفية متحركة */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -73,52 +76,56 @@ export function TeacherHomePage() {
       <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 min-h-[calc(100vh-80px)]">
         {/* Header with Logout */}
         <div
-          className="fixed top-0 left-0 right-0 bg-white shadow-md z-50"
-          style={{ borderBottom: "3px solid #fad656" }}
+          className="fixed top-0 left-0 right-0 shadow-md z-50 h-56"
+          style={{ borderBottom: "3px solid #fad656",background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)" }}
         >
           <div className="px-4 md:px-6 py-2 md:py-2.5">
             <div className="flex items-center justify-between" dir="rtl">
               {/* اليمين - اسم التطبيق */}
               <div className="flex items-center gap-2">
-                <div
-                  className="text-xl md:text-2xl"
-                  style={{ color: "#652b82" }}
-                >
-                  <span className="font-bold">مرآتي لغتي</span>
-                </div>
-              </div>
-
-              {/* اليسار - معلومات المستخدم وتسجيل الخروج */}
+                {/* اليسار - معلومات المستخدم وتسجيل الخروج */}
               <div className="flex items-center gap-3 md:gap-4">
-                {/* معلومات الحساب */}
-                <div className="flex items-center gap-2">
-                  {/* أيقونة الحساب */}
-                  <div
-                    className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-lg"
-                    style={{
-                      background: "linear-gradient(135deg, #fad656, #f5c842)",
-                    }}
-                  >
-                    <GraduationCap
-                      className="w-5 h-5 md:w-5 md:h-5"
-                      style={{ color: "#652b82" }}
-                    />
-                  </div>
-                </div>
-
                 {/* زر تسجيل الخروج */}
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 text-white px-3 md:px-4 py-2 rounded-xl shadow-lg transition-all hover:opacity-90"
-                  style={{ backgroundColor: "#652b82" }}
+                  style={{ backgroundColor: "white" }}
+                  
                 >
-                  <span className="text-xs md:text-sm">تسجيل الخروج</span>
                   <LogOut
                     className="w-3.5 h-3.5 md:w-4 md:h-4"
-                    style={{ transform: "scaleX(-1)" }}
+                    style={{ transform: "scaleX(1)" ,color:"#652B82"}}
                   />
+                  <span className="text-xs md:text-sm" style={{
+                    fontFamily:"poppins",color:"#652B82",fontSize:"20px",fontWeight:"400"
+                  }}>تسجيل الخروج</span>
+                  
                 </button>
               </div>
+               
+               {/*النمر الموجود بالنص */}
+                           <motion.div
+                             className="absolute left-2 top-0"
+                             
+                             initial={{ scale: 0.8, opacity: 0 }}
+                             animate={{ scale: 1, opacity: 1 }}
+                             transition={{ duration: 0.5 }}
+                           >
+                             <motion.img
+                               src={tiger}
+                               alt="نمر"
+                               className="w-56 md:w-56 lg:w-20 object-contain drop-shadow-2xl"
+                               animate={{ y: [0, -6, 0] }}
+                               transition={{
+                                 duration: 3,
+                                 repeat: Infinity,
+                                 ease: "easeInOut",
+                               }}
+                             />
+                           </motion.div>
+              </div>
+
+              
             </div>
           </div>
         </div>

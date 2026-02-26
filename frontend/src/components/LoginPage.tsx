@@ -1,4 +1,4 @@
-import { useState ,useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowRight,
   Mail,
@@ -13,7 +13,12 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
-import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
+import tigerImg from "../assets/tiger_login.svg";
+import backGroundImg from "../assets/background_img_login_page.jpg";
+import alphabet from "../assets/alphabet login.svg";
+import userIcon from "../assets/Users.svg";
+import waves from "../assets/waves_login.svg";
+import homeIcon from "../assets/Home.svg";
 import { useAppDispatch } from "../redux/hooks";
 import { loginSuccess } from "../redux/reducers/auth";
 
@@ -118,9 +123,9 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
     email: "",
     password: "",
   });
-useEffect(() => {
-  setShowPassword(false);
-}, [mode]);
+  useEffect(() => {
+    setShowPassword(false);
+  }, [mode]);
   const [error, setError] = useState("");
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,7 +173,6 @@ useEffect(() => {
       }
     }
   };
-
 
   // const handleRegister = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -246,356 +250,305 @@ useEffect(() => {
   return (
     <div className="min-h-screen relative overflow-hidden" dir="rtl">
       {/* خلفية متدرجة */}
-      <div className="fixed inset-0 bg-gradient-to-br from-purple-100 via-yellow-50 to-purple-50"></div>
+     {userType === "student" ? (
+  <div
+    className="fixed inset-0 -z-10 overflow-hidden"
+    style={{
+      backgroundImage: `
+        linear-gradient(#652b82c7, #ececed80),
+        url(${backGroundImg})
+      `,
+      backgroundSize: "1540px auto",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      opacity: "0.8",
+    }}
+  /> 
+) : (<div
+    className="fixed inset-0 -z-10 overflow-hidden"
+    style={{
+       background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+    }}
+  /> )}
 
-      {/* عناصر زخرفية */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute -top-20 -right-20 w-56 h-56 md:w-64 md:h-64 rounded-full opacity-10"
-          style={{ backgroundColor: "#fad656" }}
-          animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
-          transition={{ duration: 20, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute -bottom-20 -left-20 w-64 h-64 md:w-80 md:h-80 rounded-full opacity-10"
-          style={{ backgroundColor: "#652b82" }}
-          animate={{ scale: [1, 1.3, 1] }}
-          transition={{ duration: 15, repeat: Infinity }}
+      {/* خلفية الهيدر */}
+      <div className="absolute w-full overflow-hidden">
+        <div className="relative bg-white-200 h-56 flex items-center justify-center">
+          <div
+            className="absolute z-9999"
+            style={{
+              top: "10px",
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginRight: "45%",
+              width: "50%",
+              zIndex: "999",
+              // top: "10px",
+            }}
+          >
+            <h1
+              // className="absolute"
+              style={{
+                fontFamily: "tajawal",
+                fontSize: "40px",
+                fontWeight: "700",
+                color: "#652B82",
+                zIndex: "999",
+                // top: "10px",
+              }}
+            >
+              مراتي لغتي
+            </h1>
+            <div>
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2,boxShadow: `
+      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
+      inset -10px -10px 18px rgba(255,255,255,1)
+    ` }}
+                whileTap={{
+                  scale: 0.97,
+                  boxShadow: `
+      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
+      inset -10px -10px 18px rgba(255,255,255,1)
+    `,
+                }}
+                type="button"
+                onClick={() => navigate("/")}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  backgroundColor: "#f2f2f2",
+                  borderRadius: "8px",
+
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  boxShadow: `
+        inset 6px 6px 12px rgba(0, 0, 0, 0.07),
+        inset -6px -6px 12px rgba(255,255,255,0.9)`,
+                }}
+              >
+                <img src={homeIcon} style={{ width: "30px", height: "30px" }} />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        <img
+          src={waves}
+          alt="wave"
+          className="absolute bottom-16 left-0 w-full"
         />
       </div>
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4 md:p-6">
+      <div
+        className="relative z-10 min-h-screen flex justify-center p-4 md:p-6"
+        style={{ alignItems: "flex-end" }}
+      >
         <motion.div
-          className="w-full max-w-md"
+          // className="w-96"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
+          style={{ height: "70vh" }}
         >
           {/* بطاقة تسجيل الدخول/التسجيل */}
           <div
-            className="bg-white rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden border-2 md:border-4"
-            style={{ borderColor: "#652b82" }}
+            className="w-96 h-full rounded-3xl shadow-2xl overflow-hidden flex flex-row md:flex-col relative"
+            style={{ backgroundColor: "#FDC333", width: "100%" }}
           >
-            {/* الهيدر */}
-            <div
-              className="p-5 md:p-6 text-center text-white relative overflow-hidden"
+            {/*النمر الموجود بالنص */}
+            <motion.div
+              className="absolute left-1/2 -translate-x-1/2 -ml-6 top-1/2 -translate-y-1/2 z-20 flex justify-center items-center shadow-2xl"
               style={{
-                background: "linear-gradient(135deg, #652b82, #7d3ba0)",
+                left: "42%",
+                backgroundColor: "white",
+                height: "150px",
+                width: "150px",
+                borderRadius: "50%",
               }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
             >
-              <div
-                className="absolute top-0 right-0 w-24 h-24 md:w-28 md:h-28 rounded-full opacity-20"
-                style={{
-                  backgroundColor: "white",
-                  transform: "translate(30%, -30%)",
+              <motion.img
+                src={tigerImg}
+                alt="نمر"
+                className="w-20 md:w-20 lg:w-20 object-contain drop-shadow-2xl"
+                animate={{ y: [0, -6, 0] }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
                 }}
-              ></div>
-              <div
-                className="absolute bottom-0 left-0 w-20 h-20 md:w-24 md:h-24 rounded-full opacity-20"
-                style={{
-                  backgroundColor: "white",
-                  transform: "translate(-30%, 30%)",
-                }}
-              ></div>
+              />
+            </motion.div>
+            <div className="bg-white rounded-3xl shadow-2xl flex flex-col justify-center">
+              <div>
+                <div
+                  className="absolute bottom-0 left-0 w-20 h-20 md:w-24 md:h-24 rounded-full opacity-20"
+                  style={{
+                    backgroundColor: "white",
+                    transform: "translate(-30%, 30%)",
+                  }}
+                ></div>
 
-              <motion.div
-                className="relative"
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-              >
-                <div className="mb-3">
-                  {userType === "student" ? (
-                    <BookOpen className="w-12 h-12 md:w-14 md:h-14 mx-auto text-white" />
-                  ) : (
-                    <Users className="w-12 h-12 md:w-14 md:h-14 mx-auto text-white" />
-                  )}
-                </div>
-                <h2 className="text-xl md:text-2xl mb-1.5">
-                  {mode === "login" ? "تسجيل الدخول" : "إنشاء حساب جديد"}
-                </h2>
-                <p className="text-sm md:text-base opacity-90">
-                  {userType === "student" ? "حساب الطالب" : "حساب المعلم"}
-                </p>
-              </motion.div>
-            </div>
-
-            {/* النموذج */}
-            <div className="p-5 md:p-6">
-              <form
-                onSubmit={mode === "login" ? handleLogin : handleRegister}
-                className="space-y-4"
-              >
-                {mode === "register" && (
+                <motion.div
+                  className="relative flex flex-col items-center"
+                  initial={{ y: -20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                >
+                  <div className="mb-3">
+                    <img
+                      src={userIcon}
+                      className="w-12 h-12 md:w-14 md:h-14 mx-auto text-white"
+                    />
+                  </div>
+                  <p className="text-sm md:text-base opacity-90">
+                    {userType === "student" ? "حساب الطالب" : "حساب المعلم"}
+                  </p>
+                </motion.div>
+              </div>
+              {/* النموذج */}
+              <div className="p-5 md:p-6 bg-white rounded-3xl">
+                <form onSubmit={handleLogin} className="space-y-4">
                   <motion.div
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.1 }}
                   >
-                    <label className="block text-gray-700 mb-1.5 text-sm md:text-base">
-                      الاسم الكامل
-                    </label>
+                    {/* <label className="block text-gray-700 mb-1.5 text-sm md:text-base">
+                      البريد الإلكتروني
+                    </label> */}
                     <div className="relative">
-                      <UserIcon
+                      <Mail
                         className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5"
                         style={{ color: "#652b82" }}
                       />
                       <input
-                        type="text"
-                        value={formData.username}
+                        type="email"
+                        value={formData.email}
                         onChange={(e) =>
-                          setFormData({ ...formData, username: e.target.value })
+                          setFormData({ ...formData, email: e.target.value })
                         }
-                        className="w-full pr-10 pl-3 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 outline-none text-sm md:text-base transition-all"
-                        placeholder="أدخل اسمك الكامل"
-                        dir="rtl"
+                        className="w-full pr-10 py-3 bg-transparent border-b-2 border-gray-300 focus:border-purple-600 outline-none transition"
+                        placeholder=" البريد الإلكتروني"
+                        style={{ borderBottom: "2px solid #652b8251" }}
+                        // dir="ltr"
                       />
                     </div>
                   </motion.div>
-                )}
 
-                <motion.div
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: mode === "register" ? 0.2 : 0.1 }}
-                >
-                  <label className="block text-gray-700 mb-1.5 text-sm md:text-base">
-                    البريد الإلكتروني
-                  </label>
-                  <div className="relative">
-                    <Mail
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5"
-                      style={{ color: "#652b82" }}
-                    />
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      className="w-full pr-10 pl-3 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 outline-none text-sm md:text-base transition-all"
-                      placeholder="example@email.com"
-                      dir="ltr"
-                    />
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: mode === "register" ? 0.3 : 0.2 }}
-                >
-                  <label className="block text-gray-700 mb-1.5 text-sm md:text-base">
-                    كلمة المرور
-                  </label>
-
-                  <div className="relative">
-                    <Lock
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5"
-                      style={{ color: "#652b82" }}
-                    />
-
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={(e) =>
-                        setFormData({ ...formData, password: e.target.value })
-                      }
-                      className="w-full pr-10 pl-10 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 outline-none text-sm md:text-base transition-all"
-                      placeholder="••••••••"
-                    />
-
-                    {/* زر إظهار / إخفاء */}
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute left-0 top-1/2 -translate-y-1/2 pl-3 text-gray-500 hover:text-purple-600 transition"
-                      aria-label={
-                        showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
-                      }
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4 md:w-5 md:h-5" />
-                      ) : (
-                        <Eye className="w-4 h-4 md:w-5 md:h-5" />
-                      )}
-                    </button>
-                  </div>
-                </motion.div>
-
-                {mode === "register" && (
                   <motion.div
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.4 }}
+                    transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-gray-700 mb-1.5 text-sm md:text-base">
-                      كود التفعيل
-                    </label>
+                    {/* <label className="block text-gray-700 mb-1.5 text-sm md:text-base">
+                      كلمة المرور
+                    </label> */}
+
                     <div className="relative">
-                      <Sparkles
+                      <Lock
                         className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5"
-                        style={{ color: "#fad656" }}
+                        style={{ color: "#652b82" }}
                       />
+
                       <input
-                        type="text"
-                        value={activationCode}
-                        onChange={(e) => setActivationCode(e.target.value)}
-                        className="w-full pr-10 pl-3 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 outline-none text-sm md:text-base transition-all"
-                        placeholder="أدخل كود التفعيل"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                        className="w-full pr-10 pl-10 py-3 bg-transparent border-b-2 border-gray-300 focus:border-purple-600 outline-none transition"
+                        style={{ borderBottom: "2px solid #652b8243" }}
+                        placeholder=" كلمة المرور"
                       />
+
+                      {/* زر إظهار / إخفاء */}
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 pl-3 text-gray-500 hover:text-purple-600 transition"
+                        style={{ left: "10%" }}
+                        aria-label={
+                          showPassword
+                            ? "إخفاء كلمة المرور"
+                            : "إظهار كلمة المرور"
+                        }
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4 md:w-5 md:h-5" />
+                        ) : (
+                          <Eye className="w-4 h-4 md:w-5 md:h-5" />
+                        )}
+                      </button>
                     </div>
-                    <p className="text-xs md:text-sm text-gray-500 mt-1.5">
-                      كود التفعيل:{" "}
-                    </p>
                   </motion.div>
-                )}
 
-                {error && (
-                  <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="bg-red-50 border-2 border-red-300 text-red-700 px-3 py-2.5 rounded-xl text-center text-sm"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-
-                <motion.button
-                  type="submit"
-                  className="w-full py-3 md:py-3.5 rounded-xl text-white text-base md:text-lg shadow-lg hover:shadow-xl transition-all"
-                  style={{
-                    background: "linear-gradient(135deg, #652b82, #7d3ba0)",
-                  }}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {mode === "login" ? "دخول" : "إنشاء حساب"}
-                </motion.button>
-
-                {/* حسابات تجريبية */}
-                {/* {mode === "login" && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="border-t-2 border-gray-200 pt-4 space-y-2"
-                  >
-                    {userType === "student" && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const demoUser: User = {
-                            id: "demo-student-1",
-                            username: "أحمد التجريبي",
-                            email: "student@demo.com",
-                            password: "123456",
-                            type: "student",
-                            // activationCode: "STUDENT2024",
-                          };
-                          storage.setCurrentUser(demoUser);
-                          // onLogin(demoUser);
-                        }}
-                        className="w-full py-2.5 rounded-xl border-2 text-sm md:text-base hover:shadow-md transition-all flex items-center justify-center gap-2"
-                        style={{ borderColor: "#652b82", color: "#652b82" }}
-                      >
-                        <BookOpen className="w-4 h-4 md:w-5 md:h-5" />
-                        <span>دخول كطالب تجريبي</span>
-                      </button>
-                    )}
-
-                    {userType === "teacher" && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const demoUser: User = {
-                            id: "demo-teacher-1",
-                            username: "المعلمة فاطمة",
-                            email: "teacher@demo.com",
-                            password: "123456",
-                            type: "teacher",
-                            // activationCode: "TEACHER2024",
-                          };
-                          storage.setCurrentUser(demoUser);
-                          // onLogin(demoUser);
-                        }}
-                        className="w-full py-2.5 rounded-xl border-2 text-sm md:text-base hover:shadow-md transition-all flex items-center justify-center gap-2"
-                        style={{ borderColor: "#652b82", color: "#652b82" }}
-                      >
-                        <Users className="w-4 h-4 md:w-5 md:h-5" />
-                        <span>دخول كمعلم تجريبي</span>
-                      </button>
-                    )}
-                  </motion.div>
-                )} */}
-
-                <div className="text-center space-y-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setMode(mode === "login" ? "register" : "login")
-                    }
-                    onTouchEnd={() =>
-                      setMode(mode === "login" ? "register" : "login")
-                    }
-                    className="text-gray-600 hover:text-purple-600 transition-colors text-sm md:text-base"
-                  >
-                    {mode === "login"
-                      ? "ليس لديك حساب؟ سجّل الآن"
-                      : "لديك حساب بالفعل؟ سجّل دخولك"}
-                  </button>
-
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigate("/");
-                      }}
-                      // onTouchEnd={() => {
-                      //   navigate("/");
-                      // }}
-                      className="text-gray-600 hover:text-purple-600 transition-colors text-sm md:text-base flex items-center justify-center gap-1.5 mx-auto"
+                  {error && (
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="bg-red-50 border-2 border-red-300 text-red-700 px-3 py-2.5 rounded-xl text-center text-sm"
                     >
-                      <Home className="w-4 h-4" />
-                      <span>الصفحة الرئيسية</span>
-                    </button>
+                      {error}
+                    </motion.div>
+                  )}
+
+                  <motion.button
+                    type="submit"
+                    className="w-full py-3 md:py-2\.5 text-white text-base md:text-lg shadow-lg hover:shadow-xl transition-all"
+                    style={{
+                      background: "linear-gradient(135deg, #652b82, #7d3ba0)",
+                    }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {"دخول"}
+                  </motion.button>
+                  <div className="text-center space-y-2">
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigate("/");
+                        }}
+                        className="text-gray-600 hover:text-purple-600 transition-colors text-sm md:text-base flex items-center justify-center gap-1.5 mx-auto"
+                      >
+                        <Home className="w-4 h-4" />
+                        <span>الصفحة الرئيسية</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </form>
+                </form>
+              </div>
+            </div>
+            <div
+              className="flex flex-col items-center justify-center"
+              style={{
+                marginTop: "80px",
+              }}
+            >
+              <h1
+                style={{
+                  fontFamily: "tajawal",
+                  fontSize: "22px",
+                  fontWeight: "500",
+                  color: "#652B82",
+                }}
+              >
+                رحلة تعلم اللغة العربية تبدأ هنا
+              </h1>
+              <img src={alphabet} style={{ width: "82%" }} />
             </div>
           </div>
         </motion.div>
       </div>
-
-      {/* النمر في الزاوية اليسرى السفلى */}
-      <motion.div
-        className="fixed bottom-2 left-2 md:bottom-4 md:left-4 z-20"
-        initial={{ x: -200, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{
-          type: "spring",
-          stiffness: 100,
-          damping: 15,
-          delay: 0.5,
-        }}
-      >
-        <div className="relative flex justify-center">
-          <motion.img
-            src={tigerImg}
-            alt="نمر"
-            className="
-  w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl
-    "
-            animate={{
-              y: [0, -6, 0],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        </div>
-      </motion.div>
     </div>
   );
 }
