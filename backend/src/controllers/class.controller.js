@@ -94,7 +94,7 @@ const getClassById = async (req, res) => {
     if (response.rowCount) {
       res.status(200).json({
         status: true,
-        data: response.rows,
+        data: response.rows[0],
       });
     } else {
       res.status(404).json({
