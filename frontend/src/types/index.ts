@@ -16,7 +16,15 @@ export interface Classroom {
   created_at: string;
   students_count: number;
 }
-
+export interface ClassroomSingle {
+  students: any;
+  id: number;
+  name: string;
+  code: string;
+  status: string;
+  created_at: string;
+  students_count: number;
+}
 export interface ClassStudent {
   id: number;
   username: string;

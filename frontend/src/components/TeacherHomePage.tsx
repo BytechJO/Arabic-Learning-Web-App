@@ -11,7 +11,13 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../redux/store";
-import tiger from "../assets/tiger.svg"
+import tiger from "../assets/tiger.svg";
+import rectangle from "../assets/Rectangle-teacher dashboard.svg";
+import rectengle_yellow from "../assets/Rectangle-recources_teacherDashborad.svg";
+import booksImg from "../assets/bookes2.png";
+import laptop from "../assets/labtop_teacherDashborad.svg";
+import alphabet_teacher from "../assets/alphabet teacherDashboard.svg";
+import backGround from "../assets/background_teacherDashbord.svg";
 import { logout } from "../redux/reducers/auth";
 
 interface TeacherHomePageProps {
@@ -33,19 +39,19 @@ export function TeacherHomePage() {
     {
       id: "letters",
       title: "الحروف",
-      icon: BookOpen,
+      icon: alphabet_teacher,
       description: "تعليم الحروف العربية",
     },
     {
       id: "students",
       title: "الصفوف",
-      icon: Users,
+      icon: laptop,
       description: "إدارة الصفوف والطلاب",
     },
     {
       id: "resources",
       title: "موارد المعلم",
-      icon: GraduationCap,
+      icon: booksImg,
       description: "نصائح ومصادر تعليمية",
     },
   ];
@@ -53,155 +59,179 @@ export function TeacherHomePage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* خلفية متدرجة */}
-      <div className="fixed inset-0"  style={{
-       background: "white",
-    }}></div>
+      <div
+        className="fixed inset-0"
+        style={{
+          background: "white",
+        }}
+      ></div>
 
-      {/* عناصر زخرفية متحركة */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute -top-20 -right-20 w-56 h-56 md:w-64 md:h-64 rounded-full opacity-10"
-          style={{ backgroundColor: "#fad656" }}
-          animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
-          transition={{ duration: 20, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute -bottom-20 -left-20 w-64 h-64 md:w-80 md:h-80 rounded-full opacity-10"
-          style={{ backgroundColor: "#652b82" }}
-          animate={{ scale: [1, 1.3, 1] }}
-          transition={{ duration: 15, repeat: Infinity }}
-        />
-      </div>
-
-      <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 min-h-[calc(100vh-80px)]">
+      <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8">
         {/* Header with Logout */}
         <div
           className="fixed top-0 left-0 right-0 shadow-md z-50 h-56"
-          style={{ borderBottom: "3px solid #fad656",background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)" }}
+          style={{
+            borderBottom: "3px solid #fad656",
+            background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+          }}
         >
           <div className="px-4 md:px-6 py-2 md:py-2.5">
             <div className="flex items-center justify-between" dir="rtl">
               {/* اليمين - اسم التطبيق */}
               <div className="flex items-center gap-2">
                 {/* اليسار - معلومات المستخدم وتسجيل الخروج */}
-              <div className="flex items-center gap-3 md:gap-4">
-                {/* زر تسجيل الخروج */}
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 text-white px-3 md:px-4 py-2 rounded-xl shadow-lg transition-all hover:opacity-90"
-                  style={{ backgroundColor: "white" }}
-                  
-                >
-                  <LogOut
-                    className="w-3.5 h-3.5 md:w-4 md:h-4"
-                    style={{ transform: "scaleX(1)" ,color:"#652B82"}}
-                  />
-                  <span className="text-xs md:text-sm" style={{
-                    fontFamily:"poppins",color:"#652B82",fontSize:"20px",fontWeight:"400"
-                  }}>تسجيل الخروج</span>
-                  
-                </button>
-              </div>
-               
-               {/*النمر الموجود بالنص */}
-                           <motion.div
-                             className="absolute left-2 top-0"
-                             
-                             initial={{ scale: 0.8, opacity: 0 }}
-                             animate={{ scale: 1, opacity: 1 }}
-                             transition={{ duration: 0.5 }}
-                           >
-                             <motion.img
-                               src={tiger}
-                               alt="نمر"
-                               className="w-56 md:w-56 lg:w-20 object-contain drop-shadow-2xl"
-                               animate={{ y: [0, -6, 0] }}
-                               transition={{
-                                 duration: 3,
-                                 repeat: Infinity,
-                                 ease: "easeInOut",
-                               }}
-                             />
-                           </motion.div>
-              </div>
+                <div className="flex items-center gap-3 md:gap-4">
+                  {/* زر تسجيل الخروج */}
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl shadow-lg transition-all hover:opacity-90"
+                    style={{ backgroundColor: "white" }}
+                  >
+                    <LogOut
+                      className="w-3.5 h-3.5 md:w-4 md:h-4"
+                      style={{ transform: "scaleX(1)", color: "#652B82" }}
+                    />
+                    <span
+                      className="text-xs md:text-sm "
+                      style={{
+                        fontFamily: "poppins",
+                        color: "#652B82",
+                        fontSize: "20px",
+                        fontWeight: "400",
+                      }}
+                    >
+                      تسجيل الخروج
+                    </span>
+                  </button>
+                </div>
 
-              
+                {/*النمر الموجود بالهيدر */}
+                <motion.div
+                  className="absolute left-2 top-0"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <motion.img
+                    src={tiger}
+                    alt="نمر"
+                    className="tiger-choose-page w-56 md:w-56 lg:w-20 object-contain drop-shadow-2xl"
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                </motion.div>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col justify-center items-center gap-2">
+            <div className="flex justify-center items-center gap-3">
+              <div
+                style={{
+                  height: "25px",
+                  width: "25px",
+                  borderRadius: "50%",
+                  backgroundColor: "#E7E7E7",
+                }}
+              ></div>{" "}
+              <h1
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#E7E7E7] font-[tajawal] mb-3"
+                style={{ fontSize: "clamp(22px, 5vw, 50px)",color:"#E7E7E7" }}
+              >
+                مرحباً{" "}
+                <span
+                  className="text-xl sm:text-2xl md:text-3xl font-bold"
+                  style={{ fontSize: "clamp(18px, 4vw, 35px)" }}
+                >
+                  {user?.username}
+                </span>
+              </h1>
+              <div
+                style={{
+                  height: "25px",
+                  width: "25px",
+                  borderRadius: "50%",
+                  backgroundColor: "#E7E7E7",
+                }}
+              ></div>
+            </div>
+            <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white font-[tajawal]">
+              رحلة تعليم اللغة العربية تبدأ هنا
             </div>
           </div>
         </div>
 
         {/* Welcome Message */}
-        <div className="text-center mb-12 mt-20">
-          <h1
-            className="text-4xl md:text-5xl mb-3"
-            style={{ color: "#652b82" }}
+        <div
+          className="text-center mb-12 mt-20 h-24 flex flex-col justify-center items-center"
+          style={{
+            backgroundColor: "#FFFFFF",
+            zIndex: "999",
+            width: "100vw",
+            position: "relative",
+            top: "100px",
+          }}
+        >
+          <img src={rectangle} style={{ position: "absolute", top: "-16px" }} />
+          <p
+            style={{
+              fontSize: "20px",
+              fontFamily: "tajawal",
+              fontWeight: "500",
+              color: "#6E5F3B",
+            }}
           >
-            مرحباً {user?.username}
-          </h1>
-          <p className="text-[10px] md:text-xs text-gray-600">
             اختر القسم الذي تريد الانتقال إليه
           </p>
         </div>
 
         {/* Sections Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full">
+        <div
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full h-full"
+          style={{ marginTop: "60px" }}
+        >
           {sections.map((section) => (
             <button
               key={section.id}
               onClick={() => navigate(`/teacher/${section.id}`)}
-              className="group relative overflow-hidden bg-white rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 p-8"
-              style={{
-                border: "3px solid #652b82",
-              }}
+              className="group relative overflow-hidden bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 p-8"
             >
-              {/* دوائر ديكور في الخلفية */}
-              <div
-                className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-20"
-                style={{
-                  backgroundColor: "#fad656",
-                  transform: "translate(30%, -30%)",
-                }}
-              ></div>
-              <div
-                className="absolute bottom-0 left-0 w-24 h-24 rounded-full opacity-20"
-                style={{
-                  backgroundColor: "#fad656",
-                  transform: "translate(-30%, 30%)",
-                }}
-              ></div>
-
-              <div className="relative flex flex-col items-center text-center gap-4">
-                {/* الأيقونة */}
-                <div
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110"
-                  style={{
-                    backgroundColor: "#fad656",
-                  }}
-                >
-                  <section.icon
-                    className="w-10 h-10 md:w-12 md:h-12"
-                    style={{ color: "#652b82" }}
-                  />
-                </div>
-
-                {/* العنوان */}
-                <div>
+              <div className="relative flex flex-col items-center text-center gap-13">
+                <div className="relative flex flex-col items-center justify-center">
+                  <img src={rectengle_yellow}/>
                   <h2
-                    className="text-2xl md:text-3xl mb-2"
+                    className="absolute"
                     style={{
-                      color: "#652b82",
+                      fontSize: "25px",
+                      fontFamily: "tajawal",
+                      fontWeight: "500",
+                      color: "#4E4E4E",
                     }}
                   >
                     {section.title}
                   </h2>
-                  <p className="text-sm md:text-base text-gray-600">
-                    {section.description}
-                  </p>
+                </div>
+                {/* الأيقونة */}
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center">
+                  <img src={backGround} className="absolute h-40" />
+                  <img src={section.icon} className="z-50" />
                 </div>
 
-                {/* السهم */}
-                <div className="mt-2">
-                  <ArrowLeft className="w-6 h-6" style={{ color: "#652b82" }} />
+                {/* العنوان */}
+                <div>
+                  <p
+                    style={{
+                      fontSize: "25px",
+                      fontFamily: "tajawal",
+                      fontWeight: "500",
+                      color: "#4E4E4E",
+                    }}
+                  >
+                    {section.description}
+                  </p>
                 </div>
               </div>
             </button>

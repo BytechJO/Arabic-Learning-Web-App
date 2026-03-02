@@ -14,16 +14,18 @@ import {
   Palette,
   ArrowRight,
 } from "lucide-react";
-import { User } from "../types";
+import { Classroom, User } from "../types";
 import {
   progressTracking,
   ACTIVITY_NAMES,
   getScoreColor,
   getScoreText,
 } from "../utils/progressTracking";
-
 import api from "../API/axios";
 import { useNavigate } from "react-router-dom";
+import { getClassById } from "../API/classrooms";
+import userIcon from "../assets/user_gray.svg";
+import { motion } from "framer-motion";
 interface StudentProgressViewProps {
   classroomId: number;
   studentId?: number;
@@ -34,12 +36,30 @@ export function StudentProgressView({
   classroomId,
   studentId,
 }: StudentProgressViewProps) {
+  const navigate = useNavigate();
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
-    studentId ?? null
+    studentId ?? null,
   );
+  const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [students, setStudents] = useState<User[]>([]);
   const [studentData, setStudentData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  console.log(classroomId);
+  const fetchClassroom = async () => {
+    try {
+      const res = await getClassById(Number(classroomId));
+      setClassroom(res.data.data); // لأنو الباك اند برجع array
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (classroomId) {
+      fetchClassroom();
+    }
+  }, [classroomId]);
+  console.log(classroom);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -56,7 +76,7 @@ export function StudentProgressView({
     const fetchStudentProgress = async () => {
       setLoading(true);
       const res = await api.get(
-        `/progress/students/${selectedStudentId}/progress`
+        `/progress/students/${selectedStudentId}/progress`,
       );
       setStudentData(res.data.data);
 
@@ -116,7 +136,7 @@ export function StudentProgressView({
   };
   const getActivityPercentage = (
     activityType: string,
-    score: number
+    score: number,
   ): number => {
     switch (activityType) {
       case "learn":
@@ -255,192 +275,195 @@ export function StudentProgressView({
     <div className="space-y-4" dir="rtl">
       {/* رأس الصفحة */}
       <div
-        className="flex items-center gap-3 rounded-2xl p-3 border-2"
+        className="w-full flex items-center gap-3 p-3"
         style={{
-          background: "linear-gradient(to bottom right, #652b8220, #fad65620)",
-          borderColor: "#652b82",
+          background: "#652B820F",
         }}
       >
-        <div
-          className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-md"
-          style={{ backgroundColor: "#164194" }}
-        >
-          {student.username.charAt(0)}
+        <div style={{ marginRight: "30px" }}>
+          <img src={userIcon} />
         </div>
         <div>
-          <h2 className="text-lg mb-1" style={{ color: "#164194" }}>
+          <h2
+            className="text-lg mb-1"
+            style={{
+              fontSize: "20px",
+              color: "#7B7B7B",
+              fontFamily: "tajawal",
+              fontWeight: "400",
+            }}
+          >
             {student.username}
           </h2>
-          <p className="text-xs text-gray-600">{student.email}</p>
         </div>
       </div>
-
-      {/* إحصائيات عامة */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {/* المعدل العام */}
+      <div className="flex justify-center items-center">
         <div
-          className="rounded-2xl p-3 border-2"
-          style={{
-            background:
-              "linear-gradient(to bottom right, #fad65620, #fad65610)",
-            borderColor: "#fad656",
-          }}
+          className="flex justify-center items-center gap-4"
+          style={{ width: "90%" }}
         >
-          <div className="flex items-center justify-between mb-2">
-            <div
-              className="p-2 rounded-lg"
-              style={{ backgroundColor: getScoreColor(stats.averageScore) }}
-            >
-              <Star className="w-4 h-4 text-white" />
+          {/* إحصائيات عامة */}
+          <div className="flex flex-col w-72 gap-4">
+            {/* المعدل العام */}
+            <div className="rounded-2xl p-3 border-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2 rounded-lg">
+                  <Star className="w-4 h-4 text-white" />
+                </div>
+                <div className="text-xl">
+                  {isNaN(stats.averageScore) ? 0 : stats.averageScore}%
+                </div>
+              </div>
+              <p
+                className="text-xs text-gray-600"
+                style={{
+                  fontSize: "25px",
+                  color: "#7B7B7B",
+                  fontFamily: "tajawal",
+                  fontWeight: "400",
+                }}
+              >
+                المعدل العام
+              </p>
             </div>
-            <div
-              className="text-xl"
-              style={{ color: getScoreColor(stats.averageScore) }}
-            >
-              {isNaN(stats.averageScore) ? 0 : stats.averageScore}%
+
+            {/* عدد الأنشطة */}
+            <div className="rounded-2xl p-3 border-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2 rounded-lg">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+                <div className="text-xl">{stats.totalActivities || 0}</div>
+              </div>
+              <p
+                className="text-xs text-gray-600"
+                style={{
+                  fontSize: "25px",
+                  color: "#7B7B7B",
+                  fontFamily: "tajawal",
+                  fontWeight: "400",
+                }}
+              >
+                الأنشطة
+              </p>
+            </div>
+
+            {/* الوقت الإجمالي */}
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-2xl border-2 border-purple-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2 rounded-lg">
+                  <Clock className="w-4 h-4 text-white" />
+                </div>
+                <div className="text-xl">
+                  {Math.floor((stats.totalTimeSpent || 0) / 60)}
+                </div>
+              </div>
+              <p
+                className="text-xs text-gray-600"
+                style={{
+                  fontSize: "25px",
+                  color: "#7B7B7B",
+                  fontFamily: "tajawal",
+                  fontWeight: "400",
+                }}
+              >
+                دقيقة
+              </p>
+            </div>
+
+            {/* الحروف المكتملة */}
+            <div className="p-3 rounded-2xl border-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="p-2 rounded-lg">
+                  <BookOpen className="w-4 h-4 text-white" />
+                </div>
+                <div className="text-xl">
+                  {stats.completedLetters?.length || 0}
+                </div>
+              </div>
+              <p
+                className="text-xs text-gray-600"
+                style={{
+                  fontSize: "25px",
+                  color: "#7B7B7B",
+                  fontFamily: "tajawal",
+                  fontWeight: "400",
+                }}
+              >
+                حرف
+              </p>
             </div>
           </div>
-          <p className="text-xs text-gray-600">المعدل العام</p>
-        </div>
 
-        {/* عدد الأنشطة */}
-        <div
-          className="rounded-2xl p-3 border-2"
-          style={{
-            background:
-              "linear-gradient(to bottom right, #652b8220, #652b8210)",
-            borderColor: "#652b82",
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div
-              className="p-2 rounded-lg"
-              style={{ backgroundColor: "#3b82f6" }}
-            >
-              <CheckCircle className="w-4 h-4 text-white" />
-            </div>
-            <div className="text-xl" style={{ color: "#3b82f6" }}>
-              {stats.totalActivities || 0}
-            </div>
-          </div>
-          <p className="text-xs text-gray-600">الأنشطة</p>
-        </div>
+          {/* الأداء حسب النشاط */} 
+          <div className="p-4 rounded-2xl w-full flex justify-center items-center">
+            {stats.activityScores &&
+            Object.keys(stats.activityScores).length > 0 ? (
+              <div className="flex flex-col gap-3" style={{ width: "85%" }}>
+                {Object.entries(stats.activityScores).map(
+                  ([activityType, score]) => {
+                    const percentage = getActivityPercentage(
+                      activityType,
+                      score,
+                    );
 
-        {/* الوقت الإجمالي */}
-        <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-2xl border-2 border-purple-200">
-          <div className="flex items-center justify-between mb-2">
-            <div
-              className="p-2 rounded-lg"
-              style={{ backgroundColor: "#a855f7" }}
-            >
-              <Clock className="w-4 h-4 text-white" />
-            </div>
-            <div className="text-xl" style={{ color: "#a855f7" }}>
-              {Math.floor((stats.totalTimeSpent || 0) / 60)}
-            </div>
-          </div>
-          <p className="text-xs text-gray-600">دقيقة</p>
-        </div>
-
-        {/* الحروف المكتملة */}
-        <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-3 rounded-2xl border-2 border-orange-200">
-          <div className="flex items-center justify-between mb-2">
-            <div
-              className="p-2 rounded-lg"
-              style={{ backgroundColor: "#f59e0b" }}
-            >
-              <BookOpen className="w-4 h-4 text-white" />
-            </div>
-            <div className="text-xl" style={{ color: "#f59e0b" }}>
-              {stats.completedLetters?.length || 0}
-            </div>
-          </div>
-          <p className="text-xs text-gray-600">حرف</p>
-        </div>
-      </div>
-
-      {/* الأداء حسب النشاط */}
-      <div className="bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200">
-        <div className="flex items-center gap-2 mb-4">
-          <div
-            className="p-2 rounded-lg"
-            style={{ backgroundColor: "#164194" }}
-          >
-            <Target className="w-4 h-4 text-white" />
-          </div>
-          <h3 className="text-base" style={{ color: "#164194" }}>
-            الأداء حسب النشاط
-          </h3>
-        </div>
-
-        {stats.activityScores &&
-        Object.keys(stats.activityScores).length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {Object.entries(stats.activityScores).map(
-              ([activityType, score]) => {
-                const percentage = getActivityPercentage(activityType,score);
-
-                return (
-                  <div
-                    key={activityType}
-                    className="p-3 rounded-xl border-2"
-                    style={{
-                      backgroundColor: getActivityColor(activityType) + "10",
-                      borderColor: getActivityColor(activityType) + "30",
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="p-1.5 rounded-lg text-white"
-                          style={{
-                            backgroundColor: getActivityColor(activityType),
-                          }}
-                        >
-                          {getActivityIcon(activityType)}
-                        </div>
-                        <span className="text-sm text-gray-700">
-                          {activityType}
-                        </span>
-                      </div>
+                    return (
                       <div
-                        className="text-lg"
-                        style={{ color: getActivityColor(activityType) }}
+                        key={activityType}
+                        className="p-3 rounded-xl border-2"
                       >
-                        {percentage}%
-                      </div>
-                    </div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div
+                            className="text-lg"
+                            style={{ color: getActivityColor(activityType) }}
+                          >
+                            {percentage}%
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-700">
+                              {activityType}
+                            </span>
+                          </div>
+                        </div>
 
-                    {/* شريط التقدم */}
-                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(percentage, 100)}%`,
-                          backgroundColor: getActivityColor(activityType),
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              }
+                        {/* شريط التقدم */}
+                        <div
+                          className="w-full bg-gray-200 rounded-full h-2 overflow-hidden"
+                          dir="ltr"
+                        >
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${Math.min(percentage, 100)}%`,
+                              backgroundColor: getActivityColor(activityType),
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  },
+                )}
+              </div>
+            ) : (
+              <div
+                className="text-center py-8 rounded-xl"
+                style={{ backgroundColor: "#ECEEEF" }}
+              >
+                <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center bg-white">
+                  <Target className="w-6 h-6 text-gray-400" />
+                </div>
+                <p className="text-sm text-gray-500">لا توجد أنشطة بعد</p>
+              </div>
             )}
           </div>
-        ) : (
-          <div
-            className="text-center py-8 rounded-xl"
-            style={{ backgroundColor: "#ECEEEF" }}
-          >
-            <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center bg-white">
-              <Target className="w-6 h-6 text-gray-400" />
-            </div>
-            <p className="text-sm text-gray-500">لا توجد أنشطة بعد</p>
-          </div>
-        )}
+        </div>
       </div>
-
       {/* النشاطات الأخيرة */}
-      <div className="bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200">
+      <div className="flex justify-center items-center">
+      <div
+        className="bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200"
+        style={{ width: "90%" }}
+      >
         <div className="flex items-center gap-2 mb-4">
           <div
             className="p-2 rounded-lg"
@@ -468,7 +491,7 @@ export function StudentProgressView({
             {recentActivities.map((activity: any, index: number) => {
               const percentage = getActivityPercentage(
                 activity.lessonName,
-                activity.score
+                activity.score,
               );
               return (
                 <div
@@ -535,7 +558,7 @@ export function StudentProgressView({
           </div>
         )}
       </div>
-
+</div>
       {/* الحروف المكتملة */}
       {stats.completedLetters.length > 0 && (
         <div

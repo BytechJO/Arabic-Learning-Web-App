@@ -21,6 +21,7 @@ import { SortingGame } from "../components/games/SortingGame";
 import { WordCatchGame } from "../components/games/WordCatchGame";
 import { TeacherResources } from "../components/TeacherResources";
 import { StudentsManagement } from "../components/StudentsManagement";
+import { ClassroomStudent } from "../components/ClassroomStudent";
 
 interface AppRouterProps {
   onChooseType: (type: "student" | "teacher") => void;
@@ -97,6 +98,10 @@ export function AppRouter({
        <Route
         path="/teacher/students"
         element={<StudentsManagement />}
+      />
+       <Route
+        path="/teacher/students/:classroomId"
+        element={<ClassroomStudent  />}
       />
       <Route
         path="/letters"

@@ -16,7 +16,9 @@ export const getTeacherClasses = () => {
 export const getStudentsByClassId = (classId: number) => {
   return api.get(`/class/student/${classId}`);
 };
-
+export const getClassById = (id: number) => {
+  return api.get(`/class/getClassById/${id}`);
+};
 export const createClass = (name: string) => {
   return api.post("/class/createNewClass", { name });
 };
