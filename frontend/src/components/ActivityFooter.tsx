@@ -1,8 +1,22 @@
-import { BookOpen, Target, FileText, Video, Gamepad2, ChevronDown } from "lucide-react";
+import {
+  BookOpen,
+  Target,
+  FileText,
+  Video,
+  Gamepad2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-
+import * as React from "react";
+import learn from "../assets/book_sidebar.svg";
+import write from "../assets/pincle_sidebar.svg";
+import location from "../assets/location_sideBar.svg";
+import tashkeel from "../assets/tashkeel_sidebar.svg";
+import video from "../assets/Video_sidebar.svg";
+import games from "../assets/game_sidebar.svg";
+import header from "../assets/header_sidbar.svg";
+import buttonSidebar from "../assets/button_sidebar.svg"
 // أيقونة الحروف العربية المخصصة
 const ArabicLettersIcon = ({ className }: { className?: string }) => (
   <svg
@@ -35,292 +49,156 @@ interface ActivityFooterProps {
 }
 
 const activities = [
-  { id: "learn", label: "تعلم الحرف", icon: BookOpen },
-  { id: "write", label: "اكتب الحرف", icon: BookOpen },
-  { id: "position", label: "مكان الحرف", icon: Target },
-  { id: "tashkeel", label: "تشكيل الحرف", icon: FileText },
-  { id: "videos", label: "فيديوهات", icon: Video },
-  { id: "games", label: "العاب", icon: Gamepad2 },
+  { id: "learn", label: "تعلم الحروف", icon: learn },
+  { id: "write", label: "اكتب الحروف", icon: write },
+  { id: "position", label: "مكان الحروف", icon: location },
+  { id: "tashkeel", label: "تشكيل الحرف", icon: tashkeel },
+  { id: "videos", label: "فيديوهات", icon: video },
+  { id: "games", label: "العاب", icon: games },
 ];
 
-// Hook: يحدد موبايل/غير موبايل
-function useIsMobile(breakpointPx = 768) {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.innerWidth < breakpointPx;
-  });
-
-  useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${breakpointPx - 1}px)`);
-    const handler = (e: MediaQueryListEvent | MediaQueryList) => {
-      setIsMobile("matches" in e ? e.matches : e.matches);
-    };
-
-    handler(mq);
-
-    if ("addEventListener" in mq) mq.addEventListener("change", handler as any);
-    else mq.addListener(handler as any);
-
-    return () => {
-      if ("removeEventListener" in mq) mq.removeEventListener("change", handler as any);
-      else mq.removeListener(handler as any);
-    };
-  }, [breakpointPx]);
-
-  return isMobile;
-}
-
-export function ActivityFooter({ currentLetter }: ActivityFooterProps) {
+export function ActivityFooter({
+  currentLetter,
+  letterName,
+}: ActivityFooterProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentActivity = location.pathname.split("/").pop();
 
-  const isMobile = useIsMobile(768);
+  const [collapsed, setCollapsed] = React.useState(true);
 
-  const [open, setOpen] = useState(false);
-
-  // مهم: ref للزر نفسه عشان نطلع dropdown فوقه تمامًا
-  const triggerRef = useRef<HTMLButtonElement>(null);
-
-  // مكان dropdown (بنفس مكان زر الدروب داون)
-  const [ddPos, setDdPos] = useState<{ left: number; width: number; bottom: number }>({
-    left: 0,
-    width: 0,
-    bottom: 0,
-  });
-
-  const activeItem = useMemo(
-    () => activities.find((a) => a.id === currentActivity) ?? activities[0],
-    [currentActivity]
-  );
-
-  // سكّر dropdown اذا كبست برا
-  useEffect(() => {
-    const onDown = (e: MouseEvent) => {
-      const t = e.target as Node;
-
-      // إذا كبست داخل الزر أو داخل القائمة: لا تسكر
-      if (triggerRef.current?.contains(t)) return;
-      const menu = document.getElementById("activity-dd-menu");
-      if (menu?.contains(t)) return;
-
-      setOpen(false);
-    };
-
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, []);
-
-  // إذا صار مش موبايل -> سكّر dropdown
-  useEffect(() => {
-    if (!isMobile) setOpen(false);
-  }, [isMobile]);
-
-  // احسب مكان dropdown عند الفتح + عند resize/scroll
-  const computeDropdownPos = () => {
-    const el = triggerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-
-    // dropdown رح يكون fixed، فبدنا قيم viewport
-    setDdPos({
-      left: Math.max(12, rect.left), // padding بسيط
-      width: Math.min(window.innerWidth - 24, rect.width), // لا يتجاوز الشاشة
-      bottom: window.innerHeight - rect.top + 8, // يطلع فوق الزر + مسافة صغيرة
-    });
-  };
-
-  useEffect(() => {
-    if (!open) return;
-    computeDropdownPos();
-
-    const onResize = () => computeDropdownPos();
-    window.addEventListener("resize", onResize);
-    window.addEventListener("scroll", onResize, true);
-
-    return () => {
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("scroll", onResize, true);
-    };
-  }, [open]);
+  const SIDEBAR_W = 230;
+  const HANDLE_W = 34;
 
   return (
     <>
-      <footer dir="rtl"
-        className="fixed bottom-0 left-0 right-0 border-t-3 shadow-2xl z-50"
-        style={{ backgroundColor: "#ffffff", borderColor: "#652b82" }}
+      {/* سايدبار ثابت يشبه التصميم دائماً (موبايل و ديسكتوب) */}
+      <aside
+        dir="rtl"
+        className="fixed z-40"
+        style={{
+          top: 0,
+          bottom: 0,
+          right: 0,
+          width: collapsed ? `${HANDLE_W}px` : `${SIDEBAR_W}px`,
+          transition: "width 220ms ease",
+        }}
       >
-        <div className="container mx-auto px-4">
-          <div dir="rtl" className="flex items-center justify-between gap-4">
-            {/* عرض الحرف على اليسار */}
-            {currentLetter && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minWidth: "85px",
-                  position: "relative",
-                }}
-              >
+        {/* Handle (الكبسة) تبقى ظاهرة دائماً */}
+        <button
+          type="button"
+          aria-label={collapsed ? "إظهار القائمة" : "إخفاء القائمة"}
+          aria-expanded={!collapsed}
+          onClick={() => setCollapsed((v) => !v)}
+          className="absolute z-50"
+          style={{
+            left: 0,
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+          }}
+        >
+          <img src={buttonSidebar}/>
+          {/* نقطة صغيرة مثل اللي بالصورة */}
+          <span
+            style={{
+              position: "absolute",
+              width: "20px",
+              height: "20px",
+              borderRadius: "999px",
+              backgroundColor: "#B8A1C0",
+              left: "7px",
+              opacity: 0.9,
+            }}
+          />
+         
+        </button>
+
+        {/* Clipper: يمنع السايدبار من تغطية الصفحة لما يكون مخفي */}
+        <div
+          className="h-full relative"
+          style={{
+            width: "100%",
+            overflow: "hidden",
+            borderTopLeftRadius: "60px",
+            borderBottomLeftRadius: "60px",
+            boxShadow: collapsed ? "none" : "0 25px 45px rgba(0,0,0,0.18)",
+          }}
+        >
+          {/* Panel: يتحرك يمين/يسار */}
+          <div
+            className="h-full flex flex-col items-stretch relative"
+            style={{
+              width: `${SIDEBAR_W}px`,
+              backgroundColor: "#ffffff",
+              transform: collapsed
+                ? `translateX(${SIDEBAR_W - HANDLE_W}px)`
+                : "translateX(0px)",
+              transition: "transform 220ms ease",
+            }}
+          >
+            {/* شكل الأصفر (blob) أعلى اليمين */}
+            <img src={header} />
+
+            {/* محتوى الهيدر فوق الـ blob */}
+            <div
+              style={{
+                position: "absolute",
+                padding: "32px 18px 28px",
+                left: "63px",
+              }}
+            >
+              {currentLetter && (
                 <div
                   style={{
-                    position: "absolute",
-                    width: "75px",
-                    height: "75px",
-                    borderRadius: "50%",
-                    backgroundColor: "#fad656",
-                    filter: "blur(10px)",
-                    opacity: 0.25,
-                  }}
-                />
-                <div
-                  style={{
-                    position: "relative",
-                    width: "75px",
-                    height: "75px",
-                    borderRadius: "50%",
-                    background: "linear-gradient(135deg, #fad656 0%, #f5c842 100%)",
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow:
-                      "0 3px 12px rgba(250, 214, 86, 0.4), inset 0 2px 6px rgba(255, 255, 255, 0.3)",
+                    flexDirection: "row",
+                    alignItems: "flex-end",
+                    gap: "6px",
                   }}
                 >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      borderRadius: "50%",
-                      background:
-                        "radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 60%)",
-                      pointerEvents: "none",
-                    }}
-                  />
                   <span
                     style={{
-                      fontSize: "38px",
-                      fontWeight: "bold",
+                      fontSize: "70px",
+                      fontWeight: "700",
                       color: "#652b82",
-                      lineHeight: "1",
-                      textShadow: "0 2px 6px rgba(101, 43, 130, 0.25)",
-                      position: "relative",
-                      transform: "translateY(4px)",
+                      lineHeight: 1,
+                      fontFamily: "amiriQuran",
                     }}
                   >
                     {currentLetter}
                   </span>
-                </div>
-              </div>
-            )}
-
-            {/* الأنشطة */}
-            <div className="flex-1">
-              {isMobile ? (
-                // ===== Mobile: Dropdown =====
-                <button
-                  ref={triggerRef}
-                  onClick={() => {
-                    setOpen((v) => !v);
-                    // احسب فورًا قبل ما يفتح
-                    requestAnimationFrame(() => computeDropdownPos());
-                  }}
-                  className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all"
-                  style={{
-                    backgroundColor: "#f5f3f7",
-                    color: "#652b82",
-                    boxShadow: open ? "0 0 0 2px rgba(250,214,86,0.9)" : undefined,
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <activeItem.icon className="w-5 h-5" />
-                    <span className="text-sm font-semibold whitespace-nowrap">
-                      {activeItem.label}
-                    </span>
-                  </div>
-                  <ChevronDown
-                    className={`w-5 h-5 transition-transform ${open ? "rotate-180" : ""}`}
-                  />
-                </button>
-              ) : (
-                // ===== Desktop: Grid (مثل ما هو) =====
-                <div className="overflow-x-auto">
-                  <div className="grid grid-cols-6 gap-2 min-w-[420px]">
-                    {activities.map((activity) => {
-                      const Icon = activity.icon;
-                      const isActive = currentActivity === activity.id;
-
-                      return (
-                        <button
-                          key={activity.id}
-                          onClick={() => navigate(`/letter/${currentLetter}/${activity.id}`)}
-                          className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-xl transition-all ${
-                            isActive ? "shadow-lg scale-105" : "hover:scale-105"
-                          }`}
-                          style={
-                            isActive
-                              ? { backgroundColor: "#fad656", color: "#652b82" }
-                              : { backgroundColor: "#f5f3f7", color: "#652b82" }
-                          }
-                        >
-                          <Icon className="w-6 h-6" />
-                          <span className="text-[0.7rem] leading-tight text-center whitespace-nowrap">
-                            {activity.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <span
+                    style={{
+                      fontSize: "18px",
+                     color: "#652b82",
+                      fontWeight: "400",
+                      fontFamily: "amiriQuran",
+                    }}
+                  >
+               حرف ال{letterName}
+                  </span>
                 </div>
               )}
             </div>
 
-            {/* زر الحروف */}
-            <button
-              onClick={() => navigate("/letters")}
-              className="flex flex-col items-center justify-center gap-1 px-3 py-3 rounded-xl transition-all hover:scale-105"
-              style={{ backgroundColor: "#f5f3f7", color: "#652b82", minWidth: "80px" }}
-            >
-              <ArabicLettersIcon className="w-6 h-6" />
-              <span className="text-[0.7rem] leading-tight text-center whitespace-nowrap">
-                الحروف
-              </span>
-            </button>
-          </div>
-        </div>
-      </footer>
-
-      {/* ✅ Dropdown خارج الفوتر (ثابت) وبنفس مكان زر الدروب داون */}
-      <AnimatePresence>
-        {isMobile && open && (
-          <motion.div
-            id="activity-dd-menu"
-            initial={{ opacity: 0, y: 14, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 14, scale: 0.98 }}
-            transition={{ duration: 0.18 }}
-            className="fixed z-50 rounded-2xl shadow-2xl border"
-            style={{
-              left: ddPos.left,
-              width: ddPos.width,
-              bottom: ddPos.bottom, // ✅ فوق الزر تمامًا
-              backgroundColor: "#ffffff",
-              borderColor: "rgba(101,43,130,0.15)",
-            }}
-          >
-            {/* “Connector” صغير يخليها تبين منسدلة من الزر */}
+            {/* خط فاصل خفيف تحت الهيدر */}
             <div
               style={{
-                height: "10px",
-                background: "linear-gradient(to bottom, rgba(245,243,247,1), rgba(255,255,255,1))",
+                height: "1px",
+                background:
+                  "linear-gradient(to left, rgba(0,0,0,0.02), rgba(0,0,0,0.08), rgba(0,0,0,0.02))",
               }}
             />
 
-            <div className="p-2">
+            {/* قائمة الأنشطة عامودية */}
+            <nav
+              className="flex flex-col"
+              style={{ backgroundColor: "#ffffff" }}
+            >
               {activities.map((activity) => {
                 const Icon = activity.icon;
                 const isActive = currentActivity === activity.id;
@@ -328,30 +206,59 @@ export function ActivityFooter({ currentLetter }: ActivityFooterProps) {
                 return (
                   <button
                     key={activity.id}
-                    onClick={() => {
-                      navigate(`/letter/${currentLetter}/${activity.id}`);
-                      setOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all"
-                    style={
-                      isActive
-                        ? {
-                            backgroundColor: "#fad656",
-                            color: "#652b82",
-                            boxShadow: "0 6px 18px rgba(250,214,86,0.35)",
-                          }
-                        : { backgroundColor: "#f5f3f7", color: "#652b82" }
+                    onClick={() =>
+                      navigate(`/letter/${currentLetter}/${activity.id}`)
                     }
+                    className="flex items-center gap-4 px-6 py-4 text-right transition-all"
+                    style={{
+                      backgroundColor: isActive ? "#6D6D6D40" : "#ffffff",
+                      color: "#5b4d7b",
+                      borderLeft: "3px solid transparent",
+                      borderRight: "3px solid transparent",
+                      borderBottom:"2px solid #0000000A",
+                      boxShadow: isActive
+                        ? "inset 4px 0 0 #f8c545"
+                        : "inset 0 0 0 rgba(0,0,0,0)",
+                        cursor:"pointer"
+                      
+                    }}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="text-sm font-medium">{activity.label}</span>
+                    <img src={activity.icon}  style={{height:"40px" ,width:"40px"}}/>
+                    <span className="text-sm font-medium whitespace-nowrap" style={{
+                      fontSize: "18px",
+                     color: "#272626",
+                      fontWeight: "400",
+                      fontFamily: "tajawal",
+                    }}>
+                      {activity.label}
+                    </span>
                   </button>
                 );
               })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </nav>
+
+            {/* زر الحروف في الأسفل يشبه عنصر القائمة الأخير */}
+            {/* <div
+              style={{
+                borderTop: "1px solid rgba(0,0,0,0.03)",
+                padding: "8px 0 10px",
+                marginTop: "auto",
+              }}
+            >
+              <button
+                onClick={() => navigate("/letters")}
+                className="w-full flex items-center justify-between px-6 py-4 rounded-none transition-all"
+                style={{ backgroundColor: "#ffffff", color: "#652b82" }}
+              >
+                <span className="text-sm font-medium whitespace-nowrap">
+                  الحروف
+                </span>
+                <ArabicLettersIcon className="w-5 h-5" />
+              </button>
+            </div> */}
+          </div>
+        </div>
+      </aside>
     </>
   );
 }

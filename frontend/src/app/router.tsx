@@ -76,13 +76,7 @@ export function AppRouter({
       {/* طالب */}
       <Route
         path="/student/home"
-        element={
-          user?.type === "student" ? (
-            <HomePage onLogout={onLogout} />
-          ) : (
-            <Navigate to="/" />
-          )
-        }
+        element={<HomePage user={user} onLogout={onLogout} />}
       />
 
       {/* معلم */}
@@ -102,10 +96,7 @@ export function AppRouter({
         path="/teacher/students/:classroomId"
         element={<ClassroomStudent />}
       />
-       <Route
-        path="/welcome-page"
-        element={<LetterWelcomePage />}
-      />
+      <Route path="/welcome-page" element={<LetterWelcomePage />} />
       <Route
         path="/letters"
         element={<LettersDashboard onLogout={onLogout} />}

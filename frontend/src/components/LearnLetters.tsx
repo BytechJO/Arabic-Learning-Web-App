@@ -17,7 +17,7 @@ import {
   fetchVideoLesson,
   clearVideo,
 } from "../redux/reducers/videoLessonsSlice";
-
+import background_video from "../assets/Vector_sidebar.png";
 // تعريف نوع YouTube Player
 declare global {
   interface Window {
@@ -181,40 +181,16 @@ export function LearnLetters() {
 
   return (
     <div className="h-screen relative pb-24" dir="rtl">
-      {/* زر الرجوع */}
-      <motion.button
-        onClick={() => navigate(`/letter/${currentLetter.arabic}`)}
-        className="fixed top-4 right-4 md:top-6 md:right-6 z-30 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-xl"
-        style={{ backgroundColor: "#fad656" }}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.9 }}
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <ArrowRight
-          className="w-6 h-6 md:w-8 md:h-8"
-          style={{ color: "#652b82" }}
-        />
-      </motion.button>
-
+      <div
+        className="fixed inset-0"
+        style={{
+          background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+        }}
+      ></div>
       {/* دوائر ملونة في الخلفية */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-10"
-          style={{ backgroundColor: "#fad656" }}
-          animate={{
-            scale: [1, 1.1, 1],
-            rotate: [0, 90, 0],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full opacity-10"
+          className="absolute -top-20 -left-20 w-96 h-96 rounded-full opacity-10"
           style={{ backgroundColor: "#652b82" }}
           animate={{
             scale: [1, 1.2, 1],
@@ -241,14 +217,16 @@ export function LearnLetters() {
             >
               <h1
                 className="text-xl md:text-4xl mb-2"
-                style={{ color: "#652b82" }}
+                style={{
+                  color: "#F9F9F9",
+                  fontFamily: "tajawal",
+                  fontSize: "35",
+                  fontWeight: "700",
+                }}
               >
                 مرحباً بك في درس حرف{" "}
                 {`ال${currentLetterFromRedux?.name} ` || "الألف"}
               </h1>
-              <p className="text-xs md:text-sm text-gray-600">
-                شاهد الفيديو ثم ابدأ التعلم التفاعلي
-              </p>
             </motion.div>
 
             {/* بطاقة الفيديو */}
@@ -258,98 +236,129 @@ export function LearnLetters() {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <div
-                className="relative bg-white rounded-3xl overflow-hidden shadow-2xl border-4"
-                style={{ borderColor: "#fad656" }}
-              >
-                {/* الفيديو */}
+              {/* البطاقة الكبيرة */}
+              <div className="relative bg-white rounded-3xl shadow-2xl border-4 p-6">
+                <img
+                  className="absolute top-0"
+                  src={background_video}
+                  style={{ width: "91%" }}
+                />
+                {/* إطار الفيديو الداخلي */}
                 <div
-                  className="relative w-full"
-                  style={{ paddingBottom: "56.25%" }}
+                  className="bg-white overflow-hidden shadow-xl"
+                  style={{ position: "relative", left: "24px", width: "106%" }}
                 >
-                  {loading && (
-                    <p className="text-center">جاري تحميل الفيديو...</p>
-                  )}
                   <div
-                    id="youtube-player"
-                    className="absolute top-0 left-0 w-full h-full"
-                  />
+                    className="relative w-full h-full"
+                    style={{ paddingBottom: "56.25%" }}
+                  >
+                    <div
+                      id="youtube-player"
+                      className="absolute top-0 left-0 w-full h-full"
+                    ></div>
+                  </div>
                 </div>
               </div>
 
               {/* زر ابدأ التعلم */}
-              <motion.div
-                initial={{ opacity: 1, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="text-center mt-4"
-              >
-                <motion.button
-                  onClick={async () => {
-                    if (!videoEnded) return;
-                    await saveLearnProgress(); // ✅ هون المكان الصح
-
-                    setCurrentSlide(1);
-                  }}
-                  onTouchEnd={async () => {
-                    if (!videoEnded) return;
-                    await saveLearnProgress(); // ✅ هون المكان الصح
-
-                    setCurrentSlide(1);
-                  }}
-                  disabled={!videoEnded}
-                  className="px-10 py-4 rounded-2xl shadow-2xl text-white text-xl transition-all"
-                  style={{
-                    background: videoEnded
-                      ? "linear-gradient(135deg, #652b82, #7d3ba0)"
-                      : "linear-gradient(135deg, #d1d5db, #9ca3af)",
-                    cursor: videoEnded ? "pointer" : "not-allowed",
-                    opacity: videoEnded ? 1 : 0.6,
-                  }}
-                  whileHover={videoEnded ? { scale: 1.08, y: -3 } : {}}
-                  whileTap={videoEnded ? { scale: 0.95 } : {}}
-                  animate={
-                    videoEnded
-                      ? {
-                          scale: [1, 1.05, 1],
-                          boxShadow: [
-                            "0 10px 40px rgba(101, 43, 130, 0.3)",
-                            "0 15px 50px rgba(101, 43, 130, 0.5)",
-                            "0 10px 40px rgba(101, 43, 130, 0.3)",
-                          ],
-                        }
-                      : {}
-                  }
-                  transition={
-                    videoEnded
-                      ? {
-                          duration: 1.5,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }
-                      : {}
-                  }
+              {videoEnded && (
+                <motion.div
+                  initial={{ opacity: 1, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="text-center mt-4"
                 >
-                  <span>ابدأ التعلم الآن</span>
-                </motion.button>
+                  <motion.button
+                    onClick={async () => {
+                      if (!videoEnded) return;
+                      await saveLearnProgress(); // ✅ هون المكان الصح
 
-                {videoEnded && (
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="mt-3 text-sm text-gray-600"
+                      setCurrentSlide(1);
+                    }}
+                    onTouchEnd={async () => {
+                      if (!videoEnded) return;
+                      await saveLearnProgress(); // ✅ هون المكان الصح
+
+                      setCurrentSlide(1);
+                    }}
+                    disabled={!videoEnded}
+                    className="px-10 py-4 rounded-2xl shadow-2xl text-white text-xl transition-all"
+                    style={{
+                      background: videoEnded
+                        ? "linear-gradient(135deg, #652b82, #7d3ba0)"
+                        : "linear-gradient(135deg, #d1d5db, #9ca3af)",
+                      cursor: videoEnded ? "pointer" : "not-allowed",
+                      opacity: videoEnded ? 1 : 0.6,
+                    }}
+                    whileHover={videoEnded ? { scale: 1.08, y: -3 } : {}}
+                    whileTap={videoEnded ? { scale: 0.95 } : {}}
+                    animate={
+                      videoEnded
+                        ? {
+                            scale: [1, 1.05, 1],
+                            boxShadow: [
+                              "0 10px 40px rgba(101, 43, 130, 0.3)",
+                              "0 15px 50px rgba(101, 43, 130, 0.5)",
+                              "0 10px 40px rgba(101, 43, 130, 0.3)",
+                            ],
+                          }
+                        : {}
+                    }
+                    transition={
+                      videoEnded
+                        ? {
+                            duration: 1.5,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }
+                        : {}
+                    }
                   >
-                    انقر للانتقال إلى الأنشطة التفاعلية
-                  </motion.p>
-                )}
-              </motion.div>
+                    <span>ابدأ التعلم الآن</span>
+                  </motion.button>
+
+                  {videoEnded && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="mt-3 text-sm text-gray-600"
+                      style={{
+                        color: "#652B82",
+                        fontFamily: "tajawal",
+                        fontSize: "20",
+                        fontWeight: "400",
+                      }}
+                    >
+                      انقر للانتقال إلى الأنشطة التفاعلية
+                    </motion.p>
+                  )}
+                </motion.div>
+              )}
             </motion.div>
+            {!videoEnded && (
+              <motion.div
+                className="text-center mt-3"
+                initial={{ opacity: 1, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <p
+                  style={{
+                    color: "#FDFDFD",
+                    fontFamily: "tajawal",
+                    fontSize: "25px",
+                    fontWeight: "500",
+                  }}
+                >
+                  شاهد الفيديو ثم ابدأ التعلم التفاعلي
+                </p>
+              </motion.div>
+            )}
           </div>
 
           {/* النمر في الزاوية */}
           <motion.div
-            className="fixed bottom-2 left-2 md:bottom-4 md:left-4 z-20"
+            className="fixed -bottom-23 left-2 md:-bottom-23 md:left-4 z-20"
             initial={{ x: -200, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{
@@ -396,11 +405,24 @@ export function LearnLetters() {
               >
                 <h1
                   className="text-3xl md:text-4xl mb-1"
-                  style={{ color: "#652b82" }}
+                  style={{
+                    color: "#F9F9F9",
+                    fontFamily: "tajawal",
+                    fontSize: "35",
+                    fontWeight: "700",
+                  }}
                 >
                   تعلم حرف {currentLetter.name}
                 </h1>
-                <p className="text-sm md:text-base text-gray-600">
+                <p
+                  className="text-sm md:text-base text-gray-600"
+                  style={{
+                    color: "#F9F9F9",
+                    fontFamily: "tajawal",
+                    fontSize: "20",
+                    fontWeight: "400",
+                  }}
+                >
                   اضغط على الأزرار للاستماع إلى النطق
                 </p>
               </motion.div>
@@ -523,29 +545,12 @@ export function LearnLetters() {
                   </div>
                 </div>
               </motion.div>
-
-              {/* رسالة تحفيزية */}
-              {/* <motion.div
-                className="text-center mt-3"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                <div
-                  className="bg-white rounded-3xl p-4 shadow-xl border-4"
-                  style={{ borderColor: "#fad656" }}
-                >
-                  <p className="text-lg md:text-xl text-gray-700">
-                    ✨ أحسنت! الآن جرّب الأنشطة الأخرى لتتعلم أكثر ✨
-                  </p>
-                </div>
-              </motion.div> */}
             </div>
           </div>
 
           {/* النمر في الزاوية */}
           <motion.div
-            className="fixed bottom-2 left-2 md:bottom-4 md:left-4 z-0"
+            className="fixed -bottom-23 left-2 md:-bottom-23 md:left-4 z-0"
             initial={{ x: -200, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{

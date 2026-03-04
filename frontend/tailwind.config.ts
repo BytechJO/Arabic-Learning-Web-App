@@ -5,7 +5,8 @@ export default {
     extend: {
       fontFamily: {
         tajawal: ["Tajawal", "sans-serif"],
-         poppins: ["Poppins", "sans-serif"],
+        poppins: ["Poppins", "sans-serif"],
+        amiriQuran: ["Amiri Quran", "serif"], // ✅ الاسم الصح + serif أفضل
       },
     },
   },

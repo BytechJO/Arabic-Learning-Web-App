@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Award, ArrowRight, RotateCcw, Check, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ActivityFooter } from "./ActivityFooter";
-import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { submitAnswer, calculateLessonResult } from "../API/result";
@@ -11,17 +10,19 @@ import { upsertUserProgress } from "../API/userProgress";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { fetchLetters } from "../redux/reducers/lettersSlice";
-  import { useRef } from "react";
+import point from "../assets/point_icon.svg";
+import restart from "../assets/Icon.svg";
+import vector from "../assets/vector_background.png";
+import { useRef } from "react";
 export function LetterPosition() {
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showFeedback, setShowFeedback] = useState<"correct" | "wrong" | null>(
-    null
+    null,
   );
 
-
-const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { symbol } = useParams();
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const user = useSelector((state: RootState) => state.auth.user);
   const { letters } = useSelector((state: RootState) => state.letters);
+  const [selectedOption, setSelectedOption] = useState<any>(null);
   const currentLetterFromRedux = letters.find((l) => l.symbol === symbol);
 
   const letterId = currentLetterFromRedux?.id;
@@ -44,9 +46,9 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
           <p className="text-base text-gray-400">اختر حرفاً من صفحة الحروف</p>
         </div>
         <ActivityFooter
-        currentLetter={propLetter}
-        letterName={currentLetterFromRedux?.name}
-      />
+          currentLetter={propLetter}
+          letterName={currentLetterFromRedux?.name}
+        />
       </div>
     );
   }
@@ -93,48 +95,46 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500">جاري تحميل الأسئلة...</p>
         <ActivityFooter
-        currentLetter={propLetter}
-        letterName={currentLetterFromRedux?.name}
-      />
+          currentLetter={propLetter}
+          letterName={currentLetterFromRedux?.name}
+        />
       </div>
     );
   }
 
   const question = questions[currentQuestion];
   const parsedQuestionText = JSON.parse(question.question_text);
- const handleAnswer = async (position: string) => {
-  // 🔴 امنع أي ضغط إضافي
-  if (showFeedback !== null) return;
+  const handleAnswer = async (position: string) => {
+    // 🔴 امنع أي ضغط إضافي
+    if (showFeedback !== null) return;
 
-  // 🔴 نظف أي timeout قديم
-  if (timeoutRef.current) {
-    clearTimeout(timeoutRef.current);
-  }
-
-  const isCorrect = position === question.correct_answer;
-  setShowFeedback(isCorrect ? "correct" : "wrong");
-
-  if (isCorrect) {
-    setScore((prev) => prev + 1);
-  }
-
-  submitAnswer(12, question.id, position).catch(console.error);
-
-  timeoutRef.current = setTimeout(async () => {
-    setShowFeedback(null);
-
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prev) => prev + 1);
-    } else {
-      const data = await calculateLessonResult(12);
-      setTotalScore(data.total_score);
-      await saveLearnProgress();
-      setShowFinishModal(true);
+    // 🔴 نظف أي timeout قديم
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
-  }, 1000);
-};
 
+    const isCorrect = position === question.correct_answer;
+    setShowFeedback(isCorrect ? "correct" : "wrong");
 
+    if (isCorrect) {
+      setScore((prev) => prev + 1);
+    }
+
+    submitAnswer(12, question.id, position).catch(console.error);
+
+    timeoutRef.current = setTimeout(async () => {
+      setShowFeedback(null);
+
+      if (currentQuestion < questions.length - 1) {
+        setCurrentQuestion((prev) => prev + 1);
+      } else {
+        const data = await calculateLessonResult(12);
+        setTotalScore(data.total_score);
+        await saveLearnProgress();
+        setShowFinishModal(true);
+      }
+    }, 1000);
+  };
 
   const resetGame = () => {
     setScore(0);
@@ -145,28 +145,16 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   return (
     <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
       {/* خلفية متدرجة */}
-      <div className="fixed inset-0 bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50"></div>
-
-      {/* زر الرجوع */}
-      <motion.button
-        onClick={() => navigate("/letters")}
-        className="fixed top-4 right-4 md:top-6 md:right-6 z-30 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-xl"
-        style={{ backgroundColor: "#fad656" }}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.9 }}
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <ArrowRight
-          className="w-6 h-6 md:w-8 md:h-8"
-          style={{ color: "#652b82" }}
-        />
-      </motion.button>
+      <div
+        className="fixed inset-0"
+        style={{
+          background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+        }}
+      ></div>
 
       <div className="relative z-10 h-screen flex flex-col">
         {/* المحتوى الرئيسي */}
-        <div className="flex-1 flex flex-col px-6 py-4 pb-32 overflow-y-auto">
+        <div className="flex-1 flex flex-col px-6 py-4 overflow-y-auto">
           <div className="max-w-4xl w-full mx-auto flex flex-col gap-4">
             {/* العنوان */}
             <motion.div
@@ -176,63 +164,131 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
             >
               <h1
                 className="text-2xl md:text-4xl mb-2"
-                style={{ color: "#652b82" }}
+                style={{
+                  color: "#F9F9F9",
+                  fontFamily: "tajawal",
+                  fontSize: "30px",
+                  fontWeight: "700",
+                }}
               >
-              حدد مكان حرف  ال{currentLetterFromRedux?.name}
+                حدد مكان حرف ال{currentLetterFromRedux?.name}
               </h1>
-              <p className="text-xs md:text-sm text-gray-600">
+            </motion.div>
+            {/* العنوان */}
+            <motion.div
+              className="text-center mb-2 flex items-start"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <p
+                className="text-xs md:text-sm text-gray-600"
+                style={{
+                  color: "#FDFDFD",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}
+              >
                 اختر المكان الصحيح للحرف في الكلمة
               </p>
             </motion.div>
-
             {/* لوحة النقاط */}
             <motion.div
-              className="bg-white rounded-2xl p-4 shadow-lg border-4"
-              style={{ borderColor: "#fad656" }}
+              className="bg-white rounded-2xl p-4 shadow-lg"
+              style={{ backgroundColor: "#FDC333" }}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col items-center gap-3">
                   <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: "#fad656" }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: "#FFFFFF" }}
                   >
-                    <Award className="w-6 h-6" style={{ color: "#652b82" }} />
+                    <img src={point} style={{ width: "20px" }} />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600">النقاط</p>
-                    <p className="text-2xl" style={{ color: "#652b82" }}>
+                  <div className="flex items-center gap-2">
+                    <p
+                      className="text-xs text-gray-600"
+                      style={{
+                        color: "#28345F",
+                        fontFamily: "tajawal",
+                        fontSize: "14",
+                        fontWeight: "500",
+                      }}
+                    >
+                      النقاط
+                    </p>
+                    <p
+                      style={{
+                        color: "#28345F",
+                        fontFamily: "tajawal",
+                        fontSize: "14",
+                        fontWeight: "500",
+                      }}
+                    >
                       {score}
                     </p>
                   </div>
                 </div>
 
                 <div className="text-center">
-                  <p className="text-xs text-gray-600">السؤال</p>
-                  <p className="text-xl" style={{ color: "#652b82" }}>
+                  <p
+                    style={{
+                      color: "#28345F",
+                      fontFamily: "tajawal",
+                      fontSize: "20px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    السؤال
+                  </p>
+                  <p
+                    style={{
+                      color: "#28345F",
+                      fontFamily: "tajawal",
+                      fontSize: "20px",
+                      fontWeight: "500",
+                    }}
+                  >
                     {currentQuestion + 1} / {questions.length}
                   </p>
                 </div>
-
-                <motion.button
-                  onClick={resetGame}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl shadow-lg text-white"
-                  style={{ backgroundColor: "#652b82" }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span className="text-sm">إعادة</span>
-                </motion.button>
+                <div className="flex flex-col items-center gap-3">
+                  <motion.button
+                    onClick={resetGame}
+                    className="flex items-center gap-2 px-2 py-2 rounded-xl shadow-lg text-white"
+                    style={{
+                      backgroundColor: "#FFFFFF",
+                      height: "40px",
+                      width: "40px",
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <img src={restart} style={{ width: "20px" }} />
+                  </motion.button>
+                  <div className="flex items-center gap-2">
+                    <p
+                      className="text-xs text-gray-600"
+                      style={{
+                        color: "#28345F",
+                        fontFamily: "tajawal",
+                        fontSize: "16px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      إعادة
+                    </p>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
             {/* بطاقة السؤال */}
             <motion.div
               key={currentQuestion}
-              className="bg-white rounded-3xl p-8 text-center shadow-lg border-4 relative"
-              style={{ borderColor: "#fad656" }}
+              className="bg-white rounded-3xl p-8 text-center shadow-lg relative"
               initial={{ scale: 0.8, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 200 }}
@@ -245,8 +301,6 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
                     style={{
                       backgroundColor:
                         showFeedback === "correct" ? "#fad656" : "#ffffff",
-                      borderColor:
-                        showFeedback === "correct" ? "#fad656" : "#ef4444",
                     }}
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -291,26 +345,32 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
                 )}
               </AnimatePresence>
 
-              <p className="text-base md:text-lg text-gray-600 mb-4">
-                أين يقع حرف{" "}
-                <span
-                  className="text-2xl md:text-3xl"
-                  style={{ color: "#652b82" }}
-                >
-                  ال{currentLetterFromRedux?.name}
-                </span>{" "}
-                في هذه الكلمة؟
+              <p
+                className="text-base md:text-lg text-gray-600 mb-4"
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "22px",
+                  fontWeight: "500",
+                }}
+              >
+                أين يقع حرف ال{currentLetterFromRedux?.name}
+                 في هذه الكلمة؟
               </p>
 
               <motion.div
-                className="inline-block px-8 py-6 rounded-2xl mb-4"
-                style={{ backgroundColor: "#fad656" }}
+                className="inline-block px-6 py-9 rounded-2xl shadow-lg mb-4"
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  backgroundImage: `url(${vector})`,
+                  backgroundRepeat: "no-repeat",
+                }}
                 animate={{ scale: [1, 1.03, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
                 <h2
                   className="text-5xl md:text-6xl"
-                  style={{ color: "#652b82" }}
+                  style={{ color: "#28345F" }}
                 >
                   {parsedQuestionText?.word}
                 </h2>
@@ -326,21 +386,28 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
               ].map((option, index) => (
                 <motion.button
                   key={option.id}
-                  onClick={() => handleAnswer(option.id)}
+                  onClick={() => {
+                    setSelectedOption(option.id);
+                    handleAnswer(option.id);
+                    // بعد 1.5 ثانية يرجع طبيعي
+                    setTimeout(() => {
+                      setSelectedOption(null);
+                    }, 1000);
+                  }}
                   disabled={showFeedback !== null}
-                  className="rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 transition-all py-6 border-4 bg-white"
+                  className="rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 transition-all py-6"
+                  style={{
+                    backgroundColor:
+                      selectedOption === option.id ? "#FDC333" : "#EAE4ED",
+                  }}
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: index * 0.1 }}
                   whileHover={{ scale: 1.05, y: -3 }}
-                  whileTap={{ scale: 0.98 }}
-                  style={{
-                    borderColor: "#fad656",
-                  }}
+                  whileTap={{ scale: 0.98, backgroundColor: "#FDC333" }}
                 >
                   <h3
                     className="text-xl md:text-2xl"
-                    style={{ color: "#652b82" }}
+                    style={{ color: "#28345F" }}
                   >
                     {option.label}
                   </h3>
@@ -349,34 +416,6 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
             </div>
           </div>
         </div>
-
-        {/* النمر في الزاوية */}
-         <motion.div
-                 className="fixed bottom-2 left-2 md:bottom-4 md:left-4 z-20"
-                 initial={{ x: -200, opacity: 0 }}
-                 animate={{ x: 0, opacity: 1 }}
-                 transition={{
-                   type: "spring",
-                   stiffness: 100,
-                   damping: 15,
-                   delay: 0.5,
-                 }}
-               >
-                 <motion.img
-                   src={tigerImg}
-                   alt="نمر"
-                   className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
-                   animate={{
-                     y: [0, -8, 0],
-                     rotate: [0, 3, -3, 0],
-                   }}
-                   transition={{
-                     duration: 3,
-                     repeat: Infinity,
-                     ease: "easeInOut",
-                   }}
-                 />
-               </motion.div>
       </div>
       <AnimatePresence>
         {showFinishModal && (
