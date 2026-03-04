@@ -13,6 +13,8 @@ import { fetchLetters } from "../redux/reducers/lettersSlice";
 import point from "../assets/point_icon.svg";
 import restart from "../assets/Icon.svg";
 import vector from "../assets/vector_background.png";
+import vectorEnd from "../assets/vector_end.svg";
+import badegEnd from "../assets/badeg_end.svg";
 import { useRef } from "react";
 export function LetterPosition() {
   const [score, setScore] = useState(0);
@@ -418,85 +420,81 @@ export function LetterPosition() {
         </div>
       </div>
       <AnimatePresence>
-        {showFinishModal && (
+        {/* {showFinishModal && ( */}
+        <motion.div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setShowFinishModal(false)}
+        >
           <motion.div
-            className="fixed inset-0 flex items-center justify-center z-50"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowFinishModal(false)}
+            className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
+            initial={{ scale: 0.7, y: 80 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.7, y: 80 }}
+            transition={{ type: "spring", stiffness: 250, damping: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ borderRadius: "20px" }}
+            dir="rtl"
           >
-            <motion.div
-              className="bg-white rounded-2xl p-6 md:p-8 shadow-2xl text-center max-w-sm mx-4"
-              initial={{ scale: 0.5, y: 100 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.5, y: 100 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* أيقونة النجاح */}
-              <motion.div
-                className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "#fad656" }}
-                initial={{ rotate: -180, scale: 0 }}
-                animate={{ rotate: 0, scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              >
-                <svg
-                  className="w-8 h-8 md:w-10 md:h-10"
-                  style={{ color: "#652b82" }}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              </motion.div>
+            {/* الزخرفة الصفراء */}
+            <img className="absolute top-0 left-0" src={vectorEnd} />
 
-              {/* العنوان */}
-              <motion.h2
-                className="text-2xl md:text-3xl mb-2"
-                style={{ color: "#652b82" }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                أحسنت!
-              </motion.h2>
+            {/* أيقونة الوسام */}
+            <div className="relative z-10 flex justify-center mb-4">
+              <div className="text-[#FDC333] text-5xl">
+                <img  src={badegEnd} />
+              </div>
+            </div>
 
-              {/* الرسالة */}
-              <motion.p
-                className="text-sm md:text-base text-gray-600 mb-5"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                لقد أتممت حل جميع الاسئلة
-                <br />
-                مجموع النقاط : {score}/ 4
-              </motion.p>
+            {/* العنوان */}
+            <h2 style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "30px",
+                  fontWeight: "500",
+                }}>ممتاز!</h2>
 
-              {/* زر الإغلاق */}
-              <motion.button
+            {/* التفاصيل */}
+            <p className="text-[#28345F] text-base mb-1" style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}>
+              نقاطك: <span className="font-semibold" style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}>{score} - 4</span>
+            </p>
+            {/* الأزرار */}
+            <div className="flex gap-4 justify-center" style={{marginTop:"20px"}}>
+
+              <button
                 onClick={() => {
                   setShowFinishModal(false);
                   navigate(`/letter/${propLetter}/tashkeel`);
                 }}
-                className="px-6 py-2.5 rounded-xl text-white shadow-lg"
-                style={{
-                  background: "linear-gradient(135deg, #652b82, #7d3ba0)",
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
+                style={{backgroundColor:"#652B82"}}
+                className="px-6 py-2.5 rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
               >
-                متابعة
-              </motion.button>
-            </motion.div>
+                العب مرة أخرى ↻
+              </button>
+              <button
+                 style={{backgroundColor:"#FDC333",color:"#652B82"}}
+                onClick={() => setShowFinishModal(false)}
+                className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
+              >
+                رجوع
+              </button>
+            </div>
           </motion.div>
-        )}
+        </motion.div>
+        {/* )} */}
       </AnimatePresence>
       {/* Footer للأنشطة */}
 
