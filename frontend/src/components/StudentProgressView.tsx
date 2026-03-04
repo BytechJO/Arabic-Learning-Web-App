@@ -310,7 +310,15 @@ export function StudentProgressView({
                 <div className="p-2 rounded-lg">
                   <Star className="w-4 h-4 text-white" />
                 </div>
-                <div className="text-xl">
+                <div
+                  className="text-xl"
+                  style={{
+                    fontSize: "30px",
+                    color: "#7B7B7B",
+                    fontFamily: "tajawal",
+                    fontWeight: "500",
+                  }}
+                >
                   {isNaN(stats.averageScore) ? 0 : stats.averageScore}%
                 </div>
               </div>
@@ -333,7 +341,17 @@ export function StudentProgressView({
                 <div className="p-2 rounded-lg">
                   <CheckCircle className="w-4 h-4 text-white" />
                 </div>
-                <div className="text-xl">{stats.totalActivities || 0}</div>
+                <div
+                  className="text-xl"
+                  style={{
+                    fontSize: "30px",
+                    color: "#7B7B7B",
+                    fontFamily: "tajawal",
+                    fontWeight: "500",
+                  }}
+                >
+                  {stats.totalActivities || 0}
+                </div>
               </div>
               <p
                 className="text-xs text-gray-600"
@@ -349,12 +367,20 @@ export function StudentProgressView({
             </div>
 
             {/* الوقت الإجمالي */}
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-2xl border-2 border-purple-200">
+            <div className="p-3 rounded-2xl border-2 border-purple-200">
               <div className="flex items-center justify-between mb-2">
                 <div className="p-2 rounded-lg">
                   <Clock className="w-4 h-4 text-white" />
                 </div>
-                <div className="text-xl">
+                <div
+                  className="text-xl"
+                  style={{
+                    fontSize: "30px",
+                    color: "#7B7B7B",
+                    fontFamily: "tajawal",
+                    fontWeight: "500",
+                  }}
+                >
                   {Math.floor((stats.totalTimeSpent || 0) / 60)}
                 </div>
               </div>
@@ -377,7 +403,15 @@ export function StudentProgressView({
                 <div className="p-2 rounded-lg">
                   <BookOpen className="w-4 h-4 text-white" />
                 </div>
-                <div className="text-xl">
+                <div
+                  className="text-xl"
+                  style={{
+                    fontSize: "30px",
+                    color: "#7B7B7B",
+                    fontFamily: "tajawal",
+                    fontWeight: "500",
+                  }}
+                >
                   {stats.completedLetters?.length || 0}
                 </div>
               </div>
@@ -395,7 +429,7 @@ export function StudentProgressView({
             </div>
           </div>
 
-          {/* الأداء حسب النشاط */} 
+          {/* الأداء حسب النشاط */}
           <div className="p-4 rounded-2xl w-full flex justify-center items-center">
             {stats.activityScores &&
             Object.keys(stats.activityScores).length > 0 ? (
@@ -410,17 +444,30 @@ export function StudentProgressView({
                     return (
                       <div
                         key={activityType}
-                        className="p-3 rounded-xl border-2"
+                        className="p-3"
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div
                             className="text-lg"
-                            style={{ color: getActivityColor(activityType) }}
+                            style={{
+                              color: getActivityColor(activityType),
+                              fontSize: "20px",
+                              fontFamily: "tajawal",
+                              fontWeight: "500",
+                            }}
                           >
                             {percentage}%
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-700">
+                            <span
+                              className="text-sm text-gray-700"
+                              style={{
+                                color: "#626262",
+                                fontSize: "20px",
+                                fontFamily: "tajawal",
+                                fontWeight: "500",
+                              }}
+                            >
                               {activityType}
                             </span>
                           </div>
@@ -428,14 +475,16 @@ export function StudentProgressView({
 
                         {/* شريط التقدم */}
                         <div
-                          className="w-full bg-gray-200 rounded-full h-2 overflow-hidden"
+                          className="w-full bg-gray-200 rounded-full h-4 overflow-hidden"
                           dir="ltr"
+                          
                         >
                           <div
                             className="h-full rounded-full transition-all"
                             style={{
                               width: `${Math.min(percentage, 100)}%`,
                               backgroundColor: getActivityColor(activityType),
+                            
                             }}
                           />
                         </div>
@@ -446,7 +495,7 @@ export function StudentProgressView({
               </div>
             ) : (
               <div
-                className="text-center py-8 rounded-xl"
+                className="text-center py-8 rounded-xl w-full"
                 style={{ backgroundColor: "#ECEEEF" }}
               >
                 <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center bg-white">
@@ -460,120 +509,143 @@ export function StudentProgressView({
       </div>
       {/* النشاطات الأخيرة */}
       <div className="flex justify-center items-center">
-      <div
-        className="bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200"
-        style={{ width: "90%" }}
-      >
-        <div className="flex items-center gap-2 mb-4">
-          <div
-            className="p-2 rounded-lg"
-            style={{ backgroundColor: "#164194" }}
-          >
-            <Calendar className="w-4 h-4 text-white" />
+        <div
+          className="bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200"
+          style={{ width: "90%",marginBottom:"50px" }}
+        >
+          <div className="flex items-center justify-center gap-2 mb-4" >
+            <h3
+              className="text-base flex justify-center"
+              style={{
+                color: "#000000",
+                fontSize: "25px",
+                fontFamily: "tajawal",
+                fontWeight: "500",
+              }}
+            >
+              النشاطات الأخيرة
+            </h3>
           </div>
-          <h3 className="text-base" style={{ color: "#164194" }}>
-            النشاطات الأخيرة
-          </h3>
-        </div>
 
-        {recentActivities.length === 0 ? (
-          <div
-            className="text-center py-8 rounded-xl"
-            style={{ backgroundColor: "#ECEEEF" }}
-          >
-            <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center bg-white">
-              <BookOpen className="w-6 h-6 text-gray-400" />
+          {recentActivities.length === 0 ? (
+            <div
+              className="text-center py-8 rounded-xl"
+              style={{ backgroundColor: "#ECEEEF" }}
+            >
+              <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center bg-white">
+                <BookOpen className="w-6 h-6 text-gray-400" />
+              </div>
+              <p className="text-sm text-gray-500">لا توجد نشاطات بعد</p>
             </div>
-            <p className="text-sm text-gray-500">لا توجد نشاطات بعد</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {recentActivities.map((activity: any, index: number) => {
-              const percentage = getActivityPercentage(
-                activity.lessonName,
-                activity.score,
-              );
-              return (
-                <div
-                  key={index}
-                  className="p-3 rounded-xl border-2"
-                  style={{
-                    backgroundColor:
-                      getActivityColor(activity.activityType) + "08",
-                    borderColor: getActivityColor(activity.activityType) + "20",
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    {/* أيقونة النشاط */}
-                    <div
-                      className="p-2 rounded-lg text-white"
-                      style={{
-                        backgroundColor: getActivityColor(activity.lessonName),
-                      }}
-                    >
-                      {getActivityIcon(activity.lessonName)}
-                    </div>
+          ) : (
+            <div className="space-y-2">
+              {recentActivities.map((activity: any, index: number) => {
+                const percentage = getActivityPercentage(
+                  activity.lessonName,
+                  activity.score,
+                );
+                return (
+                  <div key={index} className="p-3 rounded-xl border-2">
+                    <div className="flex items-center gap-3" style={{justifyContent:"space-between"}}>
+                      {/* معلومات النشاط */}
+                      <div className="w-full">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm text-gray-800">
+                            {
+                              ACTIVITY_NAMES[
+                                activity.lessonName as keyof typeof ACTIVITY_NAMES
+                              ]
+                            }
+                          </span>
 
-                    {/* معلومات النشاط */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm text-gray-800">
-                          {
-                            ACTIVITY_NAMES[
-                              activity.lessonName as keyof typeof ACTIVITY_NAMES
-                            ]
-                          }
-                        </span>
-                        <span className="text-gray-400">-</span>
-                        <span
-                          className="text-base"
-                          style={{ color: "#164194" }}
+                          <span
+                            className="text-base"
+                            style={{
+                              color: "#272626",
+                              fontSize: "20px",
+                              fontFamily: "tajawal",
+                              fontWeight: "500",
+                            }}
+                          >
+                            {activity.activityType} {activity.letter}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <span
+                            className="flex items-center gap-1"
+                            style={{
+                              color: "#7B7B7B",
+                              fontSize: "20px",
+                              fontFamily: "tajawal",
+                              fontWeight: "400",
+                            }}
+                          >
+                            {formatDate(activity.completedAt)}
+                          </span>
+                          <span className="flex items-center gap-1"  style={{
+                                color: "#7B7B7B",
+                                fontSize: "20px",
+                                fontFamily: "tajawal",
+                                fontWeight: "400",
+                              }}>
+                            <Clock
+                              className="w-3 h-3"
+                             
+                            />
+                            {Math.ceil(activity.timeSpent / 60)} دقيقة
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* الدرجة */}
+                      <div className="px-3 py-2 rounded-lg text-center w-96 flex justify-center items-center gap-4 w-full">
+                        {/* شريط التقدم */}
+                        <div
+                          className="w-full bg-gray-200 rounded-full h-3 overflow-hidden"
+                          dir="ltr"
                         >
-                          {activity.activityType} {activity.letter}
-                        </span>
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${Math.min(percentage, 100)}%`,
+                              backgroundColor: getScoreColor(percentage),
+                            }}
+                          />
+                        </div>
+                        <div
+                          className="text-lg"
+                          style={{
+                            color: getScoreColor(percentage),
+                            fontSize: "30px",
+                            fontFamily: "tajawal",
+                            fontWeight: "500",
+                          }}
+                        >
+                          {percentage}%
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {formatDate(activity.completedAt)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {Math.ceil(activity.timeSpent / 60)} دقيقة
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* الدرجة */}
-                    <div
-                      className="px-3 py-2 rounded-lg text-center"
-                      style={{ backgroundColor: getScoreColor(percentage) }}
-                    >
-                      <div className="text-lg text-white">{percentage}%</div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
-</div>
       {/* الحروف المكتملة */}
       {stats.completedLetters.length > 0 && (
+        <div className="flex justify-center items-center">
         <div
           className="bg-white p-4 rounded-2xl shadow-lg border-2"
-          style={{ borderColor: "#10b981" }}
+          style={{ width: "90%",marginBottom:"50px" }}
         >
           <div className="flex items-center gap-2 mb-4">
-            <div
-              className="p-2 rounded-lg"
-              style={{ backgroundColor: "#10b981" }}
-            >
-              <Award className="w-4 h-4 text-white" />
-            </div>
-            <h3 className="text-base" style={{ color: "#10b981" }}>
-              الحروف المدروسة ({stats.completedLetters.length} حرف)
+          
+            <h3 className="text-base" style={{ color: "#272626" ,
+                              fontSize: "25px",
+                              fontFamily: "tajawal",
+                              fontWeight: "500",}}>
+              الحروف المدروسة {stats.completedLetters.length} حرف
             </h3>
           </div>
 
@@ -582,12 +654,13 @@ export function StudentProgressView({
               <div
                 key={letter}
                 className="w-12 h-12 rounded-xl shadow-md flex items-center justify-center text-xl text-white"
-                style={{ backgroundColor: "#10b981" }}
+                style={{ backgroundColor: "#ACDAA9",color:"#272626" ,fontFamily:"tajawal"}}
               >
                 {letter}
               </div>
             ))}
           </div>
+        </div>
         </div>
       )}
     </div>

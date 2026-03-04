@@ -1,7 +1,12 @@
-import { motion } from 'motion/react';
-import { LogOut, User, GraduationCap, ArrowLeft } from 'lucide-react';
+import { motion } from "motion/react";
+import { LogOut, User, GraduationCap, ArrowLeft } from "lucide-react";
 // import { User as UserType } from '../types';
-import { useAppSelector  } from "../redux/hooks";
+import { useAppSelector } from "../redux/hooks";
+import homeIcon from "../assets/Home.svg";
+import logOut from "../assets/Log out.svg";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../redux/reducers/auth";
+import { clearMyClass } from "../redux/reducers/classSlice";
 
 interface AppHeaderProps {
   showBackButton?: boolean;
@@ -11,41 +16,133 @@ interface AppHeaderProps {
   onLogout?: () => void;
   currentLetter?: string;
   showLetter?: boolean;
+  title: string;
 }
 
-export function AppHeader({ 
-  showBackButton, 
-  onBack, 
+export function AppHeader({
+  showBackButton,
+  onBack,
   showUserInfo = true,
   // user,
   onLogout,
-
+  title,
 }: AppHeaderProps) {
   const user = useAppSelector((state) => state.auth.user);
-  const userType = user?.type || 'student';
-  const userName = user?.username || 'المستخدم';
-// console.log(userName);
-
-if (!user && showUserInfo) {
-  return null;
-}
-
+  const userType = user?.type || "student";
+  const userName = user?.username || "المستخدم";
+  // console.log(userName);
+  const navigate = useNavigate();
+  if (!user && showUserInfo) {
+    return null;
+  }
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(clearMyClass());
+    navigate("/");
+  };
   return (
-    <header className="bg-white shadow-md sticky top-0 w-full" style={{ borderBottom: '3px solid #fad656' }}>
-      <div className="px-4 md:px-6 py-2 md:py-2.5">
+    <header className="sticky top-0 w-full">
+      <div className="px-4 md:px-6 py-2 md:py-2.5" style={{marginTop:"20px"}}>
         <div className="flex items-center justify-between" dir="rtl">
+          {/* اليسار - معلومات المستخدم وتسجيل الخروج */}
+          {showUserInfo && user && (
+            <motion.div
+              className="flex items-center gap-3 md:gap-4"
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* معلومات الحساب */}
+              <div className="flex items-center gap-2">
+                {/* أيقونة الحساب */}
+
+                {/* اسم الحساب ونوعه */}
+                <div className="text-right flex justify-center items-center">
+                  {onLogout && (
+                    <motion.button
+                      onClick={onLogout}
+                      className="flex items-center gap-2 text-white px-3 md:px-4 py-2 rounded-xl transition-all"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      whileTap={{ scale: 0.95 }}
+                      initial={{ x: 100, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <div>
+                        <motion.button
+                          whileHover={{
+                            scale: 1.02,
+                            y: -2,
+                            boxShadow: `
+      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
+      inset -10px -10px 18px rgba(255, 255, 255, 0)
+    `,
+                          }}
+                          whileTap={{
+                            scale: 0.97,
+                            boxShadow: `
+      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
+      inset -10px -10px 18px rgba(255, 255, 255, 0)
+    `,
+                          }}
+                          type="button"
+                          onClick={() => handleLogout}
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "8px",
+                            border: "none",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            boxShadow: `
+        inset 6px 6px 12px rgba(0, 0, 0, 0.07),
+        inset -6px -6px 12px rgba(255, 255, 255, 0.01)`,
+                          }}
+                        >
+                          {" "}
+                          <img
+                            src={logOut}
+                            style={{ width: "30px", height: "30px" }}
+                          />
+                        </motion.button>
+                      </div>
+                    </motion.button>
+                  )}
+                  <p
+                    className="text-sm md:text-base font-medium"
+                    style={{ color: "#652b82" ,fontFamily: "poppins",
+                  fontSize: "20px",
+                  fontWeight: "400",}}
+                  >
+                    {userName}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
           {/* اليمين - اسم التطبيق */}
-          <motion.div 
+          <motion.div
             className="flex items-center gap-2"
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="text-xl md:text-2xl" style={{ color: '#652b82' }}>
-              <span className="font-bold">مرآتي لغتي</span>
+            <div className="text-xl md:text-2xl" style={{ color: "#652b82" }}>
+              <span
+                className="font-bold"
+                style={{
+                  fontFamily: "tajawal",
+                  fontSize: "25px",
+                  fontWeight: "700",
+                }}
+              >
+                {title}
+              </span>
             </div>
           </motion.div>
-          
+
           {/* الوسط - معلومات الحرف أو زر الرجوع */}
           {showBackButton && onBack && (
             <motion.div
@@ -58,64 +155,70 @@ if (!user && showUserInfo) {
                 whileHover={{ scale: 1.05, x: 5 }}
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center gap-2 text-white px-4 py-2 rounded-xl shadow-lg transition-all"
-                style={{ backgroundColor: '#652b82' }}
+                style={{ backgroundColor: "#652b82" }}
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="text-sm">رجوع</span>
               </motion.button>
             </motion.div>
           )}
-          
-          {/* اليسار - معلومات المستخدم وتسجيل الخروج */}
-          {showUserInfo && user && (
-            <motion.div 
-              className="flex items-center gap-3 md:gap-4"
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              {/* معلومات الحساب */}
-              <div className="flex items-center gap-2">
-                {/* أيقونة الحساب */}
-                <div 
-                  className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-lg"
-                  style={{ background: 'linear-gradient(135deg, #fad656, #f5c842)' }}
-                >
-                  {userType === 'teacher' ? (
-                    <GraduationCap className="w-5 h-5 md:w-5 md:h-5" style={{ color: '#652b82' }} />
-                  ) : (
-                    <User className="w-5 h-5 md:w-5 md:h-5" style={{ color: '#652b82' }} />
-                  )}
-                </div>
-                
-                {/* اسم الحساب ونوعه */}
-                <div className="text-right">
-                  <p className="text-sm md:text-base font-medium" style={{ color: '#652b82' }}>
-                    {userName}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {userType === 'teacher' ? 'معلم' : 'طالب'}
-                  </p>
-                </div>
-              </div>
-              
-              {/* زر تسجيل الخروج */}
-              {onLogout && (
-                <motion.button
-                  onClick={onLogout}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 text-white px-3 md:px-4 py-2 rounded-xl shadow-lg transition-all"
-                  style={{ backgroundColor: '#652b82' }}
-                >
-                  <span className="text-xs md:text-sm">تسجيل الخروج</span>
-                  <LogOut className="w-3.5 h-3.5 md:w-4 md:h-4" style={{ transform: 'scaleX(-1)' }} />
-                </motion.button>
-              )}
-            </motion.div>
-          )}
+
+          <motion.button
+            onClick={() => {
+              navigate("/");
+            }}
+            className="flex items-center gap-2 text-white px-3 md:px-4 py-2 rounded-xl transition-all"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div>
+              <motion.button
+                whileHover={{
+                  scale: 1.02,
+                  y: -2,
+                  boxShadow: `
+      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
+      inset -10px -10px 18px rgba(255, 255, 255, 0)
+    `,
+                }}
+                whileTap={{
+                  scale: 0.97,
+                  boxShadow: `
+      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
+      inset -10px -10px 18px rgba(255, 255, 255, 0)
+    `,
+                }}
+                type="button"
+                onClick={() => handleLogout}
+                style={{
+                  width: "40px",
+                  height: "40px",
+
+                  borderRadius: "8px",
+
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  boxShadow: `
+        inset 6px 6px 12px rgba(0, 0, 0, 0.07),
+        inset -6px -6px 12px rgba(255, 255, 255, 0.01)`,
+                }}
+              >
+                <img src={homeIcon} style={{ width: "30px", height: "30px" }} />
+              </motion.button>
+            </div>
+          </motion.button>
         </div>
       </div>
     </header>
   );
+}
+
+function dispatch(arg0: any) {
+  throw new Error("Function not implemented.");
 }

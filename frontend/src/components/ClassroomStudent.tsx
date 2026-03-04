@@ -185,7 +185,7 @@ export function ClassroomStudent() {
 
                 <motion.button
                   className="fixed top-4 right-6 z-30 w-12 h-12 md:w-12 md:h-12 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110"
-                  style={{ backgroundColor: "#FCFCFC" }}
+                  style={{ backgroundColor: "#FCFCFC" ,zIndex:"99999"}}
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ x: 100, opacity: 0 }}
@@ -258,9 +258,9 @@ export function ClassroomStudent() {
               className="p-2 rounded-lg hover:bg-gray-100 transition-all"
             >
               {copiedCode === classroom?.code ? (
-                <Check className="w-5 h-5" style={{ color: "#10b981" }} />
+                <Check className="w-5 h-5" style={{ color: "#10b981"}} />
               ) : (
-                <Copy className="w-5 h-5" />
+                <Copy className="w-5 h-5"/>
               )}
             </button>
           </div>
@@ -338,13 +338,14 @@ export function ClassroomStudent() {
                 <p>لا يوجد طلاب في هذا الصف</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3" style={{marginBottom:"50px"}}>
                 {students.map((student, index) => (
                   <div
                     key={index}
-                    className={`flex items-center px-6 py-4 gap-4 hover:shadow-lg transition-all ${
-                      index % 2 === 0 ? "bg-gray-100" : "bg-gray-200/60"
+                    className={`flex items-center py-2 hover:shadow-lg transition-all ${
+                      index % 2 === 0 ?   "bg-gray-200/60":"bg-gray-100"
                     }`}
+                    style={{justifyContent:"space-between"}}
                   >
                     <button
                       key={student.id}
@@ -390,9 +391,10 @@ export function ClassroomStudent() {
                         >
                           {student.email}
                         </p>
-                        <ChevronLeft className="w-5 h-5 text-gray-400" />
+                     
                       </div>
-                    </button>
+                    </button> 
+                      <ChevronLeft className="w-5 h-5 text-gray-400" />
                   </div>
                 ))}
               </div>

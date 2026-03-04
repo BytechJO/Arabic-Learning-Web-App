@@ -21,7 +21,9 @@ import waves from "../assets/waves_login.svg";
 import homeIcon from "../assets/Home.svg";
 import { useAppDispatch } from "../redux/hooks";
 import { loginSuccess } from "../redux/reducers/auth";
-
+import { RootState, AppDispatch } from "../redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { getMyClass, getMyClassApi } from "../API/classes";
 interface LoginPageProps {
   userType: "teacher" | "student";
   onBack: () => void;
@@ -78,38 +80,38 @@ const loginApi = async (email: string, password: string) => {
 //   return data;
 // };
 
-const registerApi = async (
-  username: string,
-  email: string,
-  password: string,
-  activationCode: string,
-  userType: "student" | "teacher",
-) => {
-  const res = await fetch(
-    "https://arabic-learning-web-app.onrender.com/users/register",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username,
-        email,
-        password,
-        activation_code: activationCode,
-        requested_role: userType,
-      }),
-    },
-  );
+// const registerApi = async (
+//   username: string,
+//   email: string,
+//   password: string,
+//   activationCode: string,
+//   userType: "student" | "teacher",
+// ) => {
+//   const res = await fetch(
+//     "https://arabic-learning-web-app.onrender.com/users/register",
+//     {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         username,
+//         email,
+//         password,
+//         activation_code: activationCode,
+//         requested_role: userType,
+//       }),
+//     },
+//   );
 
-  const data = await res.json();
+//   const data = await res.json();
 
-  if (!res.ok) {
-    console.log(res);
+//   if (!res.ok) {
+//     console.log(res);
 
-    throw new Error(data.message);
-  }
+//     throw new Error(data.message);
+//   }
 
-  return data;
-};
+//   return data;
+// };
 
 export function LoginPage({ userType, onBack }: LoginPageProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -127,52 +129,55 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
     setShowPassword(false);
   }, [mode]);
   const [error, setError] = useState("");
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
 
-    try {
-      const data = await loginApi(formData.email, formData.password);
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError("");
 
-      const mappedRole = mapRoleNumberToType(data.role);
+  try {
+    const data = await loginApi(formData.email, formData.password);
+    const mappedRole = mapRoleNumberToType(data.role);
 
-      // حماية: المستخدم دخل على نوع غلط
-      console.log(mappedRole);
-      if (mappedRole !== userType) {
-        setError(
-          `هذا الحساب مسجل كـ ${mappedRole === "teacher" ? "معلم" : "طالب"}`,
-        );
-        return;
-      }
-      const mappedType = mapRoleNumberToType(data.role);
-
-      const user = {
-        id: data.id,
-        username: data.username,
-        email: data.email,
-        password: data.password,
-        roleId: data.role, // ⬅️ الرقم من الباك إند
-        type: mappedType, // ⬅️ teacher / student
-      };
-
-      dispatch(
-        loginSuccess({
-          user,
-          token: data.token,
-        }),
+    if (mappedRole !== userType) {
+      setError(
+        `هذا الحساب مسجل كـ ${mappedRole === "teacher" ? "معلم" : "طالب"}`
       );
+      return;
+    }
 
-      // إذا لسه محتاجة onLogin (تنقّل مثلاً)
-      // onLogin(user);
-      navigate(user.type === "teacher" ? "/teacher/home" : "/student/home");
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
+    const user = {
+      id: data.id,
+      username: data.username,
+      email: data.email,
+      roleId: data.role,
+      type: mappedRole,
+    };
+
+    dispatch(
+      loginSuccess({
+        user,
+        token: data.token,
+      })
+    );
+
+    // 🔥🔥 هون بنعمل الفحص
+
+    if (user.type === "teacher") {
+      navigate("/teacher/home");
+    } else {
+      // ✅ الطالب → نجيب صفه
+      const myClass = await getMyClassApi(data.token);
+      if (myClass) {
+        navigate(`/my-classroom/${myClass.code}`);
       } else {
-        setError("صار خطأ");
+        navigate("/my-classroom");
       }
     }
-  };
+
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "صار خطأ");
+  }
+};
 
   // const handleRegister = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -214,38 +219,38 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
   //   }
   // };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  // const handleRegister = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError("");
 
-    if (
-      !formData.username ||
-      !formData.email ||
-      !formData.password ||
-      !activationCode
-    ) {
-      setError("يرجى ملء جميع الحقول");
-      return;
-    }
+  //   if (
+  //     !formData.username ||
+  //     !formData.email ||
+  //     !formData.password ||
+  //     !activationCode
+  //   ) {
+  //     setError("يرجى ملء جميع الحقول");
+  //     return;
+  //   }
 
-    try {
-      await registerApi(
-        formData.username,
-        formData.email,
-        formData.password,
-        activationCode,
-        userType,
-      );
+  //   try {
+  //     await registerApi(
+  //       formData.username,
+  //       formData.email,
+  //       formData.password,
+  //       activationCode,
+  //       userType,
+  //     );
 
-      // بعد نجاح التسجيل → رجّعيه على تسجيل الدخول
+  //     // بعد نجاح التسجيل → رجّعيه على تسجيل الدخول
 
-      setFormData((prev) => ({ ...prev, password: "" }));
-      setMode("login");
-      setActivationCode("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "فشل إنشاء الحساب");
-    }
-  };
+  //     setFormData((prev) => ({ ...prev, password: "" }));
+  //     setMode("login");
+  //     setActivationCode("");
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : "فشل إنشاء الحساب");
+  //   }
+  // };
 
   return (
     <div className="min-h-screen relative overflow-hidden" dir="rtl">

@@ -39,7 +39,7 @@ import { ClassroomStudent } from "./ClassroomStudent";
 // }
 
 export function ClassroomManagement() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newClassName, setNewClassName] = useState("");
@@ -73,8 +73,7 @@ export function ClassroomManagement() {
     }
   };
   const handleSelectClassroom = async (classId: number) => {
-    navigate(`/teacher/students/${classId}`)
-
+    navigate(`/teacher/students/${classId}`);
   };
   const handleCreateClassroom = async () => {
     if (!newClassName.trim()) return;
@@ -144,7 +143,6 @@ export function ClassroomManagement() {
   //     </div>
   //   );
   // }
-
 
   // عرض قائمة الصفوف الرئيسية
   return (
@@ -321,84 +319,98 @@ export function ClassroomManagement() {
                   }}
                 >
                   <motion.div
-                    className="bg-white p-8 shadow-2xl text-center max-w-md mx-4 flex flex-col items-center rounded-2xl"
-                    initial={{ scale: 0.5, y: 100 }}
+                    className="w-full max-w-lg mx-4 overflow-hidden flex justify-center"
+                    initial={{ scale: 0.8, y: 50 }}
                     animate={{ scale: 1, y: 0 }}
-                    exit={{ scale: 0.5, y: 100 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    exit={{ scale: 0.8, y: 50 }}
+                    transition={{ type: "spring", stiffness: 200 }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {/* أيقونة */}
-                    <motion.div
-                      className="w-16 h-16 mb-4 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: "#fef3c7" }}
-                      initial={{ rotate: -180, scale: 0 }}
-                      animate={{ rotate: 0, scale: 1 }}
-                      transition={{ delay: 0.2, type: "spring" }}
+                    {/* Body */}
+                    <div
+                      className="bg-gray-100 py-10 text-center flex flex-col gap-10"
+                      style={{ width: "55%" }}
                     >
-                      <span className="text-3xl">
-                        <img src={writeIconNavey} />
-                      </span>
-                    </motion.div>
-
-                    {/* العنوان */}
-                    <motion.h2
-                      className="text-2xl mb-4"
-                      style={{ color: "#652b82" }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      إضافة صف جديد
-                    </motion.h2>
-
-                    {/* الانبوت */}
-                    <motion.input
-                      type="text"
-                      value={newClassName}
-                      onChange={(e) => setNewClassName(e.target.value)}
-                      placeholder="اسم الصف (مثال: الصف الأول - أ)"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#FDC333] outline-none mb-6"
-                      style={{ backgroundColor: "#f5f3f7" }}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.4 }}
-                    />
-
-                    {/* الأزرار */}
-                    <div className="flex gap-4">
-                      <motion.button
-                        onClick={() => {
-                          setShowCreateModal(false);
-                          setNewClassName("");
-                        }}
-                        className="px-5 py-2.5 rounded-xl border-2"
+                      {/* Header */}
+                      <div
+                        className="shadow-md shadow-2xl flex items-center"
                         style={{
-                          borderColor: "#652b82",
-                          color: "#652b82",
-                          backgroundColor: "white",
+                          backgroundColor: "#652B82",
+                          borderRadius: "0px 0px 25px 25px",
+                          fontFamily: "tajawal",
+                          fontSize: "25px",
+                          fontWeight: "700",
+                          color: "#FFFFFF",
+                          paddingRight: "20px",
+                          height:"73px"
                         }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
                       >
-                        إلغاء
-                      </motion.button>
+                        إنشاء صف جديد
+                      </div>
+                      <div
+                        className="flex flex-col justify-center items-start"
+                        style={{ marginRight: "75px" }}
+                      >
+                        <p
+                          className="text-gray-700 text-lg mb-6"
+                          style={{
+                            fontFamily: "tajawal",
+                            fontSize: "25px",
+                            fontWeight: "700",
+                            color: "#3E3E3E",
+                          }}
+                        >
+                          إسم الصف
+                        </p>
 
-                      <motion.button
-                        onClick={() => {
-                          handleCreateClassroom();
-                          setShowCreateModal(false);
-                        }}
-                        className="px-5 py-2.5 rounded-xl shadow-lg"
-                        style={{
-                          backgroundColor: "#FDC333",
-                          color: "#2D2D2D",
-                        }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        إضافة
-                      </motion.button>
+                        <input
+                          type="text"
+                          value={newClassName}
+                          onChange={(e) => setNewClassName(e.target.value)}
+                          placeholder="صف اللغة العربية - 563"
+                          className="w-full bg-gray-200 px-4 py-4 text-right outline-none focus:ring-2 focus:ring-[#FDC333] transition"
+                       style={{width:"90%"}}
+                       />
+                      </div>
+                      {/* Buttons */}
+                       
+                      <div className="flex justify-center gap-6 mb-8">
+                          <button
+                          onClick={() => {
+                            handleCreateClassroom();
+                            setShowCreateModal(false);
+                          }}
+                           className="px-10 py-2 shadow-md hover:scale-105 transition"
+                          style={{
+                            backgroundColor: "#FDC333",
+                            borderRadius: "10px",
+                            fontFamily: "tawajal",
+                            fontSize: "25x",
+                            color: "#2D2D2D",
+                            fontWeight:"500"
+                          }}
+                        >
+                          إضافة
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowCreateModal(false);
+                            setNewClassName("");
+                          }}
+                          className="px-10 py-2 shadow-md hover:scale-105 transition"
+                          style={{
+                            backgroundColor: "#FDC333",
+                            borderRadius: "10px",
+                            fontFamily: "tawajal",
+                            fontSize: "25x",
+                            color: "#2D2D2D", fontWeight:"500"
+                          }}
+                        >
+                          إلغاء
+                        </button>
+
+                     
+                      </div>
                     </div>
                   </motion.div>
                 </motion.div>

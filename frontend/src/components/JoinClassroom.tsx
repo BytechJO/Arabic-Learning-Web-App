@@ -9,8 +9,12 @@ import { joinClassroomByCode } from "../API/classrooms";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllClasses, fetchMyClass } from "../redux/reducers/classSlice";
 import { RootState, AppDispatch } from "../redux/store";
+import tiger from "../assets/my-class-tiger.svg";
+import notification from "../assets/notifications_icon.svg";
+import homeIcon from "../assets/Home.svg";
 import { logout } from "../redux/reducers/auth";
 import { clearMyClass } from "../redux/reducers/classSlice";
+import { SuccessJoin } from "./SuccessJoin";
 interface JoinClassroomProps {
   // student: User;
   onClose: () => void;
@@ -29,10 +33,6 @@ JoinClassroomProps) {
   const navigate = useNavigate();
 
   const dispatch = useDispatch<AppDispatch>();
-  const { myClass: currentClassroom, allClasses } = useSelector(
-    (state: RootState) => state.class
-  );
-
 
   useEffect(() => {
     console.log("JOIN CLASS COMPONENT MOUNTED");
@@ -40,7 +40,6 @@ JoinClassroomProps) {
     dispatch(fetchMyClass());
     dispatch(fetchAllClasses());
   }, [dispatch]);
-
 
   const handleJoin = async () => {
     try {
@@ -59,28 +58,17 @@ JoinClassroomProps) {
     dispatch(clearMyClass());
     navigate("/");
   };
-  const handleToggleClasses = () => {
-    setShowDebug((prev) => !prev);
 
-    if (!showDebug) {
-      dispatch(fetchAllClasses());
-    }
-  };
   return (
     <>
-      {/* الهيدر - خارج container الرئيسي */}
-      <div className="relative z-50">
-        <AppHeader
-          showUserInfo={true}
-          onLogout={handleLogout}
-          showBackButton={false}
-          onBack={onClose}
-        />
-      </div>
-
       <div className="min-h-screen relative overflow-hidden" dir="rtl">
         {/* خلفية متدرجة */}
-        <div className="fixed inset-0 bg-gradient-to-br from-purple-100 via-yellow-50 to-purple-50"></div>
+        <div
+          className="fixed inset-0"
+          style={{
+            background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+          }}
+        ></div>
 
         {/* عناصر زخرفية متحركة */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -97,156 +85,115 @@ JoinClassroomProps) {
             transition={{ duration: 15, repeat: Infinity }}
           />
         </div>
-
-        {/* زر الرجوع العائم في أعلى اليمين */}
         <motion.button
-          onClick={onClose}
-          className="fixed top-24 right-6 z-30 w-12 h-12 md:w-14 md:h-14 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110"
-          style={{ backgroundColor: "#fad656" }}
+          onClick={() => {
+            navigate("/");
+          }}
+          className="fixed top-8 left-16 z-30 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all hover:scale-110"
           whileHover={{ scale: 1.1, rotate: 5 }}
           whileTap={{ scale: 0.95 }}
           initial={{ x: 100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <ArrowRight
-            className="w-6 h-6 md:w-7 md:h-7"
-            style={{ color: "#652b82" }}
-          />
-        </motion.button>
+          <div>
+            <motion.button
+              whileHover={{
+                scale: 1.02,
+                y: -2,
+                boxShadow: `
+      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
+      inset -10px -10px 18px rgba(255, 255, 255, 0)
+    `,
+              }}
+              whileTap={{
+                scale: 0.97,
+                boxShadow: `
+      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
+      inset -10px -10px 18px rgba(255, 255, 255, 0)
+    `,
+              }}
+              type="button"
+              onClick={() => handleLogout}
+              style={{
+                width: "40px",
+                height: "40px",
 
-        {/* المحتوى الرئيسي */}
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 pt-24 pb-8">
-          {/* العنوان الرئيسي */}
-          <motion.div
-            className="text-center mb-8"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <h1
-              className="text-4xl md:text-5xl mb-3"
-              style={{ color: "#652b82" }}
+                borderRadius: "8px",
+
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                boxShadow: `
+        inset 6px 6px 12px rgba(0, 0, 0, 0.07),
+        inset -6px -6px 12px rgba(255, 255, 255, 0.01)`,
+              }}
             >
-              صفي الدراسي
-            </h1>
-            <p className="text-xs md:text-sm text-gray-600">
-              {currentClassroom
-                ? "أنت مسجل في الصف التالي"
-                : "انضم إلى صفك وابدأ التعلم"}
-            </p>
-          </motion.div>
-
-          {/* البطاقة الرئيسية */}
+              <img src={homeIcon} style={{ width: "30px", height: "30px" }} />
+            </motion.button>
+          </div>
+        </motion.button>
+        <div className="flex">
+          {/*النمر الموجود بالهيدر */}
           <motion.div
-            className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative overflow-hidden"
-            style={{ border: "3px solid #652b82" }}
-            initial={{ scale: 0.9, opacity: 0 }}
+            className="flex"
+            style={{ justifyContent: "flex-end" }}
+            initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            transition={{ duration: 0.5 }}
           >
-            {/* دوائر ديكور */}
-            <div
-              className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-20"
-              style={{
-                backgroundColor: "#fad656",
-                transform: "translate(30%, -30%)",
+            <motion.img
+              src={tiger}
+              alt="نمر"
+              className="tiger-choose-page md:w-56 lg:w-20 object-contain drop-shadow-2xl"
+              style={{ width: "65%" }}
+              animate={{ y: [0, -6, 0] }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
               }}
-            ></div>
-            <div
-              className="absolute bottom-0 left-0 w-24 h-24 rounded-full opacity-20"
-              style={{
-                backgroundColor: "#fad656",
-                transform: "translate(-30%, 30%)",
-              }}
-            ></div>
-
-            <div className="relative">
-              {/* الأيقونة */}
-              <div className="flex justify-center mb-6">
-                <div
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center shadow-lg"
-                  style={{ backgroundColor: "#fad656" }}
-                >
-                  <Users
-                    className="w-10 h-10 md:w-12 md:h-12"
-                    style={{ color: "#652b82" }}
-                  />
-                </div>
-              </div>
-
-              {currentClassroom ? (
-                <motion.div
-                  className="rounded-2xl p-6 relative overflow-hidden bg-gradient-to-br from-purple-50 to-yellow-50"
-                  style={{ border: "3px solid #652b82" }}
-                  initial={{ scale: 0.95 }}
-                  animate={{ scale: 1 }}
-                >
-                  <div className="relative flex items-center gap-3 mb-4">
-                    <div
-                      className="p-3 rounded-full shadow-md"
-                      style={{ backgroundColor: "#fad656" }}
-                    >
-                      <Users className="w-6 h-6" style={{ color: "#652b82" }} />
-                    </div>
-                    <div>
-                      <h3
-                        className="text-xl md:text-2xl"
-                        style={{ color: "#652b82" }}
-                      >
-                        {currentClassroom.name}
-                      </h3>
-                      <p className="text-xs md:text-sm text-gray-600">
-                        صفك الحالي
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-xl p-4 shadow-sm">
-                    <div className="text-gray-700 text-sm md:text-base">
-                      <span className="text-gray-600">كود الصف: </span>
-                      <code
-                        style={{ color: "#652b82" }}
-                        className="font-bold text-base md:text-lg"
-                      >
-                        {currentClassroom.code}
-                      </code>
-                    </div>
-                  </div>
-                </motion.div>
-              ) : (
+            />
+          </motion.div>
+          {/* المحتوى الرئيسي */}
+          <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 pt-24 pb-8">
+            {/* البطاقة الرئيسية */}
+            <motion.div
+              className="rounded-3xl p-6 md:p-8 max-w-md w-full relative overflow-hidden"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="relative">
                 <>
                   {success ? (
-                    <motion.div
-                      className="rounded-2xl text-center p-6 bg-gradient-to-br from-green-50 to-green-100"
-                      style={{ border: "3px solid #10b981" }}
-                      initial={{ scale: 0.8 }}
-                      animate={{ scale: 1 }}
-                    >
-                      <div className="text-5xl mb-4">✅</div>
-                      <p className="text-lg" style={{ color: "#065f46" }}>
-                        تم الانضمام للصف بنجاح!
-                      </p>
+                    <motion.div>
+                      <SuccessJoin onLogout={logout} />
                     </motion.div>
                   ) : (
                     <>
-                      {error && (
-                        <motion.div
-                          className="rounded-2xl mb-4 p-4 bg-gradient-to-br from-red-50 to-red-100"
-                          style={{ border: "3px solid #ef4444" }}
-                          initial={{ x: -10 }}
-                          animate={{ x: 0 }}
+                      <div className="flex flex-col mb-6 gap-4">
+                        <h1
+                          style={{
+                            fontFamily: "tajawal",
+                            fontSize: "25px",
+                            fontWeight: "700",
+                            color: "#F4F4F4",
+                          }}
                         >
-                          <p
-                            className="text-center"
-                            style={{ color: "#991b1b" }}
-                          >
-                            {error}
-                          </p>
-                        </motion.div>
-                      )}
-
-                      <div className="mb-6">
-                        <label className="block text-gray-700 mb-3 text-sm md:text-base text-center">
+                          إستعد لمغامرة تعليمية رائعة
+                        </h1>
+                        <label
+                          className="block text-sm md:text-base text-start"
+                          style={{
+                            fontFamily: "tajawal",
+                            fontSize: "18px",
+                            fontWeight: "500",
+                            color: "#F4F4F4",
+                          }}
+                        >
                           أدخل كود الصف الذي قدمه لك المعلم
                         </label>
                         <input
@@ -256,8 +203,11 @@ JoinClassroomProps) {
                             setClassCode(e.target.value.toUpperCase())
                           }
                           placeholder="مثال: ABC123"
-                          className="w-full px-4 py-3 rounded-2xl outline-none text-center text-xl md:text-2xl font-bold tracking-wider transition-all"
-                          style={{ border: "3px solid #e5e7eb" }}
+                          className="w-full px-4 py-3 outline-none text-start text-xl md:text-2xl font-bold tracking-wider transition-all"
+                          style={{
+                            backgroundColor: "#FFFFFF6B",
+                            color: "#ffffffff",
+                          }}
                           onFocus={(e) =>
                             (e.target.style.borderColor = "#652b82")
                           }
@@ -271,24 +221,64 @@ JoinClassroomProps) {
                       <button
                         onClick={handleJoin}
                         className="w-full text-white py-3 md:py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl hover:scale-105"
-                        style={{ backgroundColor: "#652b82" }}
+                        style={{
+                          backgroundColor: "#FDC333",
+                          color: "#652B82",
+                          fontFamily: "poppins",
+                          fontSize: "18px",
+                          fontWeight: "700",
+                        }}
                       >
                         <LogIn className="w-5 h-5" />
-                        <span className="text-base md:text-lg">انضم للصف</span>
+                        <span className="text-base md:text-lg">تسجيل</span>
                       </button>
+                      {error && (
+                        <motion.div
+                          className="rounded-2xl p-4"
+                          initial={{ x: -10 }}
+                          animate={{ x: 0 }}
+                        >
+                          <p
+                            className="text-center"
+                            style={{
+                              color: "#FF0000",
+                              fontFamily: "poppins",
+                              fontSize: "18px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            الكود الذي ادخلته غير صحيح
+                          </p>
+                        </motion.div>
+                      )}
 
-                      <div
-                        className="mt-6 rounded-2xl p-4 bg-gradient-to-br from-yellow-50 to-yellow-100"
-                        style={{ border: "2px solid #fad656" }}
-                      >
-                        <p className="text-xs md:text-sm text-gray-700 text-center">
-                          <span style={{ color: "#652b82" }}>💡 ملاحظة:</span>{" "}
+                      <div className="rounded-2xl p-4">
+                        <p
+                          className="text-xs text-center flex items-center justify-center gap-2"
+                          style={{
+                            color: "#FFFFFF",
+                            fontFamily: "poppins",
+                            fontSize: "15px",
+                            fontWeight: "500",
+                            display: "flex",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "#FFFFFF",
+                              fontSize: "20px",
+                              display: "flex",
+                            }}
+                          >
+                            <img src={notification} height={20} width={20} />{" "}
+                            ملاحظة:
+                          </span>{" "}
                           اطلب من معلمك كود الصف للانضمام إلى صفه الدراسي
                         </p>
                       </div>
 
                       {/* قسم مساعدة للاختبار - يعرض الصفوف المتاحة */}
-                      {allClasses.length > 0 && (
+                      {/* {allClasses.length > 0 && (
                         <div className="mt-4">
                           <button
                             onClick={handleToggleClasses}
@@ -326,13 +316,13 @@ JoinClassroomProps) {
                             </div>
                           )}
                         </div>
-                      )}
+                      )} */}
                     </>
                   )}
                 </>
-              )}
-            </div>
-          </motion.div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
     </>

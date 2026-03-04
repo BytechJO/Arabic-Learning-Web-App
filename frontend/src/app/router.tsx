@@ -22,6 +22,8 @@ import { WordCatchGame } from "../components/games/WordCatchGame";
 import { TeacherResources } from "../components/TeacherResources";
 import { StudentsManagement } from "../components/StudentsManagement";
 import { ClassroomStudent } from "../components/ClassroomStudent";
+import { SuccessJoin } from "../components/SuccessJoin";
+import { LetterWelcomePage } from "../components/LetterWelcomePage";
 
 interface AppRouterProps {
   onChooseType: (type: "student" | "teacher") => void;
@@ -95,13 +97,14 @@ export function AppRouter({
         path="/teacher/letters"
         element={<LettersDashboard onLogout={onLogout} />}
       />
-       <Route
-        path="/teacher/students"
-        element={<StudentsManagement />}
+      <Route path="/teacher/students" element={<StudentsManagement />} />
+      <Route
+        path="/teacher/students/:classroomId"
+        element={<ClassroomStudent />}
       />
        <Route
-        path="/teacher/students/:classroomId"
-        element={<ClassroomStudent  />}
+        path="/welcome-page"
+        element={<LetterWelcomePage />}
       />
       <Route
         path="/letters"
@@ -111,6 +114,10 @@ export function AppRouter({
       <Route
         path="/my-classroom"
         element={<JoinClassroom onClose={() => navigate("/student/home")} />}
+      />
+      <Route
+        path="/my-classroom/:id"
+        element={<SuccessJoin onLogout={onLogout} />}
       />
 
       <Route path="/letter/:letter" element={<LetterDetails />} />

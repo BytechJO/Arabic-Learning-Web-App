@@ -1,13 +1,12 @@
-import { LetterCard } from "./LetterCard";
 import { motion } from "motion/react";
-import { ArrowRight } from "lucide-react";
-import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { AppHeader } from "./AppHeader";
 import { use, useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
 import { fetchLetters } from "../redux/reducers/lettersSlice";
 import api from "../API/axios";
-
+import drops from "../assets/drops_login.svg";
+import lock from "../assets/lockIcon.svg"
+import checkIcon from "../assets/check_icon.svg"
 import { useNavigate } from "react-router-dom";
 interface LettersDashboardProps {
   // onLetterClick: (letter: string, letterName: string) => void;
@@ -82,52 +81,29 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
   return (
     <div className="min-h-screen relative overflow-hidden" dir="rtl">
       {/* خلفية متدرجة */}
-      <div className="fixed inset-0 bg-gradient-to-br from-purple-100 via-yellow-50 to-purple-50"></div>
-
-      {/* عناصر زخرفية متحركة */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute -top-20 -right-20 w-56 h-56 md:w-64 md:h-64 rounded-full opacity-10"
-          style={{ backgroundColor: "#fad656" }}
-          animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
-          transition={{ duration: 20, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute -bottom-20 -left-20 w-64 h-64 md:w-80 md:h-80 rounded-full opacity-10"
-          style={{ backgroundColor: "#652b82" }}
-          animate={{ scale: [1, 1.3, 1] }}
-          transition={{ duration: 15, repeat: Infinity }}
-        />
-      </div>
+      <div
+        className="fixed inset-0"
+        style={{
+          background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+        }}
+      ></div>
 
       {/* الهيدر - خارج أي container */}
-      <AppHeader
-        showUserInfo={true}
-        onLogout={onLogout}
-        showBackButton={false}
-        onBack={onBack}
-      />
-
-      {/* زر الرجوع العائم في أعلى اليمين */}
-
-      <motion.button
-        onClick={() => navigate(`/${user?.type}/home`)}
-        className="fixed top-24 right-6 z-30 w-12 h-12 md:w-14 md:h-14 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110"
-        style={{ backgroundColor: "#fad656" }}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ x: 100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        <ArrowRight
-          className="w-6 h-6 md:w-7 md:h-7"
-          style={{ color: "#652b82" }}
-        />
-      </motion.button>
+      <div className="relative top-0 w-full">
+        <div style={{ backgroundColor: "white", marginTop: "-20px" }}>
+          <AppHeader
+            showUserInfo={true}
+            onLogout={onLogout}
+            showBackButton={false}
+            onBack={onBack}
+            title={" الحروف العربية"}
+          />
+        </div>
+        <img className="w-full" src={drops} />
+      </div>
 
       {/* المحتوى الرئيسي */}
-      <div className="relative z-10">
+      <div className="relative -top-26 z-10">
         {/* العنوان الرئيسي */}
         <motion.div
           className="text-center py-8 md:py-10 px-6"
@@ -135,13 +111,15 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <h1
-            className="text-4xl md:text-5xl mb-3"
-            style={{ color: "#652b82" }}
+          <p
+            className="text-xs md:text-sm text-gray-600"
+            style={{
+              fontFamily: "tajawal",
+              fontSize: "25px",
+              fontWeight: "700",
+              color: "white",
+            }}
           >
-            الحروف العربية
-          </h1>
-          <p className="text-xs md:text-sm text-gray-600">
             اختر حرفاً لتبدأ رحلة التعلم الممتعة
           </p>
         </motion.div>
@@ -218,7 +196,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                           </div>
                           {!isTeacher && (isCompleted || isLocked) && (
                             <div className="absolute top-0 left-0 z-20 flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full bg-white/90 shadow text-[10px] md:text-xl leading-none">
-                              {isCompleted ? "✅" : "🔒"}
+                              {isCompleted ? <img src={checkIcon} /> : <img src={lock} />}
                             </div>
                           )}
                         </div>
@@ -286,34 +264,6 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
           </motion.div>
         </motion.div>
       )}
-
-      {/* صورة النمر في الأسفل على اليسار */}
-      <motion.div
-        className="fixed bottom-2 left-2 md:bottom-4 md:left-4 z-20"
-        initial={{ x: -200, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{
-          type: "spring",
-          stiffness: 100,
-          damping: 15,
-          delay: 0.5,
-        }}
-      >
-        <motion.img
-          src={tigerImg}
-          alt="نمر"
-          className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
-          animate={{
-            y: [0, -8, 0],
-            rotate: [0, 3, -3, 0],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      </motion.div>
     </div>
   );
 }
