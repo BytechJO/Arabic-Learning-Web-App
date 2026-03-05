@@ -19,6 +19,8 @@ import {
 import type { RootState, AppDispatch } from "../redux/store";
 import { fetchLetters } from "../redux/reducers/lettersSlice";
 import { upsertUserProgress } from "../API/userProgress";
+import youtubeIcon from "../assets/youtoub_icon.svg";
+import videoVector from "../assets/vector_video.svg";
 
 // فيديوهات خاصة بحرف الألف
 // const alifVideos = [
@@ -171,12 +173,6 @@ export function VideosSection() {
   const letterName = currentLetterFromRedux?.name;
   // const videosPerPage = 3;
   const totalPages = Math.ceil(video.length / videosPerPage);
-  const handleNext = () => {
-    setCurrentPage((prev) => (prev + 1) % totalPages);
-  };
-  const handlePrev = () => {
-    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
-  };
   const currentVideos = video.slice(
     currentPage * videosPerPage,
     (currentPage + 1) * videosPerPage,
@@ -185,45 +181,48 @@ export function VideosSection() {
   return (
     <div className="relative overflow-hidden pb-24" dir="rtl">
       {/* خلفية متدرجة */}
-      <div className="fixed inset-0 bg-gradient-to-br from-purple-100 via-yellow-50 to-purple-50"></div>
-
-      {/* عناصر زخرفية متحركة */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div
+        className="fixed inset-0"
+        style={{
+          background: "linear-gradient(120deg, #A68BB7 75%, #FFFBE8 100%)",
+        }}
+      ></div>
+      {/* دوائر زخرفية */}
+      <div className="fixed inset-0 pointer-events-none">
         <motion.div
-          className="absolute -top-20 -right-20 w-56 h-56 md:w-64 md:h-64 rounded-full opacity-10"
-          style={{ backgroundColor: "#fad656" }}
-          animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
-          transition={{ duration: 20, repeat: Infinity }}
+          className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full opacity-10"
+          style={{ backgroundColor: "#652b82" }}
+          animate={{
+            scale: [1, 1.1, 1],
+            rotate: [0, 90, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
         />
         <motion.div
-          className="absolute -bottom-20 -left-20 w-64 h-64 md:w-80 md:h-80 rounded-full opacity-10"
+          className="absolute -top-20 -left-20 w-56 h-56 rounded-full opacity-10"
           style={{ backgroundColor: "#652b82" }}
-          animate={{ scale: [1, 1.3, 1] }}
-          transition={{ duration: 15, repeat: Infinity }}
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, -90, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+          }}
         />
       </div>
-
-      {/* زر الرجوع */}
-      <motion.button
-        onClick={() => navigate(`/letters`)}
-        className="fixed top-4 right-4 md:top-6 md:right-6 z-30 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-xl"
-        style={{ backgroundColor: "#fad656" }}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.9 }}
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
+      <div
+        className="relative z-10 flex flex-col gap-10"
+        style={{ marginTop: "30px" }}
       >
-        <ArrowRight
-          className="w-6 h-6 md:w-8 md:h-8"
-          style={{ color: "#652b82" }}
-        />
-      </motion.button>
-
-      <div className="relative z-10 max-h-screen flex flex-col">
         {/* المحتوى الرئيسي */}
-        <div className="flex-1 flex items-center justify-center px-6 py-6">
-          <div className="max-w-7xl w-full">
+        <div className="flex items-center justify-center ">
+          <div className="flex flex-col gap-6" style={{ width: "80%" }}>
             {/* العنوان */}
             <motion.div
               className="text-center mb-6"
@@ -232,181 +231,139 @@ export function VideosSection() {
             >
               <h1
                 className="text-2xl md:text-4xl mb-2"
-                style={{ color: "#652b82" }}
+                style={{
+                  color: "#F9F9F9",
+                  fontFamily: "tajawal",
+                  fontSize: "30px",
+                  fontWeight: "700",
+                }}
               >
                 فيديوهات حرف ال{letterName || "ألف"}
               </h1>
-              <p className="text-xs md:text-sm text-gray-600">
-                شاهد وتعلم حرف الألف بطريقة ممتعة
-              </p>
             </motion.div>
-
-            {/* السلايدر للفيديوهات */}
-            <div className="relative px-12">
-              {/* أزرار التنقل */}
-              <button
-                onClick={handleNext}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all"
-                style={{ backgroundColor: "#fad656" }}
-              >
-                <ChevronLeft className="w-6 h-6" style={{ color: "#652b82" }} />
-              </button>
-
-              <button
-                onClick={handlePrev}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all"
-                style={{ backgroundColor: "#fad656" }}
-              >
-                <ChevronRight
-                  className="w-6 h-6"
-                  style={{ color: "#652b82" }}
-                />
-              </button>
-
+            <div style={{ marginTop: "30px" }}>
               <motion.div
-                key={currentPage}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.3 }}
-                className={`grid gap-4 ${
-                  videosPerPage === 1
-                    ? "grid-cols-1"
-                    : videosPerPage === 2
-                      ? "grid-cols-1 sm:grid-cols-2"
-                      : "grid-cols-1 md:grid-cols-3"
-                }`}
+                className="text-center mb-6 flex items-start"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
               >
-                {currentVideos.map((video, index) => {
-                  const videoId = video.youtube_url.includes("embed")
-                    ? video.youtube_url.split("/embed/")[1]
-                    : video.youtube_url.split("v=")[1];
+                <p
+                  className="text-xs md:text-sm text-gray-600"
+                  style={{
+                    color: "#FDFDFD",
+                    fontFamily: "tajawal",
+                    fontSize: "25px",
+                    fontWeight: "500",
+                  }}
+                >
+                  شاهد وتعلم حرف الألف بطريقة ممتعة
+                </p>
+              </motion.div>
+              {/* السلايدر للفيديوهات */}
+              <div className="relative px-12">
+                <motion.div
+                  key={currentPage}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.3 }}
+                  className={`grid gap-4 ${
+                    videosPerPage === 1
+                      ? "grid-cols-1"
+                      : videosPerPage === 2
+                        ? "grid-cols-1 sm:grid-cols-2"
+                        : "grid-cols-1 md:grid-cols-3"
+                  }`}
+                >
+                  {currentVideos.map((video, index) => {
+                    const videoId = video.youtube_url.includes("embed")
+                      ? video.youtube_url.split("/embed/")[1]
+                      : video.youtube_url.split("v=")[1];
 
-                  const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                    const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
-                  return (
-                    <motion.div
-                      key={video.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      whileHover={{ scale: 1.02 }}
-                    >
-                      <a
-                        href={`https://www.youtube.com/watch?v=${videoId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block"
+                    return (
+                      <motion.div
+                        key={video.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02 }}
                       >
-                        <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all border-2 border-white">
-                          {/* صورة الفيديو */}
-                          <div className="relative aspect-video overflow-hidden bg-gray-100">
+                        <a
+                          href={`https://www.youtube.com/watch?v=${videoId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <div className="relative bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all">
+                            {/* الزاوية الصفراء */}
+
                             <img
-                              src={thumbnail}
-                              alt={video.video_title}
-                              className="w-full h-full object-cover"
+                              src={videoVector}
+                              className="absolute top-0 left-0"
                             />
-
-                            {/* تراكب عند التمرير */}
-                            <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 group">
-                              <motion.div
-                                className="w-12 h-12 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                style={{ backgroundColor: "#fad656" }}
-                                whileHover={{ scale: 1.1 }}
-                              >
-                                <Play
-                                  className="w-6 h-6"
-                                  style={{ color: "#652b82" }}
-                                  fill="#652b82"
-                                />
-                              </motion.div>
-                            </div>
-
-                            {/* مدة الفيديو */}
-                            <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 px-2 py-1 rounded-lg flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-white" />
-                              <span className="text-white text-xs">
-                                {video.duration}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* معلومات الفيديو */}
-                          <div className="p-4">
-                            <h3
-                              className="text-base mb-1"
-                              style={{ color: "#652b82" }}
-                            >
-                              {video.video_title}
-                            </h3>
-                            <p className="text-gray-600 text-xs line-clamp-2">
-                              {video.description}
-                            </p>
-
-                            {/* زر المشاهدة */}
-                            <div className="mt-3">
-                              <div
-                                className="w-full py-2 rounded-lg text-white text-center flex items-center justify-center gap-2 shadow-md text-sm"
-                                style={{
-                                  background:
-                                    "linear-gradient(135deg, #652b82, #7d3ba0)",
-                                }}
-                              >
-                                <Play className="w-4 h-4" fill="white" />
-                                <span>شاهد الآن</span>
+                            {/* القسم العلوي */}
+                            <div className="flex items-center justify-center h-56">
+                              <div className="bg-red-600 rounded-xl p-4">
+                                <img src={youtubeIcon} />
                               </div>
                             </div>
-                          </div>
-                        </div>
-                      </a>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
 
-              {/* النمر في الزاوية */}
-              <motion.div
-                className="fixed bottom-2 left-2 md:bottom-4 md:left-4 z-20"
-                initial={{ x: -200, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 100,
-                  damping: 15,
-                  delay: 0.5,
-                }}
-              >
-                <motion.img
-                  src={tigerImg}
-                  alt="نمر"
-                  className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
-                  animate={{
-                    y: [0, -8, 0],
-                    rotate: [0, 3, -3, 0],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-              </motion.div>
-              {/* مؤشرات الصفحات */}
-              {totalPages > 1 && (
-                <div className="flex justify-center gap-2 mt-6">
-                  {Array.from({ length: totalPages }).map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentPage(index)}
-                      className="w-3 h-3 rounded-full transition-all"
-                      style={{
-                        backgroundColor:
-                          currentPage === index ? "#652b82" : "#d1d5db",
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
+                            {/* الخط الفاصل */}
+                            <div className="border-t border-gray-300" style={{color:"#0000001C"}}></div>
+
+                            {/* القسم السفلي */}
+                            <div className="p-4 text-start">
+                              <h3
+                                
+                                style={{
+                                  color: "#28345F",
+                                  fontFamily: "tajawal",
+                                  fontSize: "20px",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                {video.video_title}
+                              </h3>
+
+                              <p   style={{
+                                  color: "#28345F9E",
+                                  fontFamily: "tajawal",
+                                  fontSize: "14px",
+                                  fontWeight: "500",
+                                }}>
+                                {video.description}
+                              </p>
+                            </div>
+                          </div>
+                        </a>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+
+                {/* مؤشرات الصفحات */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-3 mt-8">
+                    {Array.from({ length: totalPages }).map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentPage(index)}
+                        className={`rounded-full transition-all duration-300 ${
+                          currentPage === index
+                            ? "w-4 h-4"
+                            : "w-3 h-3 opacity-60"
+                        }`}
+                        style={{
+                          backgroundColor:
+                            currentPage === index ? "#FAD656" : "#FAD656",
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

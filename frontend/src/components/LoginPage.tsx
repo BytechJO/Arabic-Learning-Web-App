@@ -272,7 +272,7 @@ const handleLogin = async (e: React.FormEvent) => {
 ) : (<div
     className="fixed inset-0 -z-10 overflow-hidden"
     style={{
-       background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+       background: "linear-gradient(120deg, #A68BB7 75%, #FFFBE8 100%)",
     }}
   /> )}
 

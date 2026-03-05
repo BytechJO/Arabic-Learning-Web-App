@@ -150,7 +150,7 @@ export function LetterPosition() {
       <div
         className="fixed inset-0"
         style={{
-          background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+          background: "linear-gradient(120deg, #A68BB7 75%, #FFFBE8 100%)",
         }}
       ></div>
 
@@ -302,7 +302,7 @@ export function LetterPosition() {
                     className="absolute inset-0 rounded-3xl p-6 flex items-center justify-center z-10"
                     style={{
                       backgroundColor:
-                        showFeedback === "correct" ? "#fad656" : "#ffffff",
+                        showFeedback === "correct" ? "#FDC333" : "#ffffff",
                     }}
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -420,7 +420,7 @@ export function LetterPosition() {
         </div>
       </div>
       <AnimatePresence>
-        {/* {showFinishModal && ( */}
+        {showFinishModal && (
         <motion.div
           className="fixed inset-0 flex items-center justify-center z-50"
           style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
@@ -482,19 +482,19 @@ export function LetterPosition() {
                 style={{backgroundColor:"#652B82"}}
                 className="px-6 py-2.5 rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
               >
-                العب مرة أخرى ↻
+                التالي 
               </button>
-              <button
+              {/* <button
                  style={{backgroundColor:"#FDC333",color:"#652B82"}}
                 onClick={() => setShowFinishModal(false)}
                 className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
               >
                 رجوع
-              </button>
+              </button> */}
             </div>
           </motion.div>
         </motion.div>
-        {/* )} */}
+        )} 
       </AnimatePresence>
       {/* Footer للأنشطة */}
 

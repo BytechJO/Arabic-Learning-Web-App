@@ -113,7 +113,7 @@ export function TeacherResources() {
       <div
         className="shadow-md h-56 shrink-0"
         style={{
-          background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+          background: "linear-gradient(120deg, #A68BB7 75%, #FFFBE8 100%)",
         }}
       >
         <div className="px-4 md:px-6 py-2 md:py-2.5 overflow-hidden">

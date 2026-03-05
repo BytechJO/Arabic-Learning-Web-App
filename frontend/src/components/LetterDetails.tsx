@@ -75,7 +75,7 @@ export function LetterDetails() {
       <div
         className="fixed inset-0"
         style={{
-          background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+          background: "linear-gradient(120deg, #A68BB7 75%, #FFFBE8 100%)",
         }}
       ></div>
 

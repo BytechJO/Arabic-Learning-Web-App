@@ -72,7 +72,7 @@ export function TeacherHomePage() {
           className="fixed top-0 left-0 right-0 shadow-md z-50 h-56"
           style={{
             borderBottom: "3px solid #fad656",
-            background: "linear-gradient(160deg, #A68BB7 30%, #FFFBE8 100%)",
+            background: "linear-gradient(120deg, #A68BB7 75%, #FFFBE8 100%)",
           }}
         >
           <div className="px-4 md:px-6 py-2 md:py-2.5">
