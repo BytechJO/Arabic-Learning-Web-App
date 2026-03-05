@@ -8,7 +8,8 @@ import api from "../../API/axios";
 import { saveGameResult } from "../../API/gameResult";
 import { RootState } from "../../redux/store";
 import { fetchLetters } from "../../redux/reducers/lettersSlice";
-
+import backImg from "../../assets/background_imgMatch.svg"
+import frontImg from "../../assets/frontImg_match.svg"
 /* ===================== Types ===================== */
 
 interface Card {
@@ -17,6 +18,107 @@ interface Card {
   type: "letter" | "word";
   matched: boolean;
   flipped: boolean;
+}
+
+/* ===================== Card Back Decoration ===================== */
+
+function CardBackDecoration() {
+  return (
+    <img
+      className=""
+     src={backImg}
+      
+ />
+ 
+  );
+}
+function CardFrontDecoration() {
+  return (
+    <img
+      className=""
+     src={frontImg}
+      
+ />
+ 
+  );
+}
+/* ===================== Flip Card ===================== */
+
+function GameCard({
+  card,
+  index,
+  onClick,
+  disabled,
+}: {
+  card: Card;
+  index: number;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const isFlipped = card.flipped || card.matched;
+  const canClick = !disabled && !card.matched && !card.flipped;
+
+  return (
+    <motion.div
+      className={`aspect-square ${canClick ? "cursor-pointer" : "cursor-default"}`}
+      style={{ perspective: "800px" }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.05 }}
+      onClick={canClick ? onClick : undefined}
+    >
+      <motion.div
+        className="relative w-full h-full"
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{
+          duration: 0.5,
+          type: "spring",
+          stiffness: 120,
+          damping: 15,
+        }}
+        style={{
+          transformStyle: "preserve-3d",
+        }}
+      >
+        {/* Back of card (ظهر الورقة - question mark) */}
+        <div
+          className="absolute inset-0 rounded-2xl overflow-hidden flex items-center justify-center"
+          style={{
+           
+            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "rotateY(0deg)",
+          }}
+        >
+          <CardBackDecoration />
+         
+        </div>
+
+        {/* Front of card (واجهة الورقة - content) */}
+        <div
+          className="absolute inset-0 rounded-2xl overflow-hidden flex items-center justify-center"
+          style={{
+            backgroundColor: "#ffffff",
+            border: "2px solid",
+            borderColor: card.matched ? "#fad656" : "",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+          }}
+        >
+          <CardFrontDecoration />
+          <span
+            className="relative z-10 text-2xl md:text-3xl font-bold"
+            style={{ color: "#652b82" }}
+          >
+            {card.content}
+          </span>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
 }
 
 /* ===================== Toast ===================== */
@@ -252,32 +354,39 @@ export function MemoryMatchGame() {
     >
       {/* Header */}
       <div
-        className="absolute top-0 left-0 right-0 z-30 px-6 py-4 border-b-4"
-        style={{ borderColor: "#652b82", backgroundColor: "#ffffff" }}
+        className="absolute top-0 left-0 right-0 z-30 px-4 py-3 border-b"
+        style={{
+          borderColor: "#e5e5e5",
+          backgroundColor: "#ffffff",
+        }}
       >
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <button
             onClick={() => navigate(`/letter/${letter}/games`)}
-            className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
-            style={{ backgroundColor: "#ef4444", color: "#ffffff" }}
+            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+            style={{ backgroundColor: "#fce7f3", color: "#ec4899" }}
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-6">
-            <div
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg"
-              style={{ backgroundColor: "#fad656" }}
-            >
-              <Star className="w-6 h-6" style={{ color: "#652b82" }} />
-              <span className="text-xl" style={{ color: "#652b82" }}>
-                {score}
-              </span>
-            </div>
+          <h2
+            className="text-lg md:text-xl font-medium text-center flex-1"
+            style={{ color: "#652b82" }}
+          >
+            اقلب البطاقات وطابق الألف مع الكلمات
+          </h2>
 
-            <div className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg bg-white">
-              <span className="text-xl" style={{ color: "#652b82" }}>
-                حركات: {moves}
+          <div className="flex items-center gap-4 shrink-0">
+            <span className="text-lg" style={{ color: "#652b82" }}>
+              حركة: {moves}/10
+            </span>
+            <div className="flex items-center gap-1">
+              <Star
+                className="w-5 h-5"
+                style={{ color: "#652b82", fill: "transparent" }}
+              />
+              <span className="text-lg" style={{ color: "#652b82" }}>
+                {score}
               </span>
             </div>
           </div>
@@ -285,41 +394,20 @@ export function MemoryMatchGame() {
       </div>
 
       {/* Game Area */}
-      <div className="absolute inset-0 pt-24 pb-8 flex items-center justify-center">
-        <div className="max-w-5xl w-full px-6">
-          <motion.div
-            className="text-center mb-8"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+      <div className="absolute inset-0 pt-20 pb-8 flex items-center justify-center">
+        <div className="max-w-4xl w-full px-4">
+          <div
+            className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4"
+            style={{ backgroundColor: "#faf9f6" }}
           >
-            <h2 className="text-3xl mb-2" style={{ color: "#652b82" }}>
-              طابق حرف الألف مع الكلمات
-            </h2>
-            <p className="text-xl text-gray-700">
-              اقلب البطاقات وطابق الحرف مع الكلمة التي تبدأ به
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
             {cards.map((card, index) => (
-              <motion.button
+              <GameCard
                 key={card.id}
+                card={card}
+                index={index}
+                disabled={gameLost || flippedCards.length >= 2}
                 onClick={() => handleCardClick(card.id)}
-                className="aspect-square rounded-2xl shadow-xl border-4 flex items-center justify-center text-3xl md:text-4xl"
-                style={{
-                  backgroundColor:
-                    card.flipped || card.matched ? "#ffffff" : "#652b82",
-                  borderColor: card.matched ? "#fad656" : "#652b82",
-                  color: card.flipped || card.matched ? "#652b82" : "#ffffff",
-                }}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {card.flipped || card.matched ? card.content : "؟"}
-              </motion.button>
+              />
             ))}
           </div>
         </div>
