@@ -220,7 +220,7 @@ export function LetterDetails() {
         </div>
       </div>
 
-      {/* النمر في الزاوية اليسرى السفلى */}
+      {/* النمر في الزاوية اليسرى العليا */}
       <motion.div
         className="hidden md:block fixed -top-8 left-2 md:-top-8 md:left-3 z-10"
         initial={{ x: -200, opacity: 0 }}

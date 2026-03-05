@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Star, Award, RotateCcw, X } from "lucide-react";
+import tigerImg from "../../assets/catch_tiger.svg";
+import stars from "../../assets/Star.svg";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-
 import api from "../../API/axios";
 import { saveGameResult } from "../../API/gameResult";
 import { RootState } from "../../redux/store";
 import { fetchLetters } from "../../redux/reducers/lettersSlice";
-
+import { GameLoadingScreen } from "./WordCatchWelcom";
+import vectorEnd from "../../assets/vector_end.svg";
+import badegEnd from "../../assets/badeg_end.svg";
+import restart from "../../assets/Repeat.svg"
 /* ===================== Types ===================== */
 
 interface FallingWord {
@@ -31,6 +35,58 @@ interface WordCatchConfig {
 }
 
 /* ===================== Toast ===================== */
+
+function FallingBubble({
+  word,
+  onComplete,
+  onClick,
+}: {
+  word: FallingWord;
+  onComplete: () => void;
+  onClick: () => void;
+}) {
+  const duration = word.speed * 10;
+
+  const fallHeight =
+    typeof window !== "undefined" ? window.innerHeight + 100 : 900;
+
+  return (
+    <div
+      className="absolute top-0"
+      style={{
+        left: `${word.x}%`,
+        transform: "translateX(-50%)",
+      }}
+    >
+      <motion.button
+        initial={{ y: -60, scale: 1.15, opacity: 1 }}
+        animate={{
+          y: fallHeight,
+          scale: 0,
+          opacity: 0,
+        }}
+        transition={{
+          duration,
+          ease: "linear",
+        }}
+        onAnimationComplete={onComplete}
+        onClick={onClick}
+        className="flex items-center justify-center cursor-pointer rounded-full border-2 aspect-square min-w-[5rem] min-h-[5rem] p-3 shadow-sm"
+        style={{
+          backgroundColor: "#FFFFFF",
+          borderColor: "#FFB600",
+          color: "#28345F",
+          fontSize: "clamp(1rem, 2.5vw, 1.75rem)",
+          fontFamily: "inherit",
+        }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {word.word}
+      </motion.button>
+    </div>
+  );
+}
 
 function MistakeToast({ text }: { text: string | null }) {
   if (!text) return null;
@@ -67,7 +123,7 @@ export function WordCatchGame() {
   const [mistakeText, setMistakeText] = useState<string | null>(null);
   const [config, setConfig] = useState<WordCatchConfig | null>(null);
   const [gameLessonId, setGameLessonId] = useState<number | null>(null);
-
+  const [minLoadElapsed, setMinLoadElapsed] = useState(false);
   const [startTime] = useState(Date.now());
 
   /* ---------- Constants ---------- */
@@ -85,8 +141,7 @@ export function WordCatchGame() {
 
   /* ---------- Helpers ---------- */
 
-  const getDuration = () =>
-    Math.floor((Date.now() - startTime) / 1000);
+  const getDuration = () => Math.floor((Date.now() - startTime) / 1000);
 
   const getSpeedMultiplier = (count: number) => {
     if (count < 3) return 1;
@@ -97,6 +152,7 @@ export function WordCatchGame() {
 
   const triggerMistake = () => {
     setMistakes((prev) => {
+      if (prev >= MAX_MISTAKES) return prev;
       const next = prev + 1;
 
       setMistakeText(`خطأ ❌ ${next} / ${MAX_MISTAKES}`);
@@ -120,6 +176,11 @@ export function WordCatchGame() {
   };
 
   /* ---------- Effects ---------- */
+  // Minimum loader duration (2 seconds)
+  useEffect(() => {
+    const timer = setTimeout(() => setMinLoadElapsed(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Fetch letters
   useEffect(() => {
@@ -134,12 +195,9 @@ export function WordCatchGame() {
 
     const fetchConfig = async () => {
       try {
-        const res = await api.get(
-          "/lessons/games-lessons/by-letter-and-type",
-          {
-            params: { letter, gameType: "word_catch" },
-          }
-        );
+        const res = await api.get("/lessons/games-lessons/by-letter-and-type", {
+          params: { letter, gameType: "word_catch" },
+        });
 
         setGameLessonId(res.data.data.game_lesson_id);
         setConfig(res.data.data.data);
@@ -167,8 +225,7 @@ export function WordCatchGame() {
         })),
       ];
 
-      const randomWord =
-        allWords[Math.floor(Math.random() * allWords.length)];
+      const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
 
       const multiplier = getSpeedMultiplier(correctCount);
 
@@ -180,8 +237,7 @@ export function WordCatchGame() {
           startsWithAlef: randomWord.startsWithAlef,
           x: Math.random() * 80 + 10,
           speed:
-            (Math.random() *
-              (config.maxSpeed - config.minSpeed) +
+            (Math.random() * (config.maxSpeed - config.minSpeed) +
               config.minSpeed) /
             multiplier,
         },
@@ -234,12 +290,8 @@ export function WordCatchGame() {
 
   /* ---------- Loading ---------- */
 
-  if (!config) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <p>جاري تحميل اللعبة...</p>
-      </div>
-    );
+  if (!config || !minLoadElapsed) {
+    return <GameLoadingScreen  game_name={"catchWord"}/>;
   }
 
   /* ---------- Render ---------- */
@@ -248,147 +300,211 @@ export function WordCatchGame() {
     <div
       className="h-screen relative overflow-hidden"
       dir="rtl"
-      style={{ backgroundColor: "#faf9f6" }}
+      style={{
+        background: "linear-gradient(120deg, #FAF6E6 30%, #FAF9F6 100%)",
+      }}
     >
       {/* Header */}
       <div
-        className="absolute top-0 left-0 right-0 z-30 px-6 py-4 border-b-4"
-        style={{ borderColor: "#652b82", backgroundColor: "#ffffff" }}
+        className="absolute top-0 left-0 right-0 z-30 px-4 py-3"
+        style={{
+          background: "linear-gradient(120deg, #FAF6E6 30%, #FAF9F6 100%)",
+          borderBottom: "10px solid white",
+        }}
       >
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+          {/* Close */}
           <button
             onClick={() => navigate(`/letter/${letter}/games`)}
-            className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
-            style={{ backgroundColor: "#ef4444", color: "#ffffff" }}
+            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+            style={{ backgroundColor: "#FFA199", color: "black" }}
           >
             <X className="w-6 h-6" />
           </button>
 
-          <div className="flex items-center gap-6">
-            <div
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg"
-              style={{ backgroundColor: "#fad656" }}
-            >
-              <Star className="w-6 h-6" style={{ color: "#652b82" }} />
-              <span className="text-xl" style={{ color: "#652b82" }}>
-                {score}
-              </span>
-            </div>
+          {/* Instruction */}
+          <p
+            className="flex-1 text-center text-lg px-4 truncate max-md:text-base"
+            style={{
+              color: "#28345F",
+              fontFamily: "tajawal",
+              fontSize: "25px",
+              fontWeight: "500",
+            }}
+          >
+            {config.instruction}
+          </p>
 
-            <div
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg"
+          {/* Score */}
+          <div
+            className="flex items-center gap-2 px-5 py-2 rounded-2xl shrink-0"
+            style={{ backgroundColor: "#652b82", color: "#ffffff" }}
+          >
+            <img src={stars} className="w-6 h-6" />
+
+            <span
+              className="text-xl font-medium"
               style={{
-                backgroundColor: mistakes >= 3 ? "#ef4444" : "#ffffff",
+                color: "#F9F9F9",
+                fontFamily: "tajawal",
+                fontSize: "20px",
+                fontWeight: "500",
               }}
             >
-              <span
-                className="text-xl"
-                style={{
-                  color: mistakes >= 3 ? "#ffffff" : "#ef4444",
-                }}
-              >
-                أخطاء: {mistakes}/{config.maxMistakes}
-              </span>
-            </div>
+              {score}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Game Area */}
-      <div className="absolute inset-0 pt-24 pb-8">
-        <div className="max-w-6xl mx-auto h-full relative">
+      <div className="absolute inset-0 pt-20 pb-24">
+        <div className="h-full relative">
           <AnimatePresence>
             {words.map((word) => (
-              <motion.button
+              <FallingBubble
                 key={word.id}
-                initial={{ y: -100 }}
-                animate={{ y: window.innerHeight }}
-                transition={{ duration: word.speed * 5, ease: "linear" }}
-                onAnimationComplete={() => handleWordMiss(word.id)}
+                word={word}
+                onComplete={() => handleWordMiss(word.id)}
                 onClick={() => handleWordClick(word)}
-                className="absolute px-8 py-4 rounded-3xl shadow-2xl text-2xl cursor-pointer border-4"
-                style={{
-                  left: `${word.x}%`,
-                  transform: "translateX(-50%)",
-                  backgroundColor: "#ffffff",
-                  borderColor: word.startsWithAlef
-                    ? "#fad656"
-                    : "#e5e5e5",
-                  color: "#652b82",
-                }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {word.word}
-              </motion.button>
+              />
             ))}
           </AnimatePresence>
-
-          {/* Instruction */}
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white rounded-3xl px-8 py-4 shadow-xl border-4"
-            style={{ borderColor: "#652b82" }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <p className="text-xl" style={{ color: "#652b82" }}>
-              {config.instruction}
-            </p>
-          </motion.div>
         </div>
       </div>
 
-      {/* Mistake Toast */}
+      {/* Errors - bottom left */}
+      <div
+        className="absolute bottom-6 left-6 z-20 text-xl font-medium"
+        style={{
+          color: "#EE0000",
+          fontFamily: "tajawal",
+          fontSize: "25px",
+          fontWeight: "500",
+        }}
+      >
+        أخطاء {mistakes}/{config.maxMistakes}
+      </div>
+
+      {/* Tiger - bottom right */}
+      <div className="absolute bottom-0 right-0 z-10 w-48 h-48 md:w-64 md:h-64 pointer-events-none">
+        <img
+          src={tigerImg}
+          alt=""
+          className="w-full h-full object-contain object-bottom"
+        />
+      </div>
+
+      {/* Mistake Toast
       <AnimatePresence>
         <MistakeToast text={mistakeText} />
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       {/* Game Over */}
       {gameOver && (
         <motion.div
-          className="fixed inset-0 z-40 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <motion.div
-            className="bg-white rounded-3xl p-12 shadow-2xl border-4 max-w-md mx-4 text-center"
-            style={{ borderColor: "#fad656" }}
-            initial={{ scale: 0, rotate: -10 }}
-            animate={{ scale: 1, rotate: 0 }}
+            className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
+            initial={{ scale: 0.7, y: 80 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.7, y: 80 }}
+            transition={{ type: "spring", stiffness: 250, damping: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ borderRadius: "20px" }}
+            dir="rtl"
           >
-            <Award
-              className="w-24 h-24 mx-auto mb-4"
-              style={{ color: "#fad656" }}
-            />
+            {/* الزخرفة الصفراء */}
+            <img className="absolute top-0 left-0" src={vectorEnd} />
 
-            <h2 className="text-4xl mb-3" style={{ color: "#652b82" }}>
-              انتهت اللعبة!
-            </h2>
+            {/* أيقونة الوسام */}
+            <div className="relative z-10 flex justify-center mb-4">
+              <div className="text-[#FDC333] text-5xl">
+                <img src={badegEnd} />
+              </div>
+            </div>
 
-            <p className="text-2xl text-gray-700 mb-6">
-              نقاطك: {score}
+            {/* العنوان */}
+            <motion.h2
+              className="text-2xl md:text-3xl mb-2"
+              style={{
+                color: "#28345F",
+                fontFamily: "tajawal",
+                fontSize: "30px",
+                fontWeight: "500",
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              انتهت اللعبه
+            </motion.h2>
+            {/* التفاصيل */}
+            <p
+              className="text-[#28345F] text-base mb-1"
+              style={{
+                color: "#28345F",
+                fontFamily: "tajawal",
+                fontSize: "20px",
+                fontWeight: "500",
+              }}
+            >
+              نقاطك:{" "}
+              <span
+                className="font-semibold"
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}
+              >
+                {score} 
+              </span>
             </p>
-
-            <div className="flex gap-4 justify-center">
+            <p
+              className="text-[#28345F] text-base mb-1"
+              style={{
+                color: "#EE0000",
+                fontFamily: "tajawal",
+                fontSize: "20px",
+                fontWeight: "500",
+              }}
+            >
+              عددالاخطاء :{" "}
+              <span
+                className="font-semibold"
+                style={{
+                  color: "#EE0000",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}
+              >
+                {mistakes}
+              </span>
+            </p>
+            <div
+              className="flex gap-4 justify-center"
+              style={{ marginTop: "20px" }}
+            >
               <button
                 onClick={resetGame}
-                className="flex items-center gap-2 px-8 py-4 rounded-2xl shadow-lg text-white text-xl"
-                style={{ backgroundColor: "#652b82" }}
+                style={{ backgroundColor: "#652B82" }}
+                className="px-6 py-4 flex rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
               >
-                <RotateCcw className="w-6 h-6" />
+                <img src={restart} className="w-6 h-6" />
                 <span>العب مرة أخرى</span>
               </button>
 
               <button
-                onClick={() =>
-                  navigate(`/letter/${letter}/games`)
-                }
-                className="px-8 py-4 rounded-2xl shadow-lg text-xl"
-                style={{
-                  backgroundColor: "#fad656",
-                  color: "#652b82",
-                }}
+                onClick={() => navigate(`/letter/${letter}/games`)}
+                style={{ backgroundColor: "#FDC333", color: "#652B82" }}
+                className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
               >
                 رجوع
               </button>
