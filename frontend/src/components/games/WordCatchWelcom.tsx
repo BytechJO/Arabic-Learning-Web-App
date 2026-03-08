@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import background_catchWord from "../../assets/background_catchLoader.svg";
-import background_wordMatch from "../../assets/wordMatch.svg";
+import background_wordMatch from "../../assets/background_wordMatch.svg";
 import background_sorting from "../../assets/background_sorting.svg";
 import background_balloon from "../../assets/background_balloon.svg";
 

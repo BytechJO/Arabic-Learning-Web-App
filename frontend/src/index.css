@@ -841,7 +841,9 @@
   .mt-20 {
     margin-top: calc(var(--spacing) * 20);
   }
-
+ .mt-30 {
+    margin-top: calc(var(--spacing) * 30);
+  }
   .mt-auto {
     margin-top: auto;
   }
@@ -1307,6 +1309,9 @@
 
   .gap-4 {
     gap: calc(var(--spacing) * 4);
+  }
+  .gap-5 {
+    gap: calc(var(--spacing) * 5);
   }
 
   .gap-6 {

@@ -8,8 +8,12 @@ import api from "../../API/axios";
 import { saveGameResult } from "../../API/gameResult";
 import { RootState } from "../../redux/store";
 import { fetchLetters } from "../../redux/reducers/lettersSlice";
-import backImg from "../../assets/background_imgMatch.svg"
-import frontImg from "../../assets/frontImg_match.svg"
+import backImg from "../../assets/background_imgMatch.svg";
+import frontImg from "../../assets/frontImg_match.svg";
+import vectorEnd from "../../assets/vector_end.svg";
+import badegEnd from "../../assets/badeg_end.svg";
+import restart from "../../assets/Repeat.svg";
+import { GameLoadingScreen } from "./WordCatchWelcom";
 /* ===================== Types ===================== */
 
 interface Card {
@@ -23,25 +27,9 @@ interface Card {
 /* ===================== Card Back Decoration ===================== */
 
 function CardBackDecoration() {
-  return (
-    <img
-      className=""
-     src={backImg}
-      
- />
- 
-  );
+  return <img className="" src={backImg} />;
 }
-function CardFrontDecoration() {
-  return (
-    <img
-      className=""
-     src={frontImg}
-      
- />
- 
-  );
-}
+
 /* ===================== Flip Card ===================== */
 
 function GameCard({
@@ -68,7 +56,7 @@ function GameCard({
       onClick={canClick ? onClick : undefined}
     >
       <motion.div
-        className="relative w-full h-full"
+        className="relative h-full"
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{
           duration: 0.5,
@@ -78,13 +66,13 @@ function GameCard({
         }}
         style={{
           transformStyle: "preserve-3d",
+          width: "95%",
         }}
       >
         {/* Back of card (ظهر الورقة - question mark) */}
         <div
-          className="absolute inset-0 rounded-2xl overflow-hidden flex items-center justify-center"
+          className="inset-0 rounded-3xl overflow-hidden flex items-center justify-center"
           style={{
-           
             boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
@@ -92,12 +80,11 @@ function GameCard({
           }}
         >
           <CardBackDecoration />
-         
         </div>
 
         {/* Front of card (واجهة الورقة - content) */}
         <div
-          className="absolute inset-0 rounded-2xl overflow-hidden flex items-center justify-center"
+          className="absolute inset-0 rounded-3xl overflow-hidden flex items-center justify-center"
           style={{
             backgroundColor: "#ffffff",
             border: "2px solid",
@@ -108,7 +95,6 @@ function GameCard({
             transform: "rotateY(180deg)",
           }}
         >
-          <CardFrontDecoration />
           <span
             className="relative z-10 text-2xl md:text-3xl font-bold"
             style={{ color: "#652b82" }}
@@ -154,7 +140,7 @@ export function MemoryMatchGame() {
   const [score, setScore] = useState(0);
   const [moves, setMoves] = useState(0);
   const [movesToastText, setMovesToastText] = useState<string | null>(null);
-
+  const [minLoadElapsed, setMinLoadElapsed] = useState(false);
   const [gameWon, setGameWon] = useState(false);
   const [gameLost, setGameLost] = useState(false);
 
@@ -172,11 +158,14 @@ export function MemoryMatchGame() {
 
   /* ---------- Helpers ---------- */
 
-  const getDuration = () =>
-    Math.floor((Date.now() - startTime) / 1000);
+  const getDuration = () => Math.floor((Date.now() - startTime) / 1000);
 
   /* ---------- Effects ---------- */
-
+  // Minimum loader duration (2 seconds)
+  useEffect(() => {
+    const timer = setTimeout(() => setMinLoadElapsed(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
   // Fetch letters if not loaded
   useEffect(() => {
     if (!letters.length) {
@@ -190,15 +179,12 @@ export function MemoryMatchGame() {
 
     const fetchGameData = async () => {
       try {
-        const res = await api.get(
-          "/lessons/games-lessons/by-letter-and-type",
-          {
-            params: {
-              letter,
-              gameType: "memory_match",
-            },
-          }
-        );
+        const res = await api.get("/lessons/games-lessons/by-letter-and-type", {
+          params: {
+            letter,
+            gameType: "memory_match",
+          },
+        });
 
         const game = res.data.data;
         if (!game || !game.data?.pairs) return;
@@ -281,8 +267,8 @@ export function MemoryMatchGame() {
 
     setCards((prev) =>
       prev.map((card) =>
-        card.id === cardId ? { ...card, flipped: true } : card
-      )
+        card.id === cardId ? { ...card, flipped: true } : card,
+      ),
     );
 
     if (newFlipped.length === 2) {
@@ -318,8 +304,8 @@ export function MemoryMatchGame() {
           prev.map((card) =>
             card.id === first || card.id === second
               ? { ...card, matched: true, flipped: true }
-              : card
-          )
+              : card,
+          ),
         );
         setScore((s) => s + 10);
 
@@ -335,8 +321,8 @@ export function MemoryMatchGame() {
           prev.map((card) =>
             card.id === first || card.id === second
               ? { ...card, flipped: false }
-              : card
-          )
+              : card,
+          ),
         );
       }
 
@@ -344,61 +330,110 @@ export function MemoryMatchGame() {
     }, 1000);
   };
 
+  /* ---------- Loading ---------- */
+
+  const isGameReady = pairs.length > 0;
+  if (!isGameReady || !minLoadElapsed) {
+    return <GameLoadingScreen game_name={"wordMatch"} />;
+  }
+
   /* ---------- Render ---------- */
 
   return (
     <div
-      className="h-screen relative overflow-hidden"
+      className="h-screen relative"
       dir="rtl"
-      style={{ backgroundColor: "#faf9f6" }}
+      style={{
+        background: "linear-gradient(120deg, #faf9f6 30%, #faf7e9 100%)",
+      }}
     >
       {/* Header */}
       <div
-        className="absolute top-0 left-0 right-0 z-30 px-4 py-3 border-b"
+        className="absolute top-0 left-0 right-0 z-30 px-4 py-3"
         style={{
-          borderColor: "#e5e5e5",
-          backgroundColor: "#ffffff",
+          background: "linear-gradient(120deg, #faf9f6 30%, #faf7e9100%)",
+          borderBottom: "10px solid white",
         }}
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <button
             onClick={() => navigate(`/letter/${letter}/games`)}
             className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-            style={{ backgroundColor: "#fce7f3", color: "#ec4899" }}
+            style={{
+              backgroundColor: "#FFA199",
+              color: "black",
+              fontSize: "25px",
+            }}
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
 
           <h2
             className="text-lg md:text-xl font-medium text-center flex-1"
-            style={{ color: "#652b82" }}
+            style={{
+              color: "#28345F",
+              fontFamily: "tajawal",
+              fontSize: "20px",
+            }}
           >
             اقلب البطاقات وطابق الألف مع الكلمات
           </h2>
 
           <div className="flex items-center gap-4 shrink-0">
-            <span className="text-lg" style={{ color: "#652b82" }}>
-              حركة: {moves}/10
-            </span>
-            <div className="flex items-center gap-1">
+            <div
+              className="flex items-center gap-2"
+              style={{
+                color: "#652b82",
+                backgroundColor: "#faf6e7",
+                borderRadius: "15px",
+                padding: "5px 10px",
+              }}
+            >
               <Star
                 className="w-5 h-5"
                 style={{ color: "#652b82", fill: "transparent" }}
               />
-              <span className="text-lg" style={{ color: "#652b82" }}>
+              <span
+                className="text-lg"
+                style={{
+                  color: "#652b82",
+                  fontFamily: "tajawal",
+                  fontSize: "25px",
+                }}
+              >
                 {score}
               </span>
             </div>
+            <span
+              className="text-lg"
+              style={{
+                color: "#652b82",
+                backgroundColor: "#faf6e7",
+                borderRadius: "15px",
+                padding: "10px",
+                fontFamily: "tajawal",
+                fontSize: "22px",
+              }}
+            >
+              حركة: {moves}/10
+            </span>
           </div>
         </div>
       </div>
 
       {/* Game Area */}
-      <div className="absolute inset-0 pt-20 pb-8 flex items-center justify-center">
-        <div className="max-w-4xl w-full px-4">
+      <div className="absolute inset-0 pt-20 pb-8 flex items-center justify-center mt-30">
+        <div
+          className="max-w-4xl w-full px-4"
+          style={{ marginTop: "40px", marginBottom: "40px" }}
+        >
           <div
             className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4"
-            style={{ backgroundColor: "#faf9f6" }}
+            style={{
+              backgroundColor: "#FAF6E7",
+              marginTop: "90px",
+              marginBottom: "40px",
+            }}
           >
             {cards.map((card, index) => (
               <GameCard
@@ -426,32 +461,89 @@ export function MemoryMatchGame() {
           animate={{ opacity: 1 }}
         >
           <motion.div
-            className="bg-white rounded-3xl p-12 shadow-2xl border-4 max-w-md mx-4 text-center"
-            style={{ borderColor: "#fad656" }}
-            initial={{ scale: 0, rotate: -10 }}
-            animate={{ scale: 1, rotate: 0 }}
+            className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
+            initial={{ scale: 0.7, y: 80 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.7, y: 80 }}
+            transition={{ type: "spring", stiffness: 250, damping: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ borderRadius: "20px" }}
+            dir="rtl"
           >
-            <Award className="w-24 h-24 mx-auto mb-4" style={{ color: "#fad656" }} />
-            <h2 className="text-4xl mb-3" style={{ color: "#652b82" }}>
-              أحسنت!
-            </h2>
-            <p className="text-2xl text-gray-700 mb-2">نقاطك: {score}</p>
-            <p className="text-xl text-gray-600 mb-6">عدد الحركات: {moves}</p>
+            {/* الزخرفة الصفراء */}
+            <img className="absolute top-0 left-0" src={vectorEnd} />
 
-            <div className="flex gap-4 justify-center">
+            {/* أيقونة الوسام */}
+            <div className="relative z-10 flex justify-center mb-4">
+              <div className="text-[#FDC333] text-5xl">
+                <img src={badegEnd} />
+              </div>
+            </div>
+            <motion.h2
+              className="text-2xl md:text-3xl mb-2"
+              style={{
+                color: "#28345F",
+                fontFamily: "tajawal",
+                fontSize: "30px",
+                fontWeight: "500",
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              احسنت
+            </motion.h2>
+            <p
+              className="text-[#28345F] text-base mb-1"
+              style={{
+                color: "#28345F",
+                fontFamily: "tajawal",
+                fontSize: "20px",
+                fontWeight: "500",
+              }}
+            >
+              نقاطك:{" "}
+              <span
+                className="font-semibold"
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}
+              >
+                {score}
+              </span>
+            </p>
+            <p
+              className="text-[#28345F] text-base mb-1"
+              style={{
+                color: "#EE0000",
+                fontFamily: "tajawal",
+                fontSize: "20px",
+                fontWeight: "500",
+              }}
+            >
+              عدد الحركات: {moves}
+            </p>
+
+            <div
+              className="flex gap-4 justify-center"
+              style={{ marginTop: "20px" }}
+            >
               <button
                 onClick={() => initializeGame()}
-                className="flex items-center gap-2 px-8 py-4 rounded-2xl shadow-lg text-white text-xl"
-                style={{ backgroundColor: "#652b82" }}
+                style={{ backgroundColor: "#652B82" }}
+                className="px-6 py-4 flex rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
               >
-                <RotateCcw className="w-6 h-6" />
-                العب مرة أخرى
+                <img src={restart} className="w-6 h-6" />
+                <span>العب مرة أخرى</span>
               </button>
 
               <button
                 onClick={() => navigate(`/letter/${letter}/games`)}
-                className="px-8 py-4 rounded-2xl shadow-lg text-xl"
-                style={{ backgroundColor: "#fad656", color: "#652b82" }}
+                style={{ backgroundColor: "#FDC333", color: "#652B82" }}
+                className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
               >
                 رجوع
               </button>
@@ -469,32 +561,74 @@ export function MemoryMatchGame() {
           animate={{ opacity: 1 }}
         >
           <motion.div
-            className="bg-white rounded-3xl p-12 shadow-2xl border-4 max-w-md mx-4 text-center"
-            style={{ borderColor: "#ef4444" }}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
+            className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
+            initial={{ scale: 0.7, y: 80 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.7, y: 80 }}
+            transition={{ type: "spring", stiffness: 250, damping: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ borderRadius: "20px" }}
+            dir="rtl"
           >
-            <h2 className="text-4xl mb-4" style={{ color: "#ef4444" }}>
-              حظاً أوفر 😔
-            </h2>
-            <p className="text-xl text-gray-700 mb-6">
+            {/* الزخرفة الصفراء */}
+            <img className="absolute top-0 left-0" src={vectorEnd} />
+
+            {/* أيقونة الوسام */}
+            <div className="relative z-10 flex justify-center mb-4">
+              <div className="text-[#FDC333] text-5xl">
+                <img src={badegEnd} />
+              </div>
+            </div>
+            <motion.h2
+              className="text-2xl md:text-3xl mb-2"
+              style={{
+                color: "#28345F",
+                fontFamily: "tajawal",
+                fontSize: "30px",
+                fontWeight: "500",
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              انتهت اللعبه
+            </motion.h2>
+            <p
+              className="mb-2"
+              style={{
+                color: "#28345fae",
+                fontFamily: "tajawal",
+                fontSize: "20px",
+                fontWeight: "400",
+              }}
+            >
               وصلت إلى الحد الأقصى من المحاولات
             </p>
-
+            <p
+              className="text-[#28345F] text-base mb-4"
+              style={{
+                color: "#EE0000",
+                fontFamily: "tajawal",
+                fontSize: "20px",
+                fontWeight: "500",
+              }}
+            >
+              عدد الحركات: {moves}
+            </p>
             <div className="flex gap-4 justify-center">
               <button
                 onClick={() => initializeGame()}
-                className="flex items-center gap-2 px-8 py-4 rounded-2xl shadow-lg text-white text-xl"
-                style={{ backgroundColor: "#652b82" }}
+                style={{ backgroundColor: "#652B82" }}
+                className="px-6 py-4 flex rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
               >
-                <RotateCcw className="w-6 h-6" />
-                العب مرة أخرى
+                <img src={restart} className="w-6 h-6" />
+                <span>العب مرة أخرى</span>
               </button>
 
               <button
                 onClick={() => navigate(`/letter/${letter}/games`)}
-                className="px-8 py-4 rounded-2xl shadow-lg text-xl"
-                style={{ backgroundColor: "#fad656", color: "#652b82" }}
+                style={{ backgroundColor: "#FDC333", color: "#652B82" }}
+                className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
               >
                 رجوع
               </button>

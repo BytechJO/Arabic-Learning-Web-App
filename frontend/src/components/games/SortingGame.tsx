@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Star, Award, RotateCcw, X } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -7,6 +7,9 @@ import { saveGameResult } from "../../API/gameResult";
 import { RootState } from "../../redux/store";
 import { fetchLetters } from "../../redux/reducers/lettersSlice";
 import { useDispatch, useSelector } from "react-redux";
+import vectorEnd from "../../assets/vector_end.svg";
+import badegEnd from "../../assets/badeg_end.svg";
+import restart from "../../assets/Repeat.svg";
 import {
   DndContext,
   PointerSensor,
@@ -19,13 +22,14 @@ import {
   DragOverlay,
   closestCenter,
 } from "@dnd-kit/core";
+import { GameLoadingScreen } from "./WordCatchWelcom";
 
 interface Item {
   id: number;
   word: string;
   startsWithAlef: boolean;
   placed: boolean;
-  position: "left" | "right" | null;
+  position: "alif" | "other" | null;
 }
 interface SortingGameConfig {
   title: string;
@@ -58,6 +62,11 @@ function MistakeToast({ text }: { text: string | null }) {
   );
 }
 
+const CARD_BG = "#fef9e7";
+const CARD_BORDER = "#e8c547";
+const ZONE_BORDER = "#e8c547";
+const TEXT_DARK = "#28345F";
+
 function DraggableItem({ item }: { item: Item }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: item.id });
@@ -73,11 +82,18 @@ function DraggableItem({ item }: { item: Item }) {
           ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
           : undefined,
         touchAction: "none",
-        backgroundColor: "#ffffff",
-        borderColor: "#652b82",
-        color: "#652b82",
+        backgroundColor: CARD_BG,
+        borderColor: CARD_BORDER,
+        color: TEXT_DARK,
+        width: "90px",
+        height: "90px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        fontFamily: "tajawal",
+        fontSize: "25px",
       }}
-      className="px-8 py-4 rounded-2xl shadow-xl border-4 cursor-move text-2xl"
+      className="px-6 py-3 rounded-xl border-2 cursor-move text-xl"
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ scale: 1.05 }}
@@ -88,22 +104,41 @@ function DraggableItem({ item }: { item: Item }) {
   );
 }
 
-function DropZone({
+function DroppableZone({
   id,
-  className,
-  style,
+  title,
   children,
 }: {
-  id: "left" | "right";
-  className: string;
-  style: React.CSSProperties;
+  id: "alif" | "other";
+  title: string;
   children: React.ReactNode;
 }) {
   const { setNodeRef } = useDroppable({ id });
+
   return (
-    <motion.div ref={setNodeRef} className={className} style={style}>
-      {children}
-    </motion.div>
+    <div className="flex flex-col min-h-[200px]">
+      <h3
+        className="text-2xl mb-4 text-center font-bold"
+        style={{ color: TEXT_DARK, fontFamily: "tajawal", fontSize: "25px" }}
+      >
+        {title}
+      </h3>
+      <div
+        ref={setNodeRef}
+        className="rounded-2xl border-2 p-6 flex flex-col h-full overflow-y-auto"
+        style={{
+          borderColor: ZONE_BORDER,
+          backgroundColor: "#ffffff",
+        }}
+      >
+        <div
+          className="flex-1 flex flex-col gap-3 justify-start items-start min-h-[120px]"
+          dir="rtl"
+        >
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -116,10 +151,12 @@ export function SortingGame() {
 
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
+  const [moves, setMoves] = useState(0);
   const [gameWon, setGameWon] = useState(false);
 
   const [config, setConfig] = useState<SortingGameConfig | null>(null);
   const [loading, setLoading] = useState(true);
+  const [minLoadElapsed, setMinLoadElapsed] = useState(false);
   const [startTime] = useState(Date.now());
   const [gameLessonId, setGameLessonId] = useState<number | null>(null);
 
@@ -131,12 +168,17 @@ export function SortingGame() {
 
   const activeItem = useMemo(
     () => (activeId !== null ? items.find((i) => i.id === activeId) : null),
-    [activeId, items]
+    [activeId, items],
   );
 
   const getDuration = () => Math.floor((Date.now() - startTime) / 1000);
 
   /* ------------------------------- Effects ------------------------------- */
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMinLoadElapsed(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!letters.length) dispatch(fetchLetters());
@@ -204,7 +246,7 @@ export function SortingGame() {
   /* ------------------------------- DnD Setup ------------------------------ */
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
   const onDragStart = (event: DragStartEvent) => {
@@ -215,8 +257,8 @@ export function SortingGame() {
     const { active, over } = event;
     const itemId = Number(active.id);
 
-    if (over) {
-      handleDrop(over.id as "left" | "right", itemId);
+    if (over && (over.id === "alif" || over.id === "other")) {
+      handleDrop(over.id, itemId);
     }
 
     setActiveId(null);
@@ -224,19 +266,21 @@ export function SortingGame() {
 
   /* -------------------------------- Logic -------------------------------- */
 
-  const handleDrop = (side: "left" | "right", itemId: number) => {
+  const handleDrop = (zoneId: "alif" | "other", itemId: number) => {
     if (!config) return;
 
     const item = items.find((i) => i.id === itemId);
     if (!item || item.placed) return;
 
+    setMoves((prev) => prev + 1);
+
     const isCorrect =
-      (side === "right" && item.startsWithAlef) ||
-      (side === "left" && !item.startsWithAlef);
+      (zoneId === "alif" && item.startsWithAlef) ||
+      (zoneId === "other" && !item.startsWithAlef);
 
     if (isCorrect) {
       setScore((prev) => {
-        const newScore = prev + 10;
+        const newScore = prev + config.scorePerCorrect;
         if (newScore >= config.items.length * config.scorePerCorrect)
           setGameWon(true);
         return newScore;
@@ -244,20 +288,16 @@ export function SortingGame() {
 
       setItems((prev) => {
         const updated = prev.map((i) =>
-          i.id === itemId ? { ...i, placed: true, position: side } : i
+          i.id === itemId ? { ...i, placed: true, position: zoneId } : i,
         );
-
-        if (updated.every((i) => i.placed)) {
+        if (updated.every((i) => i.placed))
           setTimeout(() => setGameWon(true), 500);
-        }
-
         return updated;
       });
     } else {
       setMistakes((prev) => {
         const newMistakes = prev + 1;
-        setMistakeToast(`خطأ!  
-          عدد المحاولات  ${newMistakes}/3`);
+        setMistakeToast(`خطأ! عدد المحاولات ${newMistakes}/3`);
         if (newMistakes >= 3) setGameWon(true);
         return newMistakes;
       });
@@ -281,6 +321,7 @@ export function SortingGame() {
     setItems(resetItems);
     setScore(0);
     setMistakes(0);
+    setMoves(0);
     setGameWon(false);
     setActiveId(null);
   };
@@ -288,11 +329,13 @@ export function SortingGame() {
   /* -------------------------------- Derived -------------------------------- */
 
   const unplacedItems = items.filter((i) => !i.placed);
-  const leftItems = items.filter((i) => i.placed && i.position === "left");
-  const rightItems = items.filter((i) => i.placed && i.position === "right");
+  const alifItems = items.filter((i) => i.placed && i.position === "alif");
+  const otherItems = items.filter((i) => i.placed && i.position === "other");
 
-  if (loading) return <div className="text-center mt-20">جاري تحميل اللعبة...</div>;
-  if (!config) return <div className="text-center mt-20">لا توجد بيانات للعبة</div>;
+  if (loading || !minLoadElapsed)
+    return <GameLoadingScreen game_name={"sorting"} />;
+  if (!config)
+    return <div className="text-center mt-20">لا توجد بيانات للعبة</div>;
 
   return (
     <DndContext
@@ -301,39 +344,71 @@ export function SortingGame() {
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
-      <div className="h-screen relative" dir="rtl" style={{ backgroundColor: "#faf9f6" }}>
+      <div
+        className="h-screen relative"
+        dir="rtl"
+        style={{
+          background: "linear-gradient(120deg, #FAF6E6 30%, #FAF9F6 100%)",
+        }}
+      >
         {/* Header */}
         <div
           className="absolute top-0 left-0 right-0 z-30 px-6 py-4 border-b-4"
-          style={{ borderColor: "#652b82", backgroundColor: "#ffffff" }}
+          style={{
+            background: "linear-gradient(120deg, #FAF6E6 30%, #FAF9F6 100%)",
+            borderBottom: "10px solid white",
+          }}
         >
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <button
               onClick={() => navigate(`/letter/${letter}/games`)}
               className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
-              style={{ backgroundColor: "#ef4444", color: "#ffffff" }}
+              style={{
+                backgroundColor: "#FFA199",
+                color: "black",
+                fontSize: "25px",
+              }}
             >
               <X className="w-6 h-6" />
             </button>
-
-            <div className="flex items-center gap-6">
-              <div
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg"
-                style={{ backgroundColor: "#fad656" }}
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <h2
+                style={{
+                  color: TEXT_DARK,
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                }}
               >
-                <Star className="w-6 h-6" style={{ color: "#652b82" }} />
-                <span className="text-xl" style={{ color: "#652b82" }}>
-                  {score}
+                صنف الكلمات اسحب الكلمات إلى المكان الصحيح
+              </h2>
+            </motion.div>
+            <div className="flex items-center gap-4">
+              <div
+                className="flex items-center gap-2 px-4 py-2 rounded-xl"
+                style={{
+                  backgroundColor: "#fbf2d1ff",
+                  color: TEXT_DARK,
+                  borderRadius: "15px",
+                }}
+              >
+                <Star className="w-5 h-5" style={{ color: TEXT_DARK }} />
+                <span className="text-lg">
+                  {config.items.length * config.scorePerCorrect}
                 </span>
               </div>
-
               <div
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg"
-                style={{ backgroundColor: "#ffffff" }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl"
+                style={{
+                  backgroundColor: "#fbf2d1ff",
+                  color: TEXT_DARK,
+                  borderRadius: "15px",
+                }}
               >
-                <span className="text-xl" style={{ color: "#ef4444" }}>
-                  أخطاء: {mistakes}
-                </span>
+                <span className="text-lg">حركات: {moves}</span>
               </div>
             </div>
           </div>
@@ -343,84 +418,55 @@ export function SortingGame() {
 
         {/* Game Area */}
         <div className="absolute inset-0 pt-24 pb-8">
-          <div className="max-w-6xl mx-auto h-full px-6 flex flex-col">
-            <motion.div
-              className="text-center mb-6"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <h2 className="text-3xl mb-2" style={{ color: "#652b82" }}>
-                {config.title}
-              </h2>
-              <p className="text-xl text-gray-700">{config.instruction}</p>
-            </motion.div>
-
+          <div className="max-w-6xl mx-auto h-full px-6 flex flex-col mt-8 gap-4">
             {/* Unplaced Items */}
             <div className="mb-6">
-              <div className="flex flex-wrap gap-3 justify-center min-h-[100px]">
+              <div className="flex flex-wrap gap-3 justify-center">
                 {unplacedItems.map((item) => (
                   <DraggableItem key={item.id} item={item} />
                 ))}
               </div>
             </div>
 
-            {/* Drop Zones */}
-            <div className="flex-1 grid grid-cols-2 gap-6">
-              <DropZone
-                id="left"
-                className="rounded-3xl border-4 border-dashed p-6 flex flex-col"
-                style={{
-                  borderColor: "#652b82",
-                  backgroundColor: "rgba(101, 43, 130, 0.05)",
-                }}
-              >
-                <h3 className="text-2xl md:text-3xl mb-4 text-center" style={{ color: "#652b82" }}>
-                  حروف أخرى
-                </h3>
-                <div className="flex-1 flex flex-col gap-3 overflow-y-auto">
-                  {leftItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="px-6 py-3 rounded-2xl shadow-lg border-4 text-xl text-center"
-                      style={{
-                        backgroundColor: "#ffffff",
-                        borderColor: "#652b82",
-                        color: "#652b82",
-                      }}
-                    >
-                      {item.word}
-                    </div>
-                  ))}
-                </div>
-              </DropZone>
+            {/* Drop Zones - جدول فاضي بدون خطوط */}
+            <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
+              <DroppableZone id="other" title="حروف أخرى">
+                {otherItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="px-6 py-3 rounded-xl border-2 text-xl shrink-0"
+                    style={{
+                      backgroundColor: CARD_BG,
+                      borderColor: CARD_BORDER,
+                      color: TEXT_DARK,
+                      width: "100%",
+                      fontFamily: "tajawal",
+                      fontSize: "20px",
+                    }}
+                  >
+                    {item.word}
+                  </div>
+                ))}
+              </DroppableZone>
 
-              <DropZone
-                id="right"
-                className="rounded-3xl border-4 border-dashed p-6 flex flex-col"
-                style={{
-                  borderColor: "#fad656",
-                  backgroundColor: "rgba(250, 214, 86, 0.1)",
-                }}
-              >
-                <h3 className="text-2xl md:text-3xl mb-4 text-center" style={{ color: "#652b82" }}>
-                  حرف الألف (أ)
-                </h3>
-                <div className="flex-1 flex flex-col gap-3 overflow-y-auto">
-                  {rightItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="px-6 py-3 rounded-2xl shadow-lg border-4 text-xl text-center"
-                      style={{
-                        backgroundColor: "#ffffff",
-                        borderColor: "#fad656",
-                        color: "#652b82",
-                      }}
-                    >
-                      {item.word}
-                    </div>
-                  ))}
-                </div>
-              </DropZone>
+              <DroppableZone id="alif" title="حرف الألف (أ)">
+                {alifItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="px-6 py-3 rounded-xl border-2 text-xl shrink-0"
+                    style={{
+                      backgroundColor: CARD_BG,
+                      borderColor: CARD_BORDER,
+                      color: TEXT_DARK,
+                      width: "100%",
+                      fontFamily: "tajawal",
+                      fontSize: "20px",
+                    }}
+                  >
+                    {item.word}
+                  </div>
+                ))}
+              </DroppableZone>
             </div>
           </div>
         </div>
@@ -434,32 +480,98 @@ export function SortingGame() {
             animate={{ opacity: 1 }}
           >
             <motion.div
-              className="bg-white rounded-3xl p-12 shadow-2xl border-4 max-w-md mx-4 text-center"
-              style={{ borderColor: "#fad656" }}
-              initial={{ scale: 0, rotate: -10 }}
-              animate={{ scale: 1, rotate: 0 }}
+              className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
+              initial={{ scale: 0.7, y: 80 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.7, y: 80 }}
+              transition={{ type: "spring", stiffness: 250, damping: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ borderRadius: "20px" }}
+              dir="rtl"
             >
-              <Award className="w-24 h-24 mx-auto mb-4" style={{ color: "#fad656" }} />
-              <h2 className="text-4xl mb-3" style={{ color: "#652b82" }}>
-                ممتاز!
-              </h2>
-              <p className="text-2xl text-gray-700 mb-2">نقاطك: {score}</p>
-              <p className="text-xl text-gray-600 mb-6">عدد الأخطاء: {mistakes}</p>
+              {/* الزخرفة الصفراء */}
+              <img className="absolute top-0 left-0" src={vectorEnd} />
+
+              {/* أيقونة الوسام */}
+              <div className="relative z-10 flex justify-center mb-4">
+                <div className="text-[#FDC333] text-5xl">
+                  <img src={badegEnd} />
+                </div>
+              </div>
+              <motion.h2
+                className="text-2xl md:text-3xl mb-2"
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "30px",
+                  fontWeight: "500",
+                }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+               انتهت اللعبه 
+              </motion.h2>
+              {/* التفاصيل */}
+              <p
+                className="text-[#28345F] text-base mb-1"
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}
+              >
+                نقاطك:{" "}
+                <span
+                  className="font-semibold"
+                  style={{
+                    color: "#28345F",
+                    fontFamily: "tajawal",
+                    fontSize: "20px",
+                    fontWeight: "500",
+                  }}
+                >
+                  {score}
+                </span>
+              </p>
+              <p
+                className="text-[#28345F] text-base mb-1"
+                style={{
+                  color: "#EE0000",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}
+              >
+                عددالاخطاء :{" "}
+                <span
+                  className="font-semibold"
+                  style={{
+                    color: "#EE0000",
+                    fontFamily: "tajawal",
+                    fontSize: "20px",
+                    fontWeight: "500",
+                  }}
+                >
+                  {mistakes}
+                </span>
+              </p>
 
               <div className="flex gap-4 justify-center">
                 <button
                   onClick={resetGame}
-                  className="flex items-center gap-2 px-8 py-4 rounded-2xl shadow-lg text-white text-xl"
-                  style={{ backgroundColor: "#652b82" }}
+                  style={{ backgroundColor: "#652B82" }}
+                  className="px-6 py-4 flex rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
                 >
-                  <RotateCcw className="w-6 h-6" />
+                  <img src={restart} className="w-6 h-6" />
                   <span>العب مرة أخرى</span>
                 </button>
 
                 <button
                   onClick={() => navigate(`/letter/${letter}/games`)}
-                  className="px-8 py-4 rounded-2xl shadow-lg text-xl"
-                  style={{ backgroundColor: "#fad656", color: "#652b82" }}
+                  style={{ backgroundColor: "#FDC333", color: "#652B82" }}
+                  className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
                 >
                   رجوع
                 </button>
@@ -472,14 +584,14 @@ export function SortingGame() {
       <DragOverlay>
         {activeItem ? (
           <motion.div
-            className="px-8 py-4 rounded-2xl shadow-xl border-4 cursor-move text-2xl"
+            className="px-6 py-3 rounded-xl border-2 cursor-move text-xl shadow-lg"
             style={{
-              backgroundColor: "#ffffff",
-              borderColor: "#652b82",
-              color: "#652b82",
+              backgroundColor: CARD_BG,
+              borderColor: CARD_BORDER,
+              color: TEXT_DARK,
             }}
             initial={{ scale: 1 }}
-            animate={{ scale: 1.08, rotate: 5 }}
+            animate={{ scale: 1.05 }}
           >
             {activeItem.word}
           </motion.div>

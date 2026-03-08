@@ -5,9 +5,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import api from "../../API/axios";
+import redBalloon from "../../assets/pink.svg";
+import pinkBalloon from "../../assets/pink_balloon copy.svg";
+import yellowBalloon from "../../assets/yallow.svg";
+import blueBalloon from "../../assets/blue_balloon copy.svg";
+import vectorEnd from "../../assets/vector_end.svg";
+import badegEnd from "../../assets/badeg_end.svg";
+import restart from "../../assets/Repeat.svg";
 import { saveGameResult } from "../../API/gameResult";
 import { RootState } from "../../redux/store";
 import { fetchLetters } from "../../redux/reducers/lettersSlice";
+import { GameLoadingScreen } from "./WordCatchWelcom";
 
 /* ===================== Types ===================== */
 
@@ -17,9 +25,9 @@ interface Balloon {
   startsWithAlef: boolean;
   x: number;
   y: number;
-  color: string;
+  imageSrc: string;
   handled?: boolean;
-  popped?: boolean; // 👈 جديد
+  popped?: boolean;
 }
 
 interface BalloonWord {
@@ -48,14 +56,38 @@ interface BalloonPopConfig {
 
 /* ===================== Constants ===================== */
 
-const balloonColors = [
-  "#ef4444",
-  "#3b82f6",
-  "#22c55e",
-  "#f97316",
-  "#a855f7",
-  "#ec4899",
-];
+const BALLOON_IMAGES = [redBalloon, pinkBalloon, yellowBalloon, blueBalloon];
+const POP_DISAPPEAR_DELAY_MS = 0;
+
+function playPopSound() {
+  try {
+    const audioContext = new (
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext
+    )();
+    const bufferSize = Math.min(2 * audioContext.sampleRate, 44100);
+    const buffer = audioContext.createBuffer(
+      1,
+      bufferSize,
+      audioContext.sampleRate,
+    );
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+    }
+    const noise = audioContext.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioContext.createBiquadFilter();
+    filter.type = "highpass";
+    filter.frequency.value = 1000;
+    noise.connect(filter);
+    filter.connect(audioContext.destination);
+    noise.start(0);
+  } catch {
+    // ignore if audio fails
+  }
+}
 
 /* ===================== Toast ===================== */
 
@@ -93,6 +125,7 @@ export function BalloonPopGame() {
 
   const [gameOver, setGameOver] = useState(false);
   const [mistakeToastText, setMistakeToastText] = useState<string | null>(null);
+  const [minLoadElapsed, setMinLoadElapsed] = useState(false);
 
   const [config, setConfig] = useState<BalloonPopConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,10 +142,15 @@ export function BalloonPopGame() {
   const letterId = currentLetter?.id;
 
   /* ---------- Helpers ---------- */
-  const getDuration = () =>
-    Math.floor((Date.now() - startTime) / 1000);
+  const getDuration = () => Math.floor((Date.now() - startTime) / 1000);
 
   /* ---------- Effects ---------- */
+
+  // Minimum loader duration (2 seconds)
+  useEffect(() => {
+    const timer = setTimeout(() => setMinLoadElapsed(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Fetch letters
   useEffect(() => {
@@ -127,15 +165,12 @@ export function BalloonPopGame() {
 
     const fetchGame = async () => {
       try {
-        const res = await api.get(
-          "/lessons/games-lessons/by-letter-and-type",
-          {
-            params: {
-              letter,
-              gameType: "balloon_pop",
-            },
-          }
-        );
+        const res = await api.get("/lessons/games-lessons/by-letter-and-type", {
+          params: {
+            letter,
+            gameType: "balloon_pop",
+          },
+        });
 
         const game = res.data.data;
         setGameLessonId(game.game_lesson_id);
@@ -156,7 +191,7 @@ export function BalloonPopGame() {
 
     const spawnInterval = Math.max(
       config.spawn.baseInterval - level * config.spawn.levelFactor,
-      config.spawn.minInterval
+      config.spawn.minInterval,
     );
 
     const interval = setInterval(() => {
@@ -171,8 +206,8 @@ export function BalloonPopGame() {
           startsWithAlef: randomWord.startsWithTarget,
           x: Math.random() * 40 + 20,
           y: 120,
-          color:
-            balloonColors[Math.floor(Math.random() * balloonColors.length)],
+          imageSrc:
+            BALLOON_IMAGES[Math.floor(Math.random() * BALLOON_IMAGES.length)],
         },
       ]);
 
@@ -213,39 +248,37 @@ export function BalloonPopGame() {
     if (!config) return;
 
     setMistakeToastText(
-      `خطأ ❌ ${config.maxMistakes - nextLives} / ${config.maxMistakes}`
+      `خطأ ❌ ${config.maxMistakes - nextLives} / ${config.maxMistakes}`,
     );
     setTimeout(() => setMistakeToastText(null), 1200);
   };
 
- const handleBalloonClick = (balloon: Balloon) => {
-  if (!config || gameOver || balloon.handled) return;
+  const handleBalloonClick = (balloon: Balloon) => {
+    if (!config || gameOver || balloon.handled) return;
 
-  if (balloon.startsWithAlef) {
-    setCorrectCount((c) => c + 1);
-    setScore((s) => s + config.scorePerCorrect);
-  } else {
-    setLives((prev) => {
-      const next = prev - 1;
-      showMistakeToast(next);
-      return next;
-    });
-  }
+    playPopSound();
 
- setBalloons((prev) =>
-  prev.map((b) =>
-    b.id === balloon.id
-      ? { ...b, handled: true, popped: true }
-      : b
-  )
-);
+    if (balloon.startsWithAlef) {
+      setCorrectCount((c) => c + 1);
+      setScore((s) => s + config.scorePerCorrect);
+    } else {
+      setLives((prev) => {
+        const next = prev - 1;
+        showMistakeToast(next);
+        return next;
+      });
+    }
 
+    setBalloons((prev) =>
+      prev.map((b) =>
+        b.id === balloon.id ? { ...b, handled: true, popped: true } : b,
+      ),
+    );
 
-  setTimeout(() => {
-    setBalloons((prev) => prev.filter((b) => b.id !== balloon.id));
-  }, 0);
-};
-
+    setTimeout(() => {
+      setBalloons((prev) => prev.filter((b) => b.id !== balloon.id));
+    }, POP_DISAPPEAR_DELAY_MS);
+  };
 
   const handleBalloonEscape = (balloonId: number) => {
     const balloon = balloons.find((b) => b.id === balloonId);
@@ -273,8 +306,8 @@ export function BalloonPopGame() {
 
   /* ---------- Render Guards ---------- */
 
-  if (loading) {
-    return <div className="text-center mt-20">جاري تحميل اللعبة...</div>;
+  if (loading || !minLoadElapsed) {
+    return <GameLoadingScreen game_name={"balloon"} />;
   }
 
   if (!config) {
@@ -287,49 +320,86 @@ export function BalloonPopGame() {
     <div
       className="h-screen relative overflow-hidden"
       dir="rtl"
-      style={{ backgroundColor: "#87CEEB" }}
+      style={{
+        background: "linear-gradient(120deg, #faf9f6 30%, #faf7e9 100%)",
+      }}
     >
       {/* Header */}
       <div
         className="absolute top-0 left-0 right-0 z-30 px-6 py-4 border-b-4"
         style={{
-          borderColor: "#652b82",
-          backgroundColor: "rgba(255,255,255,0.95)",
+          background: "linear-gradient(120deg, #faf9f6 30%, #faf7e9 100%)",
+          borderBottom: "10px solid white",
         }}
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <button
             onClick={() => navigate(`/letter/${letter}/games`)}
-            className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
-            style={{ backgroundColor: "#ef4444", color: "#ffffff" }}
+            className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+            style={{
+              backgroundColor: "#FFA199",
+              color: "black",
+              fontSize: "25px",
+            }}
           >
             <X className="w-6 h-6" />
           </button>
-
+          <h2
+            className="text-lg md:text-xl font-medium text-center flex-1"
+            style={{
+              color: "#28345F",
+              fontFamily: "tajawal",
+              fontSize: "20px",
+            }}
+          >
+            افرقع البالونات التي تحتوي على كلمات تبدأ بحرف الألف
+          </h2>
           <div className="flex items-center gap-6">
             <div
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg"
-              style={{ backgroundColor: "#fad656" }}
+              className="flex items-center gap-2"
+              style={{
+                color: "#652b82",
+                backgroundColor: "#faf6e7",
+                borderRadius: "15px",
+                padding: "5px 10px",
+              }}
             >
-              <Star className="w-6 h-6" style={{ color: "#652b82" }} />
-              <span className="text-xl" style={{ color: "#652b82" }}>
+              <Star
+                className="w-5 h-5"
+                style={{ color: "#652b82", fill: "transparent" }}
+              />
+              <span
+                className="text-lg"
+                style={{
+                  color: "#652b82",
+                  fontFamily: "tajawal",
+                  fontSize: "25px",
+                }}
+              >
                 {score}
               </span>
             </div>
-
-            <div className="flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg bg-white">
-              <span className="text-xl" style={{ color: "#652b82" }}>
-                المستوى: {level}
-              </span>
-            </div>
+            <span
+              className="text-lg"
+              style={{
+                color: "#652b82",
+                backgroundColor: "#faf6e7",
+                borderRadius: "15px",
+                padding: "10px",
+                fontFamily: "tajawal",
+                fontSize: "22px",
+              }}
+            >
+              المستوى: {level}
+            </span>
 
             <div className="flex gap-2">
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="w-8 h-8 rounded-full"
+                  className="w-6 h-6 rounded-full"
                   style={{
-                    backgroundColor: i < lives ? "#ef4444" : "#d1d5db",
+                    backgroundColor: i < lives ? "#FC4637" : "#d1d5db",
                   }}
                 />
               ))}
@@ -338,22 +408,20 @@ export function BalloonPopGame() {
         </div>
       </div>
 
-      {/* Balloons */}
-      <div className="absolute inset-0 pt-24 pb-8">
-        <div className="max-w-6xl mx-auto h-full relative">
+      {/* Balloons - z-40 so they rise above the header */}
+      <div className="absolute inset-0 pt-24 pb-8 overflow-hidden">
+        <div className="flex justify-center items-center mx-auto h-full relative overflow-hidden">
           <AnimatePresence>
             {balloons.map((balloon) => (
               <motion.button
                 key={balloon.id}
-                initial={{ y: "120%" }}
-                animate={{ y: "-20%" }}
+                initial={{ y: "100vh" }}
+                animate={{ y: "-90vh"  }}
                 exit={{ scale: 0, opacity: 0 }}
-                transition={{ duration: 6 - level * 0.3, ease: "linear" }}
-                onAnimationComplete={() =>
-                  handleBalloonEscape(balloon.id)
-                }
+               transition={{ duration: 14 - level * 0.3, ease: "linear" }}
+                onAnimationComplete={() => handleBalloonEscape(balloon.id)}
                 onClick={() => handleBalloonClick(balloon)}
-                className="absolute cursor-pointer"
+                className="absolute bottom-0 cursor-pointer z-0"
                 style={{
                   left: `${balloon.x}%`,
                   transform: "translateX(-50%)",
@@ -361,60 +429,31 @@ export function BalloonPopGame() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.8 }}
               >
-                <div className="relative">
-                  <svg width="100" height="120">
-                    <ellipse
-                      cx="50"
-                      cy="50"
-                      rx="40"
-                      ry="50"
-                      fill={balloon.color}
-                      stroke="#000"
-                      strokeWidth="2"
+                <div className="relative flex flex-col items-center">
+                  <div className="relative w-full h-full">
+                    <img
+                      src={balloon.imageSrc}
+                      alt=""
+                      className="object-contain pointer-events-none select-none"
+                      style={{ height: "150px", width: "150px" }}
                     />
-                    <ellipse
-                      cx="35"
-                      cy="35"
-                      rx="15"
-                      ry="20"
-                      fill="rgba(255,255,255,0.4)"
-                    />
-                    <line
-                      x1="50"
-                      y1="100"
-                      x2="50"
-                      y2="110"
-                      stroke="#000"
-                      strokeWidth="2"
-                    />
-                  </svg>
-
-                  <div
-                    className="absolute top-8 left-1/2 -translate-x-1/2 text-2xl px-2 py-1 rounded-lg"
-                    style={{
-                      color: "#ffffff",
-                      backgroundColor: "rgba(0,0,0,0.2)",
-                      textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
-                    }}
-                  >
-                    {balloon.word}
+                    <div
+                      className="absolute inset-0 flex justify-center"
+                      style={{
+                        color: "#ffffff",
+                        textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
+                        fontSize: "20px",
+                        alignItems: "flex-start",
+                        paddingTop: "20px",
+                      }}
+                    >
+                      {balloon.word}
+                    </div>
                   </div>
                 </div>
               </motion.button>
             ))}
           </AnimatePresence>
-
-          {/* Instructions */}
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white rounded-3xl px-8 py-4 shadow-xl border-4"
-            style={{ borderColor: "#652b82" }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <p className="text-xl" style={{ color: "#652b82" }}>
-              {config.instruction}
-            </p>
-          </motion.div>
         </div>
       </div>
 
@@ -429,38 +468,97 @@ export function BalloonPopGame() {
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <motion.div
-            className="bg-white rounded-3xl p-12 shadow-2xl border-4 max-w-md mx-4 text-center"
-            style={{ borderColor: "#fad656" }}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
+            className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
+            initial={{ scale: 0.7, y: 80 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.7, y: 80 }}
+            transition={{ type: "spring", stiffness: 250, damping: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ borderRadius: "20px" }}
+            dir="rtl"
           >
-            <Award
-              className="w-24 h-24 mx-auto mb-4"
-              style={{ color: "#fad656" }}
-            />
-            <h2 className="text-4xl mb-3" style={{ color: "#652b82" }}>
-              انتهت اللعبة!
-            </h2>
+            {/* الزخرفة الصفراء */}
+            <img className="absolute top-0 left-0" src={vectorEnd} />
 
-            <p className="text-2xl text-gray-700 mb-2">نقاطك: {score}</p>
-            <p className="text-xl text-gray-600 mb-6">
-              وصلت للمستوى: {level}
+            {/* أيقونة الوسام */}
+            <div className="relative z-10 flex justify-center mb-4">
+              <div className="text-[#FDC333] text-5xl">
+                <img src={badegEnd} />
+              </div>
+            </div>
+            <motion.h2
+              className="text-2xl md:text-3xl mb-2"
+              style={{
+                color: "#28345F",
+                fontFamily: "tajawal",
+                fontSize: "30px",
+                fontWeight: "500",
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              انتهت اللعبه
+            </motion.h2>
+            {/* التفاصيل */}
+            <p
+              className="text-[#28345F] text-base mb-1"
+              style={{
+                color: "#28345F",
+                fontFamily: "tajawal",
+                fontSize: "20px",
+                fontWeight: "500",
+              }}
+            >
+              نقاطك:{" "}
+              <span
+                className="font-semibold"
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}
+              >
+                {score}
+              </span>
             </p>
-
+            <p
+              className="text-[#28345F] text-base mb-1"
+              style={{
+                color: "#EE0000",
+                fontFamily: "tajawal",
+                fontSize: "20px",
+                fontWeight: "500",
+              }}
+            >
+              وصلت للمستوى :{" "}
+              <span
+                className="font-semibold"
+                style={{
+                  color: "#EE0000",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}
+              >
+                {level}
+              </span>
+            </p>
             <div className="flex gap-4 justify-center">
               <button
                 onClick={resetGame}
-                className="flex items-center gap-2 px-8 py-4 rounded-2xl shadow-lg text-white text-xl"
-                style={{ backgroundColor: "#652b82" }}
+                style={{ backgroundColor: "#652B82" }}
+                className="px-6 py-4 flex rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
               >
-                <RotateCcw className="w-6 h-6" />
-                العب مرة أخرى
+                <img src={restart} className="w-6 h-6" />
+                <span>العب مرة أخرى</span>
               </button>
 
               <button
                 onClick={() => navigate(`/letter/${letter}/games`)}
-                className="px-8 py-4 rounded-2xl shadow-lg text-xl"
-                style={{ backgroundColor: "#fad656", color: "#652b82" }}
+                style={{ backgroundColor: "#FDC333", color: "#652B82" }}
+                className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
               >
                 رجوع
               </button>
