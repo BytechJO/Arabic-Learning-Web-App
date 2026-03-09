@@ -5,8 +5,10 @@ import { useAppSelector, useAppDispatch } from "../redux/hooks";
 import { fetchLetters } from "../redux/reducers/lettersSlice";
 import api from "../API/axios";
 import drops from "../assets/drops_login.svg";
-import lock from "../assets/lockIcon.svg"
-import checkIcon from "../assets/check_icon.svg"
+import lock from "../assets/lockIcon.svg";
+import checkIcon from "../assets/check_icon.svg";
+import vectorEnd from "../assets/vector_end.svg";
+
 import { useNavigate } from "react-router-dom";
 interface LettersDashboardProps {
   // onLetterClick: (letter: string, letterName: string) => void;
@@ -96,6 +98,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
             onLogout={onLogout}
             showBackButton={false}
             onBack={onBack}
+            showLogout={false}
             title={" الحروف العربية"}
           />
         </div>
@@ -196,7 +199,11 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                           </div>
                           {!isTeacher && (isCompleted || isLocked) && (
                             <div className="absolute top-0 left-0 z-20 flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full bg-white/90 shadow text-[10px] md:text-xl leading-none">
-                              {isCompleted ? <img src={checkIcon} /> : <img src={lock} />}
+                              {isCompleted ? (
+                                <img src={checkIcon} />
+                              ) : (
+                                <img src={lock} />
+                              )}
                             </div>
                           )}
                         </div>
@@ -230,37 +237,88 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-[90%] text-center"
-            initial={{ scale: 0.8, y: 50 }}
+            className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
+            initial={{ scale: 0.7, y: 80 }}
             animate={{ scale: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 200 }}
+            exit={{ scale: 0.7, y: 80 }}
+            transition={{ type: "spring", stiffness: 250, damping: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ borderRadius: "20px" }}
+            dir="rtl"
           >
-            {/* أيقونة لطيفة */}
-            <div className="text-5xl mb-3">🔒</div>
+            {/* الزخرفة الصفراء */}
+            <img className="absolute top-0 left-0" src={vectorEnd} />
 
-            {/* النص */}
-            <h2 className="text-xl mb-2" style={{ color: "#652b82" }}>
-              لحظة يا بطل! 🌟
-            </h2>
+            {/* أيقونة الوسام */}
+            <div className="relative z-10 flex justify-center mb-4">
+              <div className="text-[#FDC333] text-5xl">
+                <img src={lock} />
+              </div>
+            </div>
 
-            <p className="text-sm text-gray-600 mb-5 leading-relaxed">
-              لا يمكنك فتح هذا الحرف الآن 😊
-              <br />
-              أكمل الحرف الحالي وتعلّم كتابته
-              <br />
-              ثم ستُفتح لك باقي الحروف 🎉
-            </p>
-
-            {/* زر */}
-            <button
-              onClick={() => setShowLockedMessage(false)}
-              className="px-6 py-2 rounded-full text-white shadow-md transition hover:scale-105"
+            {/* العنوان */}
+            <motion.h2
+              className="text-2xl md:text-3xl mb-2"
               style={{
-                background: "linear-gradient(135deg, #652b82, #7d3ba0)",
+                color: "#28345F",
+                fontFamily: "tajawal",
+                fontSize: "30px",
+                fontWeight: "500",
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              لحظة يا بطل! 🌟
+            </motion.h2>
+            {/* النص */}
+            {/* الرسالة */}
+            <motion.p
+              className="text-sm md:text-base text-gray-600 mb-6 leading-relaxed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              style={{
+                color: "#28345F",
+                fontFamily: "tajawal",
+                fontSize: "18px",
+                fontWeight: "500",
               }}
             >
-              حسناً 👍
-            </button>
+              <p
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "18px",
+                  fontWeight: "500",
+                }}
+              >
+                لا يمكنك فتح هذا الحرف الآن 😊
+                <br />
+                أكمل الحرف الحالي وتعلّم كتابته
+                <br />
+                ثم ستُفتح لك باقي الحروف 🎉
+              </p>
+            </motion.p>
+
+            {/* زر */}
+            <div
+              className="flex gap-4 justify-center"
+              style={{ marginTop: "20px" }}
+            >
+              <motion.button
+                onClick={() => setShowLockedMessage(false)}
+                style={{ backgroundColor: "#652B82" }}
+                className="px-6 py-2.5 rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                حسناً 👍
+              </motion.button>
+            </div>
           </motion.div>
         </motion.div>
       )}

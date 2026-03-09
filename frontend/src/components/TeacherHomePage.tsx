@@ -57,7 +57,7 @@ export function TeacherHomePage() {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="h-screen relative overflow-hidden">
       {/* خلفية متدرجة */}
       <div
         className="fixed inset-0"
@@ -92,11 +92,11 @@ export function TeacherHomePage() {
                       style={{ transform: "scaleX(1)", color: "#652B82" }}
                     />
                     <span
-                      className="text-xs md:text-sm "
+                      className="text-xs md:text-lg "
                       style={{
                         fontFamily: "poppins",
                         color: "#652B82",
-                        fontSize: "20px",
+                        // fontSize: "20px",
                         fontWeight: "400",
                       }}
                     >
@@ -139,7 +139,7 @@ export function TeacherHomePage() {
               ></div>{" "}
               <h1
                 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#E7E7E7] font-[tajawal] mb-3"
-                style={{ fontSize: "clamp(22px, 5vw, 50px)",color:"#E7E7E7" }}
+                style={{ fontSize: "clamp(22px, 5vw, 50px)", color: "#E7E7E7" }}
               >
                 مرحباً{" "}
                 <span
@@ -166,10 +166,10 @@ export function TeacherHomePage() {
 
         {/* Welcome Message */}
         <div
-          className="text-center mb-12 mt-20 h-24 flex flex-col justify-center items-center"
+          className="text-center mb-12 mt-20 h-24 flex flex-col justify-center items-center z-50"
           style={{
             backgroundColor: "#FFFFFF",
-            zIndex: "999",
+
             width: "100vw",
             position: "relative",
             top: "100px",
@@ -190,18 +190,21 @@ export function TeacherHomePage() {
 
         {/* Sections Grid */}
         <div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full h-full"
-          style={{ marginTop: "60px" }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full overflow-y-auto"
+          style={{
+            marginTop: "60px",
+            maxHeight: "calc(100vh - 360px)",
+          }}
         >
           {sections.map((section) => (
             <button
               key={section.id}
               onClick={() => navigate(`/teacher/${section.id}`)}
-              className="group relative overflow-hidden bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 p-8"
+              className="group relative bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 p-8"
             >
               <div className="relative flex flex-col items-center text-center gap-13">
                 <div className="relative flex flex-col items-center justify-center">
-                  <img src={rectengle_yellow}/>
+                  <img src={rectengle_yellow} />
                   <h2
                     className="absolute"
                     style={{
@@ -217,7 +220,7 @@ export function TeacherHomePage() {
                 {/* الأيقونة */}
                 <div className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center">
                   <img src={backGround} className="absolute h-40" />
-                  <img src={section.icon} className="z-50" />
+                  <img src={section.icon} className="z-40" />
                 </div>
 
                 {/* العنوان */}

@@ -17,6 +17,7 @@ interface AppHeaderProps {
   currentLetter?: string;
   showLetter?: boolean;
   title: string;
+  showLogout: boolean;
 }
 
 export function AppHeader({
@@ -25,6 +26,7 @@ export function AppHeader({
   showUserInfo = true,
   // user,
   onLogout,
+  showLogout,
   title,
 }: AppHeaderProps) {
   const user = useAppSelector((state) => state.auth.user);
@@ -42,7 +44,10 @@ export function AppHeader({
   };
   return (
     <header className="sticky top-0 w-full">
-      <div className="px-4 md:px-6 py-2 md:py-2.5" style={{marginTop:"20px"}}>
+      <div
+        className="px-4 md:px-6 py-2 md:py-2.5"
+        style={{ marginTop: "20px" }}
+      >
         <div className="flex items-center justify-between" dir="rtl">
           {/* اليسار - معلومات المستخدم وتسجيل الخروج */}
           {showUserInfo && user && (
@@ -112,15 +117,67 @@ export function AppHeader({
                   )}
                   <p
                     className="text-sm md:text-base font-medium"
-                    style={{ color: "#652b82" ,fontFamily: "poppins",
-                  fontSize: "20px",
-                  fontWeight: "400",}}
+                    style={{
+                      color: "#652b82",
+                      fontFamily: "poppins",
+                      fontSize: "20px",
+                      fontWeight: "400",
+                    }}
                   >
                     {userName}
                   </p>
                 </div>
               </div>
             </motion.div>
+          )}
+          {showLogout && onLogout && (
+            <motion.button
+              onClick={onLogout}
+              className="flex items-center gap-2 text-white px-3 md:px-4 py-2 rounded-xl transition-all"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div>
+                <motion.button
+                  whileHover={{
+                    scale: 1.02,
+                    y: -2,
+                    boxShadow: `
+      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
+      inset -10px -10px 18px rgba(255, 255, 255, 0)
+    `,
+                  }}
+                  whileTap={{
+                    scale: 0.97,
+                    boxShadow: `
+      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
+      inset -10px -10px 18px rgba(255, 255, 255, 0)
+    `,
+                  }}
+                  type="button"
+                  onClick={() => handleLogout}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "8px",
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    boxShadow: `
+        inset 6px 6px 12px rgba(0, 0, 0, 0.07),
+        inset -6px -6px 12px rgba(255, 255, 255, 0.01)`,
+                  }}
+                >
+                  {" "}
+                  <img src={logOut} style={{ width: "30px", height: "30px" }} />
+                </motion.button>
+              </div>
+            </motion.button>
           )}
           {/* اليمين - اسم التطبيق */}
           <motion.div

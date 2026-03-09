@@ -96,11 +96,6 @@ export function ClassroomManagement() {
       }
     }
   };
-  // const handleCopyCode = (code: string) => {
-  //   copyToClipboard(code);
-  //   setCopiedCode(code);
-  //   setTimeout(() => setCopiedCode(null), 2000);
-  // };
 
   const handleCancelDelete = () => {
     setShowDeleteModal(false);
@@ -121,28 +116,6 @@ export function ClassroomManagement() {
       alert("فشل حذف الصف");
     }
   };
-
-  // // عرض تفاصيل طالب محدد
-  // if (selectedStudentId && selectedClassroomId) {
-  //   return (
-  //     <div className="space-y-4" dir="rtl">
-  //       {/* زر الرجوع */}
-  //       <button
-  //         onClick={() => setSelectedStudentId(null)}
-  //         className="flex items-center gap-2 text-white px-5 py-2.5 rounded-xl hover:opacity-90 transition-all shadow-md"
-  //         style={{ backgroundColor: "#652b82" }}
-  //       >
-  //         <ChevronRight className="w-4 h-4" />
-  //         <span>العودة لقائمة الطلاب</span>
-  //       </button>
-
-  //       <StudentProgressView
-  //         classroomId={selectedClassroomId}
-  //         studentId={selectedStudentId}
-  //       />
-  //     </div>
-  //   );
-  // }
 
   // عرض قائمة الصفوف الرئيسية
   return (
@@ -254,13 +227,13 @@ export function ClassroomManagement() {
                 className="w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: "#f5f3f7" }}
               >
-                <img src={writeIconNavey} />
+                <img src={writeIconNavey} className="w-10 md:w-16 lg:w-20"/>
               </div>
               <p
+                className="text-lg md:text-xl lg:text-2xl"
                 style={{
                   color: "#3E3E3E",
                   fontFamily: "tajawal",
-                  fontSize: "25px",
                   fontWeight: "400",
                 }}
               >
@@ -268,11 +241,11 @@ export function ClassroomManagement() {
               </p>
               <div className="flex items-center justify-center gap-4">
                 <p
-                  className="text-sm text-gray-400 mt-2"
+                  className="text-sm md:text-xl lg:text-2xl mt-2"
                   style={{
                     color: "#3E3E3E",
                     fontFamily: "tajawal",
-                    fontSize: "20px",
+                    // fontSize: "20px",
                     fontWeight: "700",
                     textAlign: "center",
                   }}
@@ -333,16 +306,16 @@ export function ClassroomManagement() {
                     >
                       {/* Header */}
                       <div
-                        className="shadow-md shadow-2xl flex items-center"
+                        className="shadow-md shadow-2xl flex items-center text-lg md:text-xl lg:text-2xl"
                         style={{
                           backgroundColor: "#652B82",
                           borderRadius: "0px 0px 25px 25px",
                           fontFamily: "tajawal",
-                          fontSize: "25px",
+                          // fontSize: "25px",
                           fontWeight: "700",
                           color: "#FFFFFF",
                           paddingRight: "20px",
-                          height:"73px"
+                          height: "73px",
                         }}
                       >
                         إنشاء صف جديد
@@ -352,10 +325,10 @@ export function ClassroomManagement() {
                         style={{ marginRight: "75px" }}
                       >
                         <p
-                          className="text-gray-700 text-lg mb-6"
+                          className="text-gray-700 text-lg mb-6 text-lg md:text-xl lg:text-2xl"
                           style={{
                             fontFamily: "tajawal",
-                            fontSize: "25px",
+                            // fontSize: "25px",
                             fontWeight: "700",
                             color: "#3E3E3E",
                           }}
@@ -369,25 +342,25 @@ export function ClassroomManagement() {
                           onChange={(e) => setNewClassName(e.target.value)}
                           placeholder="صف اللغة العربية - 563"
                           className="w-full bg-gray-200 px-4 py-4 text-right outline-none focus:ring-2 focus:ring-[#FDC333] transition"
-                       style={{width:"90%"}}
-                       />
+                          style={{ width: "90%" }}
+                        />
                       </div>
                       {/* Buttons */}
-                       
+
                       <div className="flex justify-center gap-6 mb-8">
-                          <button
+                        <button
                           onClick={() => {
                             handleCreateClassroom();
                             setShowCreateModal(false);
                           }}
-                           className="px-10 py-2 shadow-md hover:scale-105 transition"
+                          className="px-10 py-2 shadow-md hover:scale-105 transition text-lg md:text-xl lg:text-2xl"
                           style={{
                             backgroundColor: "#FDC333",
                             borderRadius: "10px",
                             fontFamily: "tawajal",
-                            fontSize: "25x",
+                            // fontSize: "25x",
                             color: "#2D2D2D",
-                            fontWeight:"500"
+                            fontWeight: "500",
                           }}
                         >
                           إضافة
@@ -397,19 +370,18 @@ export function ClassroomManagement() {
                             setShowCreateModal(false);
                             setNewClassName("");
                           }}
-                          className="px-10 py-2 shadow-md hover:scale-105 transition"
+                          className="px-10 py-2 shadow-md hover:scale-105 transition text-lg md:text-xl lg:text-2xl"
                           style={{
                             backgroundColor: "#FDC333",
                             borderRadius: "10px",
                             fontFamily: "tawajal",
-                            fontSize: "25x",
-                            color: "#2D2D2D", fontWeight:"500"
+                            // fontSize: "25x",
+                            color: "#2D2D2D",
+                            fontWeight: "500",
                           }}
                         >
                           إلغاء
                         </button>
-
-                     
                       </div>
                     </div>
                   </motion.div>
@@ -422,12 +394,12 @@ export function ClassroomManagement() {
             <div className="flex items-center justify-between">
               <motion.button
                 onClick={() => setShowCreateForm(!showCreateForm)}
-                className="text-white py-2.5 px-5 flex items-center hover:opacity-90 transition-all shadow-md"
+                className="text-white py-2.5 px-5 flex items-center hover:opacity-90 transition-all shadow-md text-sm md:text-xl lg:text-2xl"
                 style={{
                   backgroundColor: "#FDC333",
                   color: "#3E3E3E",
                   fontFamily: "tajawal",
-                  fontSize: "20px",
+                  // fontSize: "20px",
                   fontWeight: "400",
                 }}
               >
@@ -440,13 +412,13 @@ export function ClassroomManagement() {
                 className="bg-white p-6 shadow-lg border-2"
                 style={{ marginBottom: "20px" }}
               >
-                <div className="flex justify-center items-center">
+                <div className="flex justify-center items-center text-sm md:text-xl lg:text-2xl">
                   <label
                     style={{
                       width: "15%",
                       color: "#3E3E3E",
                       fontFamily: "tajawal",
-                      fontSize: "25px",
+                      // fontSize: "25px",
                       fontWeight: "400",
                     }}
                   >
@@ -467,12 +439,12 @@ export function ClassroomManagement() {
                 >
                   <button
                     onClick={handleCreateClassroom}
-                    className="w-40 text-white py-1 rounded hover:opacity-90 shadow-md"
+                    className="w-40 text-white py-1 rounded hover:opacity-90 shadow-md text-sm md:text-xl lg:text-2xl"
                     style={{
                       backgroundColor: "#FDC333",
                       color: "#2D2D2D",
                       fontFamily: "tajawal",
-                      fontSize: "25px",
+                      // fontSize: "25px",
                       fontWeight: "500",
                     }}
                   >
@@ -483,12 +455,12 @@ export function ClassroomManagement() {
                       setShowCreateForm(false);
                       setNewClassName("");
                     }}
-                    className="w-40 py-1 rounded hover:opacity-90"
+                    className="w-40 py-1 rounded hover:opacity-90 text-lg md:text-xl lg:text-2xl"
                     style={{
                       backgroundColor: "#FDC333",
                       color: "#2D2D2D",
                       fontFamily: "tajawal",
-                      fontSize: "25px",
+                      // fontSize: "25px",
                       fontWeight: "500",
                     }}
                   >
@@ -499,10 +471,10 @@ export function ClassroomManagement() {
             )}
             {/* Header */}
             <div
-              className="grid grid-cols-4 px-6 py-4"
+              className="grid grid-cols-4 px-6 py-4 text-xs md:text-xl lg:text-2xl"
               style={{
                 fontFamily: "tajawal",
-                fontSize: "25px",
+                // fontSize: "25px",
                 fontWeight: "700",
               }}
             >
@@ -532,11 +504,11 @@ export function ClassroomManagement() {
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <img src={writeIcon} />
-                  <motion.span
+                  <img src={writeIcon}  className="w-6 md:w-16 lg:w-20" />
+                  <motion.span className="text-sm md:text-xl lg:text-2xl text-center"
                     style={{
                       fontFamily: "tajawal",
-                      fontSize: "20px",
+                      // fontSize: "20px",
                       fontWeight: "500",
                       cursor: "pointer",
                     }}
@@ -554,10 +526,10 @@ export function ClassroomManagement() {
                 </div>
 
                 <div
-                  className="text-center tracking-widest"
+                  className="text-center tracking-widest text-sm md:text-xl lg:text-2xl"
                   style={{
                     fontFamily: "tajawal",
-                    fontSize: "22px",
+                    // fontSize: "22px",
                     fontWeight: "500",
                   }}
                 >
@@ -566,10 +538,10 @@ export function ClassroomManagement() {
                 </div>
 
                 <div
-                  className="text-center"
+                  className="text-center text-sm md:text-xl lg:text-2xl"
                   style={{
                     fontFamily: "tajawal",
-                    fontSize: "22px",
+                    // fontSize: "22px",
                     fontWeight: "500",
                   }}
                 >
@@ -598,7 +570,7 @@ export function ClassroomManagement() {
                   >
                     <motion.img
                       src={trashIcon}
-                      style={{ height: "35px", width: "35px" }}
+                      className="w-8 md:w-16 lg:w-20"
                       whileHover={{ rotate: 10 }}
                     />
                   </motion.button>

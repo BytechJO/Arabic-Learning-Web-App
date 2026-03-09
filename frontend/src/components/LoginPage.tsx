@@ -19,14 +19,17 @@ import alphabet from "../assets/alphabet login.svg";
 import userIcon from "../assets/Users.svg";
 import waves from "../assets/waves_login.svg";
 import homeIcon from "../assets/Home.svg";
+import drops from "../assets/drops_login.svg"
 import { useAppDispatch } from "../redux/hooks";
 import { loginSuccess } from "../redux/reducers/auth";
 import { RootState, AppDispatch } from "../redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { getMyClass, getMyClassApi } from "../API/classes";
+import { AppHeader } from "./AppHeader";
 interface LoginPageProps {
   userType: "teacher" | "student";
   onBack: () => void;
+  onLogout: ()=>void
 }
 const mapRoleNumberToType = (role: number): "teacher" | "student" => {
   if (role === 3) return "teacher";
@@ -113,9 +116,9 @@ const loginApi = async (email: string, password: string) => {
 //   return data;
 // };
 
-export function LoginPage({ userType, onBack }: LoginPageProps) {
+export function LoginPage({ userType, onBack ,onLogout}: LoginPageProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [activationCode, setActivationCode] = useState("");
+  // const [activationCode, setActivationCode] = useState("");
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -130,54 +133,53 @@ export function LoginPage({ userType, onBack }: LoginPageProps) {
   }, [mode]);
   const [error, setError] = useState("");
 
-const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
 
-  try {
-    const data = await loginApi(formData.email, formData.password);
-    const mappedRole = mapRoleNumberToType(data.role);
+    try {
+      const data = await loginApi(formData.email, formData.password);
+      const mappedRole = mapRoleNumberToType(data.role);
 
-    if (mappedRole !== userType) {
-      setError(
-        `هذا الحساب مسجل كـ ${mappedRole === "teacher" ? "معلم" : "طالب"}`
-      );
-      return;
-    }
-
-    const user = {
-      id: data.id,
-      username: data.username,
-      email: data.email,
-      roleId: data.role,
-      type: mappedRole,
-    };
-
-    dispatch(
-      loginSuccess({
-        user,
-        token: data.token,
-      })
-    );
-
-    // 🔥🔥 هون بنعمل الفحص
-
-    if (user.type === "teacher") {
-      navigate("/teacher/home");
-    } else {
-      // ✅ الطالب → نجيب صفه
-      const myClass = await getMyClassApi(data.token);
-      if (myClass) {
-        navigate(`/my-classroom/${myClass.code}`);
-      } else {
-        navigate("/my-classroom");
+      if (mappedRole !== userType) {
+        setError(
+          `هذا الحساب مسجل كـ ${mappedRole === "teacher" ? "معلم" : "طالب"}`,
+        );
+        return;
       }
-    }
 
-  } catch (err) {
-    setError(err instanceof Error ? err.message : "صار خطأ");
-  }
-};
+      const user = {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        roleId: data.role,
+        type: mappedRole,
+      };
+
+      dispatch(
+        loginSuccess({
+          user,
+          token: data.token,
+        }),
+      );
+
+      // 🔥🔥 هون بنعمل الفحص
+
+      if (user.type === "teacher") {
+        navigate("/teacher/home");
+      } else {
+        // ✅ الطالب → نجيب صفه
+        const myClass = await getMyClassApi(data.token);
+        if (myClass) {
+          navigate(`/my-classroom/${myClass.code}`);
+        } else {
+          navigate("/my-classroom");
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "صار خطأ");
+    }
+  };
 
   // const handleRegister = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -255,99 +257,45 @@ const handleLogin = async (e: React.FormEvent) => {
   return (
     <div className="min-h-screen relative overflow-hidden" dir="rtl">
       {/* خلفية متدرجة */}
-     {userType === "student" ? (
-  <div
-    className="fixed inset-0 -z-10 overflow-hidden"
-    style={{
-      backgroundImage: `
+      {userType === "student" ? (
+        <div
+          className="fixed inset-0 -z-10 overflow-hidden"
+          style={{
+            backgroundImage: `
         linear-gradient(#652b82c7, #ececed80),
         url(${backGroundImg})
       `,
-      backgroundSize: "1540px auto",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-      opacity: "0.8",
-    }}
-  /> 
-) : (<div
-    className="fixed inset-0 -z-10 overflow-hidden"
-    style={{
-       background: "linear-gradient(120deg, #A68BB7 75%, #FFFBE8 100%)",
-    }}
-  /> )}
+            backgroundSize: "1540px auto",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            opacity: "0.8",
+          }}
+        />
+      ) : (
+        <div
+          className="fixed inset-0 -z-10 overflow-hidden"
+          style={{
+            background: "linear-gradient(120deg, #A68BB7 75%, #FFFBE8 100%)",
+          }}
+        />
+      )}
 
       {/* خلفية الهيدر */}
       <div className="absolute w-full overflow-hidden">
-        <div className="relative bg-white-200 h-56 flex items-center justify-center">
-          <div
-            className="absolute z-9999"
-            style={{
-              top: "10px",
-              display: "flex",
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginRight: "45%",
-              width: "50%",
-              zIndex: "999",
-              // top: "10px",
-            }}
-          >
-            <h1
-              // className="absolute"
-              style={{
-                fontFamily: "tajawal",
-                fontSize: "40px",
-                fontWeight: "700",
-                color: "#652B82",
-                zIndex: "999",
-                // top: "10px",
-              }}
-            >
-              مراتي لغتي
-            </h1>
-            <div>
-              <motion.button
-                whileHover={{ scale: 1.02, y: -2,boxShadow: `
-      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
-      inset -10px -10px 18px rgba(255,255,255,1)
-    ` }}
-                whileTap={{
-                  scale: 0.97,
-                  boxShadow: `
-      inset 10px 10px 18px rgba(0, 0, 0, 0.15),
-      inset -10px -10px 18px rgba(255,255,255,1)
-    `,
-                }}
-                type="button"
-                onClick={() => navigate("/")}
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  backgroundColor: "#f2f2f2",
-                  borderRadius: "8px",
-
-                  border: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  boxShadow: `
-        inset 6px 6px 12px rgba(0, 0, 0, 0.07),
-        inset -6px -6px 12px rgba(255,255,255,0.9)`,
-                }}
-              >
-                <img src={homeIcon} style={{ width: "30px", height: "30px" }} />
-              </motion.button>
-            </div>
-          </div>
+        <div className="relative bg-white-200 z-50" style={{ backgroundColor: "white",marginTop:"-20px"}}>
+          <AppHeader
+            showUserInfo={false}
+            onLogout={onLogout}
+            showBackButton={false}
+            onBack={onBack}
+          showLogout={true}
+            title={"لغتي مراتي"}
+          />
         </div>
 
-        <img
-          src={waves}
-          alt="wave"
-          className="absolute bottom-16 left-0 w-full"
-        />
+        {/* الهيدر - خارج أي container */}
+
+        <img className="w-full" src={drops} />
       </div>
 
       <div
@@ -368,7 +316,7 @@ const handleLogin = async (e: React.FormEvent) => {
           >
             {/*النمر الموجود بالنص */}
             <motion.div
-              className="absolute left-1/2 -translate-x-1/2 -ml-6 top-1/2 -translate-y-1/2 z-20 flex justify-center items-center shadow-2xl"
+              className="tiger-choose-page absolute left-1/2 -translate-x-1/2 -ml-6 top-1/2 -translate-y-1/2 z-20 flex justify-center items-center shadow-2xl hidden"
               style={{
                 left: "42%",
                 backgroundColor: "white",

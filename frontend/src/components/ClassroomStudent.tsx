@@ -185,7 +185,7 @@ export function ClassroomStudent() {
 
                 <motion.button
                   className="fixed top-4 right-6 z-30 w-12 h-12 md:w-12 md:h-12 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-110"
-                  style={{ backgroundColor: "#FCFCFC" ,zIndex:"99999"}}
+                  style={{ backgroundColor: "#FCFCFC", zIndex: "99999" }}
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ x: 100, opacity: 0 }}
@@ -204,7 +204,7 @@ export function ClassroomStudent() {
 
               {/*النمر الموجود بالهيدر */}
               <motion.div
-                className="absolute left-2 top-0 z-20"
+                className="absolute left-2 top-0"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5 }}
@@ -258,9 +258,9 @@ export function ClassroomStudent() {
               className="p-2 rounded-lg hover:bg-gray-100 transition-all"
             >
               {copiedCode === classroom?.code ? (
-                <Check className="w-5 h-5" style={{ color: "#10b981"}} />
+                <Check className="w-5 h-5" style={{ color: "#10b981" }} />
               ) : (
-                <Copy className="w-5 h-5"/>
+                <Copy className="w-5 h-5" />
               )}
             </button>
           </div>
@@ -287,7 +287,7 @@ export function ClassroomStudent() {
             </div>
             <div
               className="w-full"
-              style={{ backgroundColor: "#652B8257", padding: "8px" }}
+              style={{ backgroundColor: "#652B8257", padding: "10px" }}
             >
               <div
                 className="flex"
@@ -297,14 +297,16 @@ export function ClassroomStudent() {
                   marginRight: "50px",
                 }}
               >
-                <h3 className="flex items-center gap-4">
+                <h3 className="flex items-center gap-4 text-sm md:text-xl lg:text-2xl">
                   <img
                     src={userIcon}
                     style={{ height: "35px", width: "35px" }}
                   />
                   اسم الطالب
                 </h3>
-                <h3>البريد الأللكتروني</h3>
+                <h3 className="text-sm md:text-xl lg:text-2xl">
+                  البريد الأللكتروني
+                </h3>
               </div>
             </div>
           </div>
@@ -338,14 +340,14 @@ export function ClassroomStudent() {
                 <p>لا يوجد طلاب في هذا الصف</p>
               </div>
             ) : (
-              <div className="space-y-3" style={{marginBottom:"50px"}}>
+              <div className="space-y-3" style={{ marginBottom: "50px" }}>
                 {students.map((student, index) => (
                   <div
                     key={index}
                     className={`flex items-center py-2 hover:shadow-lg transition-all ${
-                      index % 2 === 0 ?   "bg-gray-200/60":"bg-gray-100"
+                      index % 2 === 0 ? "bg-gray-200/60" : "bg-gray-100"
                     }`}
-                    style={{justifyContent:"space-between"}}
+                    style={{ justifyContent: "space-between" }}
                   >
                     <button
                       key={student.id}
@@ -368,10 +370,11 @@ export function ClassroomStudent() {
                         <span
                           className="text-gray-700 text-sm md:text-base"
                           style={{
-                            fontSize: "20px",
+                            // fontSize: "20px",
                             color: "#7B7B7B",
                             fontFamily: "tajawal",
                             fontWeight: "400",
+                            marginLeft: "20px",
                           }}
                         >
                           {student.username}
@@ -381,9 +384,9 @@ export function ClassroomStudent() {
                       {/* الايميل بالنص */}
                       <div className="text-gray-500 text-sm tracking-wide flex justify-center items-center">
                         <p
-                          className="text-sm text-gray-500"
+                          className="text-sm md:text-xl lg:text-2xl"
                           style={{
-                            fontSize: "20px",
+                            // fontSize: "20px",
                             color: "#7B7B7B",
                             fontFamily: "tajawal",
                             fontWeight: "400",
@@ -391,10 +394,9 @@ export function ClassroomStudent() {
                         >
                           {student.email}
                         </p>
-                     
                       </div>
-                    </button> 
-                      <ChevronLeft className="w-5 h-5 text-gray-400" />
+                    </button>
+                    <ChevronLeft className="w-5 h-5 text-gray-400" />
                   </div>
                 ))}
               </div>

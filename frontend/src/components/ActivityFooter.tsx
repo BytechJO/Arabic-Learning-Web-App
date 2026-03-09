@@ -75,7 +75,7 @@ export function ActivityFooter({
       {/* سايدبار ثابت يشبه التصميم دائماً (موبايل و ديسكتوب) */}
       <aside
         dir="rtl"
-        className="fixed z-40"
+        className="fixed z-50"
         style={{
           top: 0,
           bottom: 0,
@@ -158,6 +158,10 @@ export function ActivityFooter({
                     flexDirection: "row",
                     alignItems: "flex-end",
                     gap: "6px",
+                    cursor:"pointer"
+                  }}
+                  onClick={()=>{
+                    navigate("/letters")
                   }}
                 >
                   <span

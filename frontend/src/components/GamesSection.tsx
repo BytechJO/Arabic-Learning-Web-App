@@ -80,7 +80,6 @@ export function GamesSection() {
     const fetchGames = async () => {
       try {
         const res = await api.get(`/lessons/game-lesson/${letterId}/letter-id`);
-
         const gameTypes = res.data.data.map((g: any) => g.game_type);
         setAvailableGames(gameTypes);
       } catch (error) {
@@ -98,43 +97,42 @@ export function GamesSection() {
 
     // ✅ لا تعرض المودال للمعلم
     if (user?.type === "teacher") return;
+const checkGamesCompletion = async () => {
+  try {
+    const res = await api.get(`/lessons/${letterId}/games/progress`);
+          console.log(res.data);
+          
+    const { playedGamesCount, totalGames ,isCompleted} = res.data;
 
-    const checkGamesCompletion = async () => {
-      try {
-        const res = await api.get(`/lessons/${letterId}/games/progress`);
+    const trulyCompleted =
+      totalGames > 0 && playedGamesCount === totalGames;
+console.log(trulyCompleted);
 
-        const { isCompleted, playedGamesCount, totalGames } = res.data;
+    setGamesCompleted(trulyCompleted);
 
-        // ✅ حماية لو ما في ألعاب
-        const trulyCompleted =
-          totalGames > 0 && playedGamesCount === totalGames;
+    const modalKey = `games_complete_modal_letter_${letterId}`;
 
-        setGamesCompleted(trulyCompleted);
+    if (trulyCompleted) {
+      localStorage.setItem(modalKey, "1");
 
-        // ✅ منع تكرار المودال بعد الريفريش
-        const modalKey = `games_complete_modal_letter_${letterId}`;
+      if (!progressSavedRef.current) {
+        progressSavedRef.current = true;
 
-        if (trulyCompleted && !localStorage.getItem(modalKey)) {
-          localStorage.setItem(modalKey, "1");
-
-          // ✅ حفظ التقدم (مرة واحدة)
-          if (!progressSavedRef.current) {
-            progressSavedRef.current = true;
-            await upsertUserProgress({
-              letter_id: letterId,
-              lesson_id: 5,
-              lesson_type: "game",
-              score: 1,
-              completed: true,
-            });
-          }
-
-          setShowCompleteModal(true);
-        }
-      } catch (error) {
-        console.error("Error checking games progress:", error);
+        await upsertUserProgress({
+          letter_id: letterId,
+          lesson_id: 5,
+          lesson_type: "game",
+          score: 1,
+          completed: true,
+        });
       }
-    };
+
+      setShowCompleteModal(true);
+    }
+  } catch (error) {
+    console.error("Error checking games progress:", error);
+  }
+};
 
     checkGamesCompletion();
   }, [letterId, user?.type]);
@@ -345,111 +343,111 @@ export function GamesSection() {
 
       <AnimatePresence>
         {showCompleteModal && (
-        <motion.div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={handleStayHere}
-        >
           <motion.div
-            className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
-            initial={{ scale: 0.7, y: 80 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.7, y: 80 }}
-            transition={{ type: "spring", stiffness: 250, damping: 20 }}
-            onClick={(e) => e.stopPropagation()}
-            style={{ borderRadius: "20px" }}
-            dir="rtl"
+            className="fixed inset-0 flex items-center justify-center z-50"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleStayHere}
           >
-            {/* الزخرفة الصفراء */}
-            <img className="absolute top-0 left-0" src={vectorEnd} />
+            <motion.div
+              className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
+              initial={{ scale: 0.7, y: 80 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.7, y: 80 }}
+              transition={{ type: "spring", stiffness: 250, damping: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ borderRadius: "20px" }}
+              dir="rtl"
+            >
+              {/* الزخرفة الصفراء */}
+              <img className="absolute top-0 left-0" src={vectorEnd} />
 
-            {/* أيقونة الوسام */}
-            <div className="relative z-10 flex justify-center mb-4">
-              <div className="text-[#FDC333] text-5xl">
-                <img src={badegEnd} />
+              {/* أيقونة الوسام */}
+              <div className="relative z-10 flex justify-center mb-4">
+                <div className="text-[#FDC333] text-5xl">
+                  <img src={badegEnd} />
+                </div>
               </div>
-            </div>
 
-            {/* العنوان */}
-            <motion.h2
-              className="text-2xl md:text-3xl mb-2"
-              style={{
-                color: "#28345F",
-                fontFamily: "tajawal",
-                fontSize: "30px",
-                fontWeight: "500",
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              أحسنت!
-            </motion.h2>
-
-            {/* الرسالة */}
-            <motion.p
-              className="text-sm md:text-base text-gray-600 mb-6 leading-relaxed"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              style={{
-                color: "#28345F",
-                fontFamily: "tajawal",
-                fontSize: "18px",
-                fontWeight: "500",
-              }}
-            >
-              لقد أنهيت جميع ألعاب حرف{" "}
-              <span
-                className="font-semibold"
+              {/* العنوان */}
+              <motion.h2
+                className="text-2xl md:text-3xl mb-2"
                 style={{
                   color: "#28345F",
-                  fontFamily: "amiriQuran",
-                  fontSize: "25px",
+                  fontFamily: "tajawal",
+                  fontSize: "30px",
+                  fontWeight: "500",
+                }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                أحسنت!
+              </motion.h2>
+
+              {/* الرسالة */}
+              <motion.p
+                className="text-sm md:text-base text-gray-600 mb-6 leading-relaxed"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "18px",
+                  fontWeight: "500",
                 }}
               >
-                ال{letterName}{" "}
-              </span>
-              <br />
-              هل تود الانتقال إلى الحرف التالي؟
-            </motion.p>
+                لقد أنهيت جميع ألعاب حرف{" "}
+                <span
+                  className="font-semibold"
+                  style={{
+                    color: "#28345F",
+                    fontFamily: "amiriQuran",
+                    fontSize: "25px",
+                  }}
+                >
+                  ال{letterName}{" "}
+                </span>
+                <br />
+                هل تود الانتقال إلى الحرف التالي؟
+              </motion.p>
 
-            {/* الأزرار */}
-            <div
-              className="flex gap-4 justify-center"
-              style={{ marginTop: "20px" }}
-            >
-              <motion.button
-                onClick={handleStayHere}
-                style={{ backgroundColor: "#652B82" }}
-                className="px-6 py-2.5 rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
+              {/* الأزرار */}
+              <div
+                className="flex gap-4 justify-center"
+                style={{ marginTop: "20px" }}
               >
-                البقاء هنا
-              </motion.button>
+                <motion.button
+                  onClick={handleStayHere}
+                  style={{ backgroundColor: "#652B82" }}
+                  className="px-6 py-2.5 rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  البقاء هنا
+                </motion.button>
 
-              <motion.button
-                onClick={handleGoToNextLetter}
-                style={{ backgroundColor: "#FDC333", color: "#652B82" }}
-                className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                الانتقال
-              </motion.button>
-            </div>
+                <motion.button
+                  onClick={handleGoToNextLetter}
+                  style={{ backgroundColor: "#FDC333", color: "#652B82" }}
+                  className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  الانتقال
+                </motion.button>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
         )}
       </AnimatePresence>
 

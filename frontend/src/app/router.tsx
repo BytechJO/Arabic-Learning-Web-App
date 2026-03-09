@@ -65,7 +65,9 @@ export function AppRouter({
           selectedUserType ? (
             <LoginPage
               userType={selectedUserType}
-              onBack={() => navigate("/")}
+              onBack={() => navigate("/")
+              }
+              onLogout={onLogout}
             />
           ) : (
             <Navigate to="/" />
