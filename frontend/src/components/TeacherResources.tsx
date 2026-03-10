@@ -106,7 +106,7 @@ export function TeacherResources() {
  
   return (
     <div
-      className="h-screen relative flex flex-col overflow-hidden"
+      className="min-h-screen relative flex flex-col overflow-hidden"
       dir="rtl"
     >
       {/* الهيدر */}

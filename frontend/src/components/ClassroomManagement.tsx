@@ -1,37 +1,22 @@
 import { useState, useEffect } from "react";
-import {
-  Plus,
-  Users,
-  Copy,
-  Check,
-  X,
-  Star,
-  Award,
-  UserX,
-  ChevronRight,
-  ChevronLeft,
-  BookOpen,
-  Trash2,
-} from "lucide-react";
-import { storage } from "../utils/storage";
-import { copyToClipboard } from "../utils/clipboard";
+import { Plus } from "lucide-react";
+
 import { Classroom, User, ClassStudent } from "../types";
-import { StudentProgressView } from "./StudentProgressView";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../redux/store";
 import { useNavigate } from "react-router-dom";
 import trashIcon from "../assets/delete icon.svg";
 import writeIcon from "../assets/write icon.svg";
 import writeIconNavey from "../assets/write icon nave.svg";
-import addIcon from "../assets/addIcon.svg";
+import vectorEnd from "../assets/vector_end.svg";
 import {
   getTeacherClasses,
-  getStudentsByClassId,
+  // getStudentsByClassId,
   createClass,
   deleteClassById,
 } from "../API/classrooms";
 import { AnimatePresence, motion } from "framer-motion";
-import { ClassroomStudent } from "./ClassroomStudent";
+// import { ClassroomStudent } from "./ClassroomStudent";
 
 // interface ClassroomManagementProps {
 //   teacher: User;
@@ -131,16 +116,22 @@ export function ClassroomManagement() {
             onClick={handleCancelDelete}
           >
             <motion.div
-              className="bg-white p-6 md:p-8 shadow-2xl text-center max-w-sm mx-4 flex flex-col items-center"
-              initial={{ scale: 0.5, y: 100 }}
+              className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
+              initial={{ scale: 0.7, y: 80 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.5, y: 100 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              exit={{ scale: 0.7, y: 80 }}
+              transition={{ type: "spring", stiffness: 250, damping: 20 }}
               onClick={(e) => e.stopPropagation()}
+              style={{ borderRadius: "20px" }}
+              dir="rtl"
             >
+              {/* الزخرفة الصفراء */}
+              <img className="absolute top-0 left-0" src={vectorEnd} />
+
               {/* أيقونة التحذير */}
+              <div className="relative z-10 flex justify-center mb-4">
               <motion.div
-                className="w-16 h-16 md:w-20 md:h-20 mb-4 rounded-full flex items-center justify-center"
+                className="w-16 h-16 md:w-20 md:h-20 mb-4 rounded-full flex items-center justify-center z-10 relative"
                 style={{ backgroundColor: "#fee2e2" }}
                 initial={{ rotate: -180, scale: 0 }}
                 animate={{ rotate: 0, scale: 1 }}
@@ -148,11 +139,16 @@ export function ClassroomManagement() {
               >
                 <span className="text-3xl md:text-4xl">⚠️</span>
               </motion.div>
-
+</div>
               {/* العنوان */}
               <motion.h2
-                className="text-2xl md:text-3xl mb-2"
-                style={{ color: "#652b82" }}
+                className="text-base md:text-xl lg:text-2xl mb-2"
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  // fontSize: "30px",
+                  fontWeight: "500",
+                }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -166,10 +162,23 @@ export function ClassroomManagement() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  // fontSize: "18px",
+                  fontWeight: "500",
+                }}
               >
                 هل أنت متأكد من حذف الصف
                 <br />
-                <span className="font-semibold" style={{ color: "#652b82" }}>
+                <span
+                  className="font-semibold text-base md:text-xl lg:text-2xl"
+                  style={{
+                    color: "#28345F",
+                    fontFamily: "amiriQuran",
+                    // fontSize: "25px",
+                  }}
+                >
                   {classToDelete.name}
                 </span>
                 ؟
@@ -178,15 +187,14 @@ export function ClassroomManagement() {
               </motion.p>
 
               {/* الأزرار */}
-              <div className="flex gap-4">
+              <div
+                className="flex gap-4 justify-center"
+                style={{ marginTop: "20px" }}
+              >
                 <motion.button
                   onClick={handleCancelDelete}
-                  className="px-5 py-2.5 rounded-xl border-2"
-                  style={{
-                    borderColor: "#652b82",
-                    color: "#652b82",
-                    backgroundColor: "white",
-                  }}
+                  style={{ backgroundColor: "#FDC333" }}
+                  className="px-6 py-2.5 rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0 }}
@@ -198,10 +206,8 @@ export function ClassroomManagement() {
 
                 <motion.button
                   onClick={handleConfirmDelete}
-                  className="px-5 py-2.5 rounded-xl text-white shadow-lg"
-                  style={{
-                    background: "linear-gradient(135deg, #dc2626, #b91c1c)",
-                  }}
+                  style={{ backgroundColor: "#f32525ff", color: "#ffffffff" }}
+                  className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0 }}
@@ -227,7 +233,7 @@ export function ClassroomManagement() {
                 className="w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: "#f5f3f7" }}
               >
-                <img src={writeIconNavey} className="w-10 md:w-16 lg:w-20"/>
+                <img src={writeIconNavey} className="w-10 md:w-16 lg:w-20" />
               </div>
               <p
                 className="text-lg md:text-xl lg:text-2xl"
@@ -504,8 +510,9 @@ export function ClassroomManagement() {
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <img src={writeIcon}  className="w-6 md:w-16 lg:w-20" />
-                  <motion.span className="text-sm md:text-xl lg:text-2xl text-center"
+                  <img src={writeIcon} className="w-6 md:w-10 lg:w-10" />
+                  <motion.span
+                    className="text-sm md:text-xl lg:text-2xl text-center"
                     style={{
                       fontFamily: "tajawal",
                       // fontSize: "20px",
@@ -570,7 +577,7 @@ export function ClassroomManagement() {
                   >
                     <motion.img
                       src={trashIcon}
-                      className="w-8 md:w-16 lg:w-20"
+                      className="w-6 md:w-10 lg:w-10"
                       whileHover={{ rotate: 10 }}
                     />
                   </motion.button>

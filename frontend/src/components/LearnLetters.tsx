@@ -216,11 +216,11 @@ export function LearnLetters() {
               animate={{ opacity: 1, y: 0 }}
             >
               <h1
-                className="text-xl md:text-4xl mb-2"
+                className="text-base md:text-xl lg:text-2xl"
                 style={{
                   color: "#F9F9F9",
                   fontFamily: "tajawal",
-                  fontSize: "35",
+                  // fontSize: "35px",
                   fontWeight: "700",
                 }}
               >
@@ -282,7 +282,7 @@ export function LearnLetters() {
                       setCurrentSlide(1);
                     }}
                     disabled={!videoEnded}
-                    className="px-10 py-4 rounded-2xl shadow-2xl text-white text-xl transition-all"
+                    className="px-10 py-4 rounded-2xl shadow-2xl text-white text-base md:text-xl lg:text-2xl transition-all"
                     style={{
                       background: videoEnded
                         ? "linear-gradient(135deg, #652b82, #7d3ba0)"
@@ -322,11 +322,11 @@ export function LearnLetters() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.3 }}
-                      className="mt-3 text-sm text-gray-600"
+                      className="text-base md:text-xl lg:text-2xl"
                       style={{
                         color: "#652B82",
                         fontFamily: "tajawal",
-                        fontSize: "20",
+                        // fontSize: "20",
                         fontWeight: "400",
                       }}
                     >
@@ -342,11 +342,11 @@ export function LearnLetters() {
                 initial={{ opacity: 1, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <p
+                <p className="text-base md:text-xl lg:text-2xl"
                   style={{
                     color: "#FDFDFD",
                     fontFamily: "tajawal",
-                    fontSize: "25px",
+                    // fontSize: "25px",
                     fontWeight: "500",
                   }}
                 >

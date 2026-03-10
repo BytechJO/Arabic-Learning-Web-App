@@ -80,11 +80,11 @@ export function StudentsManagement() {
           <div className="relative flex items-center justify-center">
             <img src={backgroundHeader} />
             <h1
-              className="absolute top-12 text-4xl md:text-5xl mb-3 z-50"
+              className="absolute top-8 md:top-12 text-4xl md:text-5xl mb-3 z-50"
               style={{
                 color: "#652B82",
                 fontFamily: "tajawal",
-                fontSize: "50px",
+                // fontSize: "50px",
               }}
             >
               الصفوف

@@ -116,11 +116,11 @@ export function AppHeader({
                     </motion.button>
                   )}
                   <p
-                    className="text-sm md:text-base font-medium"
+                    className="text-base md:text-sm lg:text-2xl"
                     style={{
                       color: "#652b82",
                       fontFamily: "poppins",
-                      fontSize: "20px",
+                      // fontSize: "20px",
                       fontWeight: "400",
                     }}
                   >
@@ -186,13 +186,14 @@ export function AppHeader({
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="text-xl md:text-2xl" style={{ color: "#652b82" }}>
+            <div className="text-center" style={{ color: "#652b82" }}>
               <span
-                className="font-bold"
+                className="text-base md:text-xl lg:text-2xl text-center"
                 style={{
                   fontFamily: "tajawal",
-                  fontSize: "25px",
+                  // fontSize: "25px",
                   fontWeight: "700",
+                  textAlign:"center"
                 }}
               >
                 {title}
@@ -253,9 +254,7 @@ export function AppHeader({
                 style={{
                   width: "40px",
                   height: "40px",
-
                   borderRadius: "8px",
-
                   border: "none",
                   display: "flex",
                   alignItems: "center",

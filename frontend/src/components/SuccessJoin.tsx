@@ -54,6 +54,7 @@ export function SuccessJoin({ onLogout, onBack }: SuccessJoinProps) {
           showBackButton={false}
           onBack={onBack}
           title="إستعد لمغامرة تعليمية رائعة"
+          showLogout={false}
         />
         {/* عناصر زخرفية متحركة */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -76,21 +77,21 @@ export function SuccessJoin({ onLogout, onBack }: SuccessJoinProps) {
           style={{ marginTop: "15px" }}
         >
           {/* المحتوى الرئيسي */}
-          <div className="relative z-10 flex flex-col items-center justify-center gap-4">
+          <div className="relative z-10 flex flex-col items-center justify-center gap-4 text-base md:text-xl lg:text-2xl">
             <h1
               style={{
                 fontFamily: "poppins",
-                fontSize: "30px",
+                // fontSize: "30px",
                 fontWeight: "500",
                 color: "#FFFFFF",
               }}
             >
               انت مسجل في صف{" "}
             </h1>
-            <h1
+            <h1 className="text-base md:text-xl lg:text-2xl"
               style={{
                 fontFamily: "poppins",
-                fontSize: "25px",
+                // fontSize: "25px",
                 fontWeight: "700",
                 color: "#FFFFFF",
               }}
@@ -100,7 +101,7 @@ export function SuccessJoin({ onLogout, onBack }: SuccessJoinProps) {
             <img src={girl_img} />
             <button
               onClick={() => navigate("/welcome-page")}
-              className="w-full text-white py-2 md:py-2 flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl hover:scale-105"
+              className="w-80 md:w-full text-white py-2 md:py-2 flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl hover:scale-105"
               style={{
                 backgroundColor: "#FDC333",
                 color: "#652B82",

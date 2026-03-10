@@ -166,7 +166,8 @@ export function LetterDetails() {
                   style={{
                     color: "#652B82",
                     fontSize: "80px",
-                    fontFamily: "amiriQuran",lineHeight:"1"
+                    fontFamily: "amiriQuran",
+                    lineHeight: "1",
                   }}
                 >
                   {letter}
@@ -222,7 +223,7 @@ export function LetterDetails() {
 
       {/* النمر في الزاوية اليسرى العليا */}
       <motion.div
-        className="hidden md:block fixed -top-8 left-2 md:-top-8 md:left-3 z-10"
+        className="hidden md:block fixed top-0 md:-top-8 left-2 md:-top-8 md:left-3 z-10"
         initial={{ x: -200, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{
@@ -235,16 +236,7 @@ export function LetterDetails() {
         <motion.img
           src={tigerImg}
           alt="نمر"
-          className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
-          // animate={{
-          //   y: [0, -8, 0],
-          //   rotate: [0, 3, -3, 0],
-          // }}
-          // transition={{
-          //   duration: 3,
-          //   repeat: Infinity,
-          //   ease: "easeInOut",
-          // }}
+          className="tiger-choose-page w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
         />
       </motion.div>
 
@@ -262,7 +254,7 @@ export function LetterDetails() {
         <motion.img
           src={alphabet_svg}
           alt="حروف"
-          className="w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
+          className="tiger-choose-page w-20 h-48 md:w-48 md:h-48 lg:w-48 lg:h-80 object-contain drop-shadow-2xl"
           // animate={{
           //   y: [0, -8, 0],
           //   rotate: [0, 3, -3, 0],

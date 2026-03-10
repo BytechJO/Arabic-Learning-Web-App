@@ -57,25 +57,18 @@ export function TeacherHomePage() {
   ];
 
   return (
-    <div className="h-screen relative overflow-hidden">
+    <div className="min-h-screen relative flex flex-col">
       {/* خلفية متدرجة */}
-      <div
-        className="fixed inset-0"
-        style={{
-          background: "white",
-        }}
-      ></div>
-
-      <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8">
+     
+      <div className="relative z-10 flex flex-col justify-center items-center">
         {/* Header with Logout */}
         <div
-          className="fixed top-0 left-0 right-0 shadow-md z-50 h-56"
+          className="shadow-md h-56 w-full shrink-0 z-50"
           style={{
-            borderBottom: "3px solid #fad656",
             background: "linear-gradient(120deg, #A68BB7 75%, #FFFBE8 100%)",
           }}
         >
-          <div className="px-4 md:px-6 py-2 md:py-2.5">
+          <div className="px-4 md:px-6 py-2 md:py-2.5 overflow-hidden">
             <div className="flex items-center justify-between" dir="rtl">
               {/* اليمين - اسم التطبيق */}
               <div className="flex items-center gap-2">
@@ -166,14 +159,14 @@ export function TeacherHomePage() {
 
         {/* Welcome Message */}
         <div
-          className="text-center mb-12 mt-20 h-24 flex flex-col justify-center items-center z-50"
-          style={{
-            backgroundColor: "#FFFFFF",
-
-            width: "100vw",
-            position: "relative",
-            top: "100px",
-          }}
+            className="h-28 bg-white flex flex-col items-center justify-center shrink-0"
+        style={{
+          backgroundColor: "#FFFFFF",
+          zIndex: "999",
+          width: "100vw",
+          position: "relative",
+          display:"flex"
+        }}
         >
           <img src={rectangle} style={{ position: "absolute", top: "-16px" }} />
           <p
@@ -190,9 +183,8 @@ export function TeacherHomePage() {
 
         {/* Sections Grid */}
         <div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full overflow-y-auto"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full"
           style={{
-            marginTop: "60px",
             maxHeight: "calc(100vh - 360px)",
           }}
         >

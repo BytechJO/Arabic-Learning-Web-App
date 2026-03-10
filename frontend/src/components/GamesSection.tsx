@@ -97,42 +97,41 @@ export function GamesSection() {
 
     // ✅ لا تعرض المودال للمعلم
     if (user?.type === "teacher") return;
-const checkGamesCompletion = async () => {
-  try {
-    const res = await api.get(`/lessons/${letterId}/games/progress`);
-          console.log(res.data);
-          
-    const { playedGamesCount, totalGames ,isCompleted} = res.data;
+    const checkGamesCompletion = async () => {
+      try {
+        const res = await api.get(`/lessons/${letterId}/games/progress`);
 
-    const trulyCompleted =
-      totalGames > 0 && playedGamesCount === totalGames;
-console.log(trulyCompleted);
+        const { playedGamesCount, totalGames, isCompleted } = res.data;
 
-    setGamesCompleted(trulyCompleted);
+        const trulyCompleted =
+          totalGames > 0 && playedGamesCount === totalGames;
+        console.log(trulyCompleted);
 
-    const modalKey = `games_complete_modal_letter_${letterId}`;
+        setGamesCompleted(trulyCompleted);
 
-    if (trulyCompleted) {
-      localStorage.setItem(modalKey, "1");
+        const modalKey = `games_complete_modal_letter_${letterId}`;
 
-      if (!progressSavedRef.current) {
-        progressSavedRef.current = true;
+        if (trulyCompleted) {
+          localStorage.setItem(modalKey, "1");
 
-        await upsertUserProgress({
-          letter_id: letterId,
-          lesson_id: 5,
-          lesson_type: "game",
-          score: 1,
-          completed: true,
-        });
+          if (!progressSavedRef.current) {
+            progressSavedRef.current = true;
+
+            await upsertUserProgress({
+              letter_id: letterId,
+              lesson_id: 5,
+              lesson_type: "game",
+              score: 1,
+              completed: true,
+            });
+          }
+
+          setShowCompleteModal(true);
+        }
+      } catch (error) {
+        console.error("Error checking games progress:", error);
       }
-
-      setShowCompleteModal(true);
-    }
-  } catch (error) {
-    console.error("Error checking games progress:", error);
-  }
-};
+    };
 
     checkGamesCompletion();
   }, [letterId, user?.type]);
@@ -238,7 +237,7 @@ console.log(trulyCompleted);
               animate={{ opacity: 1, y: 0 }}
             >
               <p
-                className="text-xs md:text-sm text-gray-700"
+                className="text-xs md:text-sm text-gray-700 px-6 md:px-0"
                 style={{
                   color: "#28345F",
                   fontFamily: "tajawal",

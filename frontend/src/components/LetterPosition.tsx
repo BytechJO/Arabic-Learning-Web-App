@@ -165,11 +165,11 @@ export function LetterPosition() {
               animate={{ opacity: 1, y: 0 }}
             >
               <h1
-                className="text-2xl md:text-4xl mb-2"
+                className="text-base md:text-xl lg:text-2xl mb-2"
                 style={{
                   color: "#F9F9F9",
                   fontFamily: "tajawal",
-                  fontSize: "30px",
+                  // fontSize: "30px",
                   fontWeight: "700",
                 }}
               >
@@ -178,16 +178,16 @@ export function LetterPosition() {
             </motion.div>
             {/* العنوان */}
             <motion.div
-              className="text-center mb-2 flex items-start"
+              className="text-center mb-2 flex items-start px-6 md:px-0"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
             >
               <p
-                className="text-xs md:text-sm text-gray-600"
+                className="text-base md:text-xl lg:text-2xl"
                 style={{
                   color: "#FDFDFD",
                   fontFamily: "tajawal",
-                  fontSize: "20px",
+                  // fontSize: "20px",
                   fontWeight: "500",
                 }}
               >
@@ -211,21 +211,21 @@ export function LetterPosition() {
                   </div>
                   <div className="flex items-center gap-2">
                     <p
-                      className="text-xs text-gray-600"
+                      className="text-base md:text-xl lg:text-2xl"
                       style={{
                         color: "#28345F",
                         fontFamily: "tajawal",
-                        fontSize: "14",
+                        // fontSize: "14",
                         fontWeight: "500",
                       }}
                     >
                       النقاط
-                    </p>
-                    <p
+                    </p> 
+                    <p className="text-base md:text-xl lg:text-2xl"
                       style={{
                         color: "#28345F",
                         fontFamily: "tajawal",
-                        fontSize: "14",
+                        // fontSize: "14",
                         fontWeight: "500",
                       }}
                     >
@@ -234,22 +234,22 @@ export function LetterPosition() {
                   </div>
                 </div>
 
-                <div className="text-center">
+                <div className="text-center text-base md:text-xl lg:text-2xl">
                   <p
                     style={{
                       color: "#28345F",
                       fontFamily: "tajawal",
-                      fontSize: "20px",
+                      // fontSize: "20px",
                       fontWeight: "500",
                     }}
                   >
                     السؤال
                   </p>
-                  <p
+                  <p className="text-center text-base md:text-xl lg:text-2xl"
                     style={{
                       color: "#28345F",
                       fontFamily: "tajawal",
-                      fontSize: "20px",
+                      // fontSize: "20px",
                       fontWeight: "500",
                     }}
                   >
@@ -272,11 +272,11 @@ export function LetterPosition() {
                   </motion.button>
                   <div className="flex items-center gap-2">
                     <p
-                      className="text-xs text-gray-600"
+                      className="text-base md:text-sm lg:text-xl"
                       style={{
                         color: "#28345F",
                         fontFamily: "tajawal",
-                        fontSize: "16px",
+                        // fontSize: "16px",
                         fontWeight: "500",
                       }}
                     >
@@ -352,7 +352,7 @@ export function LetterPosition() {
                 style={{
                   color: "#28345F",
                   fontFamily: "tajawal",
-                  fontSize: "22px",
+                  // fontSize: "22px",
                   fontWeight: "500",
                 }}
               >

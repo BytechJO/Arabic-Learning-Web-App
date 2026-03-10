@@ -230,11 +230,11 @@ export function VideosSection() {
               animate={{ opacity: 1, y: 0 }}
             >
               <h1
-                className="text-2xl md:text-4xl mb-2"
+                className="text-base md:text-2xl lg:text-3xl mb-2"
                 style={{
                   color: "#F9F9F9",
                   fontFamily: "tajawal",
-                  fontSize: "30px",
+                  // fontSize: "30px",
                   fontWeight: "700",
                 }}
               >
@@ -248,11 +248,11 @@ export function VideosSection() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <p
-                  className="text-xs md:text-sm text-gray-600"
+                  className="text-base md:text-xl lg:text-2xl "
                   style={{
                     color: "#FDFDFD",
                     fontFamily: "tajawal",
-                    fontSize: "25px",
+                    // fontSize: "25px",
                     fontWeight: "500",
                   }}
                 >
@@ -260,7 +260,7 @@ export function VideosSection() {
                 </p>
               </motion.div>
               {/* السلايدر للفيديوهات */}
-              <div className="relative px-12">
+              <div className="relative px-0 md:px-12">
                 <motion.div
                   key={currentPage}
                   initial={{ opacity: 0, x: 50 }}

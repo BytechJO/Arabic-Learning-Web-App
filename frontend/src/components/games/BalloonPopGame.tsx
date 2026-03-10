@@ -16,7 +16,7 @@ import { saveGameResult } from "../../API/gameResult";
 import { RootState } from "../../redux/store";
 import { fetchLetters } from "../../redux/reducers/lettersSlice";
 import { GameLoadingScreen } from "./WordCatchWelcom";
-
+import "./BalloonPopGame.css"
 /* ===================== Types ===================== */
 
 interface Balloon {
@@ -345,11 +345,11 @@ export function BalloonPopGame() {
             <X className="w-6 h-6" />
           </button>
           <h2
-            className="text-lg md:text-xl font-medium text-center flex-1"
+            className="text-sm md:text-xl font-medium text-center flex-1"
             style={{
               color: "#28345F",
               fontFamily: "tajawal",
-              fontSize: "20px",
+              // fontSize: "20px",
             }}
           >
             افرقع البالونات التي تحتوي على كلمات تبدأ بحرف الألف
@@ -369,35 +369,35 @@ export function BalloonPopGame() {
                 style={{ color: "#652b82", fill: "transparent" }}
               />
               <span
-                className="text-lg"
+                className="text-center text-base md:text-xl lg:text-2xl"
                 style={{
                   color: "#652b82",
                   fontFamily: "tajawal",
-                  fontSize: "25px",
+                  // fontSize: "25px",
                 }}
               >
                 {score}
               </span>
             </div>
             <span
-              className="text-lg"
+              className="text-center text-base md:text-xl lg:text-2xl"
               style={{
                 color: "#652b82",
                 backgroundColor: "#faf6e7",
                 borderRadius: "15px",
                 padding: "10px",
                 fontFamily: "tajawal",
-                fontSize: "22px",
+                // fontSize: "22px",
               }}
             >
               المستوى: {level}
             </span>
 
-            <div className="flex gap-2">
+            <div className="lives-balloon flex gap-2">
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="w-6 h-6 rounded-full"
+                  className="hidden md:block w-6 h-6 rounded-full"
                   style={{
                     backgroundColor: i < lives ? "#FC4637" : "#d1d5db",
                   }}
@@ -416,9 +416,9 @@ export function BalloonPopGame() {
               <motion.button
                 key={balloon.id}
                 initial={{ y: "100vh" }}
-                animate={{ y: "-90vh"  }}
+                animate={{ y: "-90vh" }}
                 exit={{ scale: 0, opacity: 0 }}
-               transition={{ duration: 14 - level * 0.3, ease: "linear" }}
+                transition={{ duration: 14 - level * 0.3, ease: "linear" }}
                 onAnimationComplete={() => handleBalloonEscape(balloon.id)}
                 onClick={() => handleBalloonClick(balloon)}
                 className="absolute bottom-0 cursor-pointer z-0"

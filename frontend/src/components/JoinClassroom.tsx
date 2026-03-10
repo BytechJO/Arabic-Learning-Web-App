@@ -138,8 +138,8 @@ JoinClassroomProps) {
         <div className="flex">
           {/*النمر الموجود بالهيدر */}
           <motion.div
-            className="flex"
-            style={{ justifyContent: "flex-end" }}
+            className="hidden md:flex"
+            style={{ justifyContent: "flex-end" ,width:"50%" }}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
@@ -147,8 +147,8 @@ JoinClassroomProps) {
             <motion.img
               src={tiger}
               alt="نمر"
-              className="tiger-choose-page md:w-56 lg:w-20 object-contain drop-shadow-2xl"
-              style={{ width: "65%" }}
+              className="tiger-choose-page w-64 md:w-96 lg:w-20 object-contain drop-shadow-2xl"
+              // style={{ width: "65%" }}
               animate={{ y: [0, -6, 0] }}
               transition={{
                 duration: 3,

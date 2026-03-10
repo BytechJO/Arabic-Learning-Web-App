@@ -37,7 +37,7 @@ export function LetterWelcomePage() {
 
   return (
     <>
-      <div className="min-h-screen relative overflow-hidden" dir="rtl">
+      <div className="min-h-screen relative overflow-hidden flex flex-col" dir="rtl">
         {/* خلفية متدرجة */}
         <div
           className="fixed inset-0"
@@ -46,6 +46,7 @@ export function LetterWelcomePage() {
           }}
         ></div>
         {/* الهيدر - خارج أي container */}
+        <div className="flex-1">
         <div className="relative">
           <img src={welcome} className="w-80" />
           <div
@@ -62,20 +63,20 @@ export function LetterWelcomePage() {
                     borderRadius: "50%",
                   }}
                 ></div>
-                <h1
+                <h1 className="text-base md:text-2xl lg:text-3xl"
                   style={{
                     fontFamily: "tajawal",
                     fontWeight: "700",
-                    fontSize: "35px",
+                    // fontSize: "35px",
                     color: "#373737",
                   }}
                 >
                   مرحبا
-                  <span
+                  <span className="text-base md:text-2xl lg:text-3xl"
                     style={{
                       fontFamily: "tajawal",
                       fontWeight: "500",
-                      fontSize: "25px",
+                      // fontSize: "25px",
                       color: "#373737",
                     }}
                   >
@@ -92,11 +93,11 @@ export function LetterWelcomePage() {
                   }}
                 ></div>
               </div>
-              <h2
+              <h2 className="text-base md:text-lg lg:text-xl"
                 style={{
                   fontFamily: "tajawal",
                   fontWeight: "500",
-                  fontSize: "18px",
+                  // fontSize: "18px",
                   color: "#373737",
                   paddingRight: "20px",
                 }}
@@ -137,7 +138,7 @@ export function LetterWelcomePage() {
             <motion.img
               src={tiger}
               alt="نمر"
-              className="w-48 md:w-48 lg:w-48 object-contain drop-shadow-2xl"
+              className="tiger-choose-page w-48 md:w-48 lg:w-48 object-contain drop-shadow-2xl"
               animate={{ y: [0, -6, 0] }}
               transition={{
                 duration: 3,
@@ -147,20 +148,21 @@ export function LetterWelcomePage() {
             />
           </motion.div>
         </div>
-
-        <div className="relative flex justify-center">
-          <h1
-            style={{
-              fontFamily: "tajawal",
-              fontSize: "20px",
-              fontWeight: "500",
-              color: "#6C6C6CBD",
-              marginBottom: "20px",
-            }}
-          >
-            انت مسجل في صف {myClass?.name}
-          </h1>
-        </div>
+</div>
+       <div className="relative flex justify-center mt-auto pb-6">
+  <h1
+    className="text-base md:text-xl lg:text-2xl"
+    style={{
+      fontFamily: "tajawal",
+      fontWeight: "500",
+      color: "#6C6C6CBD",
+      marginBottom: "20px",
+    }}
+  >
+    انت مسجل في صف {myClass?.name}
+  </h1>
+</div>
+        
       </div>
     </>
   );

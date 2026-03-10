@@ -369,11 +369,11 @@ export function MemoryMatchGame() {
           </button>
 
           <h2
-            className="text-lg md:text-xl font-medium text-center flex-1"
+            className="text-base md:text-xl lg:text-2xl text-center flex-1"
             style={{
               color: "#28345F",
               fontFamily: "tajawal",
-              fontSize: "20px",
+              // fontSize: "20px",
             }}
           >
             اقلب البطاقات وطابق الألف مع الكلمات
@@ -394,25 +394,25 @@ export function MemoryMatchGame() {
                 style={{ color: "#652b82", fill: "transparent" }}
               />
               <span
-                className="text-lg"
+                className="text-base md:text-xl lg:text-2xl"
                 style={{
                   color: "#652b82",
                   fontFamily: "tajawal",
-                  fontSize: "25px",
+                  // fontSize: "25px",
                 }}
               >
                 {score}
               </span>
             </div>
             <span
-              className="text-lg"
+              className="text-base md:text-xl lg:text-2xl"
               style={{
                 color: "#652b82",
                 backgroundColor: "#faf6e7",
                 borderRadius: "15px",
                 padding: "10px",
                 fontFamily: "tajawal",
-                fontSize: "22px",
+                // fontSize: "22px",
               }}
             >
               حركة: {moves}/10

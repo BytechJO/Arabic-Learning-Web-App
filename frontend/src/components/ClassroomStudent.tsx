@@ -126,9 +126,9 @@ export function ClassroomStudent() {
               style={{ marginRight: "110px" }}
             >
               <img src={writeIcon} style={{ height: "35px", width: "35px" }} />
-              <h1
+              <h1 className="text-base md:text-xl lg:text-2xl"
                 style={{
-                  fontSize: "30px",
+                  // fontSize: "30px",
                   color: "#9E7DAC",
                   fontFamily: "tajawal",
                   fontWeight: "700",
@@ -152,7 +152,6 @@ export function ClassroomStudent() {
     );
   }
 
-  console.log(students, classroom);
 
   return (
     <div
@@ -312,7 +311,7 @@ export function ClassroomStudent() {
           </div>
         </div>
       </div>
-      <div className="space-y-6 z-50" dir="rtl">
+      <div className="space-y-6 z-50 bg-white" dir="rtl">
         {/* قائمة الطلاب */}
         {students.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl shadow-md">

@@ -324,11 +324,11 @@ export function WordCatchGame() {
 
           {/* Instruction */}
           <p
-            className="flex-1 text-center text-lg px-4 truncate max-md:text-base"
+            className="flex-1 text-center text-base md:text-xl lg:text-2xl px-4 truncate"
             style={{
               color: "#28345F",
               fontFamily: "tajawal",
-              fontSize: "25px",
+              // fontSize: "25px",
               fontWeight: "500",
             }}
           >

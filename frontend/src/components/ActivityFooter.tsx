@@ -9,39 +9,15 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import * as React from "react";
+
 import learn from "../assets/book_sidebar.svg";
 import write from "../assets/pincle_sidebar.svg";
-import location from "../assets/location_sideBar.svg";
+import locationIcon from "../assets/location_sideBar.svg";
 import tashkeel from "../assets/tashkeel_sidebar.svg";
 import video from "../assets/Video_sidebar.svg";
 import games from "../assets/game_sidebar.svg";
 import header from "../assets/header_sidbar.svg";
-import buttonSidebar from "../assets/button_sidebar.svg"
-// أيقونة الحروف العربية المخصصة
-const ArabicLettersIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <text
-      x="50%"
-      y="50%"
-      dominantBaseline="middle"
-      textAnchor="middle"
-      fontSize="14"
-      fontWeight="bold"
-      fill="currentColor"
-      stroke="none"
-    >
-      أ ب
-    </text>
-  </svg>
-);
+import buttonSidebar from "../assets/button_sidebar.svg";
 
 interface ActivityFooterProps {
   currentLetter?: string;
@@ -51,7 +27,7 @@ interface ActivityFooterProps {
 const activities = [
   { id: "learn", label: "تعلم الحروف", icon: learn },
   { id: "write", label: "اكتب الحروف", icon: write },
-  { id: "position", label: "مكان الحروف", icon: location },
+  { id: "position", label: "مكان الحروف", icon: locationIcon },
   { id: "tashkeel", label: "تشكيل الحرف", icon: tashkeel },
   { id: "videos", label: "فيديوهات", icon: video },
   { id: "games", label: "العاب", icon: games },
@@ -62,8 +38,8 @@ export function ActivityFooter({
   letterName,
 }: ActivityFooterProps) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const currentActivity = location.pathname.split("/").pop();
+  const routerLocation = useLocation();
+  const currentActivity = routerLocation.pathname.split("/").pop();
 
   const [collapsed, setCollapsed] = React.useState(true);
 
@@ -72,10 +48,10 @@ export function ActivityFooter({
 
   return (
     <>
-      {/* سايدبار ثابت يشبه التصميم دائماً (موبايل و ديسكتوب) */}
+      {/* يظهر فقط في الموبايل */}
       <aside
         dir="rtl"
-        className="fixed z-50"
+        className="fixed z-50 md:hidden"
         style={{
           top: 0,
           bottom: 0,
@@ -84,7 +60,7 @@ export function ActivityFooter({
           transition: "width 220ms ease",
         }}
       >
-        {/* Handle (الكبسة) تبقى ظاهرة دائماً */}
+        {/* زر الفتح والإغلاق */}
         <button
           type="button"
           aria-label={collapsed ? "إظهار القائمة" : "إخفاء القائمة"}
@@ -101,8 +77,8 @@ export function ActivityFooter({
             cursor: "pointer",
           }}
         >
-          <img src={buttonSidebar}/>
-          {/* نقطة صغيرة مثل اللي بالصورة */}
+          <img src={buttonSidebar} />
+
           <span
             style={{
               position: "absolute",
@@ -114,10 +90,9 @@ export function ActivityFooter({
               opacity: 0.9,
             }}
           />
-         
         </button>
 
-        {/* Clipper: يمنع السايدبار من تغطية الصفحة لما يكون مخفي */}
+        {/* حاوية السايدبار */}
         <div
           className="h-full relative"
           style={{
@@ -128,7 +103,7 @@ export function ActivityFooter({
             boxShadow: collapsed ? "none" : "0 25px 45px rgba(0,0,0,0.18)",
           }}
         >
-          {/* Panel: يتحرك يمين/يسار */}
+          {/* اللوحة */}
           <div
             className="h-full flex flex-col items-stretch relative"
             style={{
@@ -140,10 +115,9 @@ export function ActivityFooter({
               transition: "transform 220ms ease",
             }}
           >
-            {/* شكل الأصفر (blob) أعلى اليمين */}
+            {/* الهيدر */}
             <img src={header} />
 
-            {/* محتوى الهيدر فوق الـ blob */}
             <div
               style={{
                 position: "absolute",
@@ -158,11 +132,9 @@ export function ActivityFooter({
                     flexDirection: "row",
                     alignItems: "flex-end",
                     gap: "6px",
-                    cursor:"pointer"
+                    cursor: "pointer",
                   }}
-                  onClick={()=>{
-                    navigate("/letters")
-                  }}
+                  onClick={() => navigate(`/letter/${currentLetter}`)}
                 >
                   <span
                     style={{
@@ -175,21 +147,22 @@ export function ActivityFooter({
                   >
                     {currentLetter}
                   </span>
+
                   <span
                     style={{
                       fontSize: "18px",
-                     color: "#652b82",
+                      color: "#652b82",
                       fontWeight: "400",
                       fontFamily: "amiriQuran",
                     }}
                   >
-               حرف ال{letterName}
+                    حرف ال{letterName}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* خط فاصل خفيف تحت الهيدر */}
+            {/* خط فاصل */}
             <div
               style={{
                 height: "1px",
@@ -198,13 +171,9 @@ export function ActivityFooter({
               }}
             />
 
-            {/* قائمة الأنشطة عامودية */}
-            <nav
-              className="flex flex-col"
-              style={{ backgroundColor: "#ffffff" }}
-            >
+            {/* قائمة الأنشطة */}
+            <nav className="flex flex-col" style={{ backgroundColor: "#ffffff" }}>
               {activities.map((activity) => {
-                const Icon = activity.icon;
                 const isActive = currentActivity === activity.id;
 
                 return (
@@ -219,50 +188,36 @@ export function ActivityFooter({
                       color: "#5b4d7b",
                       borderLeft: "3px solid transparent",
                       borderRight: "3px solid transparent",
-                      borderBottom:"2px solid #0000000A",
+                      borderBottom: "2px solid #0000000A",
                       boxShadow: isActive
                         ? "inset 4px 0 0 #f8c545"
                         : "inset 0 0 0 rgba(0,0,0,0)",
-                        cursor:"pointer"
-                      
+                      cursor: "pointer",
                     }}
                   >
-                    <img src={activity.icon}  style={{height:"40px" ,width:"40px"}}/>
-                    <span className="text-sm font-medium whitespace-nowrap" style={{
-                      fontSize: "18px",
-                     color: "#272626",
-                      fontWeight: "400",
-                      fontFamily: "tajawal",
-                    }}>
+                    <img
+                      src={activity.icon}
+                      style={{ height: "40px", width: "40px" }}
+                    />
+
+                    <span
+                      className="text-sm font-medium whitespace-nowrap"
+                      style={{
+                        fontSize: "18px",
+                        color: "#272626",
+                        fontWeight: "400",
+                        fontFamily: "tajawal",
+                      }}
+                    >
                       {activity.label}
                     </span>
                   </button>
                 );
               })}
             </nav>
-
-            {/* زر الحروف في الأسفل يشبه عنصر القائمة الأخير */}
-            {/* <div
-              style={{
-                borderTop: "1px solid rgba(0,0,0,0.03)",
-                padding: "8px 0 10px",
-                marginTop: "auto",
-              }}
-            >
-              <button
-                onClick={() => navigate("/letters")}
-                className="w-full flex items-center justify-between px-6 py-4 rounded-none transition-all"
-                style={{ backgroundColor: "#ffffff", color: "#652b82" }}
-              >
-                <span className="text-sm font-medium whitespace-nowrap">
-                  الحروف
-                </span>
-                <ArabicLettersIcon className="w-5 h-5" />
-              </button>
-            </div> */}
           </div>
         </div>
       </aside>
     </>
   );
-}
+} 

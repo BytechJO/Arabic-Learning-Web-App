@@ -85,15 +85,15 @@ function DraggableItem({ item }: { item: Item }) {
         backgroundColor: CARD_BG,
         borderColor: CARD_BORDER,
         color: TEXT_DARK,
-        width: "90px",
-        height: "90px",
+        // width: "90px",
+        // height: "90px",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         fontFamily: "tajawal",
-        fontSize: "25px",
+        // fontSize: "25px",
       }}
-      className="px-6 py-3 rounded-xl border-2 cursor-move text-xl"
+      className="px-6 py-3 rounded-xl border-2 cursor-move text-center text-base md:text-xl lg:text-2xl h-14 md:h-14 w-18 md:w-24"
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ scale: 1.05 }}
@@ -118,8 +118,10 @@ function DroppableZone({
   return (
     <div className="flex flex-col min-h-[200px]">
       <h3
-        className="text-2xl mb-4 text-center font-bold"
-        style={{ color: TEXT_DARK, fontFamily: "tajawal", fontSize: "25px" }}
+        className="text-center text-base md:text-xl lg:text-2xl mb-4 text-center font-bold"
+        style={{ color: TEXT_DARK, fontFamily: "tajawal"
+          // , fontSize: "25px" 
+        }}
       >
         {title}
       </h3>
@@ -377,10 +379,11 @@ export function SortingGame() {
               animate={{ opacity: 1, y: 0 }}
             >
               <h2
+                className="text-xs md:text-xl lg:text-2xl"
                 style={{
                   color: TEXT_DARK,
                   fontFamily: "tajawal",
-                  fontSize: "20px",
+                  // fontSize: "20px",
                 }}
               >
                 صنف الكلمات اسحب الكلمات إلى المكان الصحيح
@@ -395,8 +398,8 @@ export function SortingGame() {
                   borderRadius: "15px",
                 }}
               >
-                <Star className="w-5 h-5" style={{ color: TEXT_DARK }} />
-                <span className="text-lg">
+                <Star className="w-4 md:w-5 h-4 md:h-5" style={{ color: TEXT_DARK }} />
+                <span className="text-center text-xs md:text-xl lg:text-2xl">
                   {config.items.length * config.scorePerCorrect}
                 </span>
               </div>
@@ -408,7 +411,9 @@ export function SortingGame() {
                   borderRadius: "15px",
                 }}
               >
-                <span className="text-lg">حركات: {moves}</span>
+                <span className="text-xs md:text-xl lg:text-2xl">
+                  حركات: {moves}
+                </span>
               </div>
             </div>
           </div>
@@ -449,7 +454,7 @@ export function SortingGame() {
                 ))}
               </DroppableZone>
 
-              <DroppableZone id="alif" title="حرف الألف (أ)">
+              <DroppableZone id="alif" title={`حرف ${letter}`}>
                 {alifItems.map((item) => (
                   <div
                     key={item.id}
@@ -510,7 +515,7 @@ export function SortingGame() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-               انتهت اللعبه 
+                انتهت اللعبه
               </motion.h2>
               {/* التفاصيل */}
               <p

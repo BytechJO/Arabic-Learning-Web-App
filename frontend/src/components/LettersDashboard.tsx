@@ -10,6 +10,7 @@ import checkIcon from "../assets/check_icon.svg";
 import vectorEnd from "../assets/vector_end.svg";
 
 import { useNavigate } from "react-router-dom";
+import { SplashScreen } from "./SplashScreen";
 interface LettersDashboardProps {
   // onLetterClick: (letter: string, letterName: string) => void;
   onLogout: () => void;
@@ -50,6 +51,7 @@ interface LettersDashboardProps {
 export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
   const user = useAppSelector((state) => state.auth.user);
   const [lettersStatus, setLettersStatus] = useState<any[]>([]);
+    const [showSplash, setShowSplash] = useState(true);
   const [showLockedMessage, setShowLockedMessage] = useState(false);
   const dispatch = useAppDispatch();
   const { letters, loading } = useAppSelector((state) => state.letters);
@@ -77,7 +79,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
   }, []);
 
   if (loading) {
-    return <p className="text-center text-gray-500">جاري تحميل الحروف...</p>;
+    return <SplashScreen onComplete={() => setShowSplash(false)} />; ;
   }
 
   return (
@@ -106,7 +108,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
       </div>
 
       {/* المحتوى الرئيسي */}
-      <div className="relative -top-26 z-10">
+      <div className="relative -top-30 md:-top-26 z-10">
         {/* العنوان الرئيسي */}
         <motion.div
           className="text-center py-8 md:py-10 px-6"
@@ -115,10 +117,10 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
           transition={{ delay: 0.2 }}
         >
           <p
-            className="text-xs md:text-sm text-gray-600"
+            className="text-base md:text-xl lg:text-2xl"
             style={{
               fontFamily: "tajawal",
-              fontSize: "25px",
+              // fontSize: "25px",
               fontWeight: "700",
               color: "white",
             }}
@@ -185,7 +187,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                         <div className="relative h-full flex flex-col items-center justify-center">
                           {/* الحرف */}
                           <div
-                            className="text-3xl md:text-4xl transition-colors leading-none"
+                            className="text-2xl md:text-4xl transition-colors leading-none"
                             style={{
                               color: "#652b82",
                             }}
@@ -200,9 +202,9 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                           {!isTeacher && (isCompleted || isLocked) && (
                             <div className="absolute top-0 left-0 z-20 flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full bg-white/90 shadow text-[10px] md:text-xl leading-none">
                               {isCompleted ? (
-                                <img src={checkIcon} />
+                                <img src={checkIcon}  className="w-5 h-5 md:w-8 md:h-8" />
                               ) : (
-                                <img src={lock} />
+                                <img src={lock} className="w-5 h-5 md:w-8 md:h-8"/>
                               )}
                             </div>
                           )}
@@ -258,11 +260,11 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
 
             {/* العنوان */}
             <motion.h2
-              className="text-2xl md:text-3xl mb-2"
+              className="text-base md:text-xl lg:text-2xl"
               style={{
                 color: "#28345F",
                 fontFamily: "tajawal",
-                fontSize: "30px",
+                // fontSize: "30px",
                 fontWeight: "500",
               }}
               initial={{ opacity: 0, y: 20 }}

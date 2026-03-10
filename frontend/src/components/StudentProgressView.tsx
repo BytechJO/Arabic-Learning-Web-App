@@ -285,9 +285,9 @@ export function StudentProgressView({
         </div>
         <div>
           <h2
-            className="text-lg mb-1"
+            className="text-base md:text-xl lg:text-2xl mb-1"
             style={{
-              fontSize: "20px",
+              // fontSize: "20px",
               color: "#7B7B7B",
               fontFamily: "tajawal",
               fontWeight: "400",
@@ -311,9 +311,9 @@ export function StudentProgressView({
                   <Star className="w-4 h-4 text-white" />
                 </div>
                 <div
-                  className="text-xl"
+                  className="text-base md:text-xl lg:text-2xl"
                   style={{
-                    fontSize: "30px",
+                    // fontSize: "30px",
                     color: "#7B7B7B",
                     fontFamily: "tajawal",
                     fontWeight: "500",
@@ -323,9 +323,9 @@ export function StudentProgressView({
                 </div>
               </div>
               <p
-                className="text-xs text-gray-600"
+                className="text-base md:text-sm lg:text-xl"
                 style={{
-                  fontSize: "25px",
+                  // fontSize: "25px",
                   color: "#7B7B7B",
                   fontFamily: "tajawal",
                   fontWeight: "400",
@@ -342,9 +342,9 @@ export function StudentProgressView({
                   <CheckCircle className="w-4 h-4 text-white" />
                 </div>
                 <div
-                  className="text-xl"
+                  className="text-base md:text-xl lg:text-2xl"
                   style={{
-                    fontSize: "30px",
+                    // fontSize: "30px",
                     color: "#7B7B7B",
                     fontFamily: "tajawal",
                     fontWeight: "500",
@@ -354,9 +354,9 @@ export function StudentProgressView({
                 </div>
               </div>
               <p
-                className="text-xs text-gray-600"
+                className="text-base md:text-xl lg:text-2xl text-gray-600"
                 style={{
-                  fontSize: "25px",
+                  // fontSize: "25px",
                   color: "#7B7B7B",
                   fontFamily: "tajawal",
                   fontWeight: "400",
@@ -373,9 +373,9 @@ export function StudentProgressView({
                   <Clock className="w-4 h-4 text-white" />
                 </div>
                 <div
-                  className="text-xl"
+                  className="text-base md:text-xl lg:text-2xl"
                   style={{
-                    fontSize: "30px",
+                    // fontSize: "30px",
                     color: "#7B7B7B",
                     fontFamily: "tajawal",
                     fontWeight: "500",
@@ -385,9 +385,9 @@ export function StudentProgressView({
                 </div>
               </div>
               <p
-                className="text-xs text-gray-600"
+                className="text-base md:text-xl lg:text-2xl"
                 style={{
-                  fontSize: "25px",
+                  // fontSize: "25px",
                   color: "#7B7B7B",
                   fontFamily: "tajawal",
                   fontWeight: "400",
@@ -404,9 +404,9 @@ export function StudentProgressView({
                   <BookOpen className="w-4 h-4 text-white" />
                 </div>
                 <div
-                  className="text-xl"
+                  className="text-base md:text-xl lg:text-2xl"
                   style={{
-                    fontSize: "30px",
+                    // fontSize: "30px",
                     color: "#7B7B7B",
                     fontFamily: "tajawal",
                     fontWeight: "500",
@@ -416,9 +416,9 @@ export function StudentProgressView({
                 </div>
               </div>
               <p
-                className="text-xs text-gray-600"
+                className="text-base md:text-xl lg:text-2xl"
                 style={{
-                  fontSize: "25px",
+                  // fontSize: "25px",
                   color: "#7B7B7B",
                   fontFamily: "tajawal",
                   fontWeight: "400",
@@ -442,16 +442,13 @@ export function StudentProgressView({
                     );
 
                     return (
-                      <div
-                        key={activityType}
-                        className="p-3"
-                      >
+                      <div key={activityType} className="p-3">
                         <div className="flex items-center justify-between mb-2">
                           <div
-                            className="text-lg"
+                            className="text-base md:text-xl lg:text-2xl"
                             style={{
                               color: getActivityColor(activityType),
-                              fontSize: "20px",
+                              // fontSize: "20px",
                               fontFamily: "tajawal",
                               fontWeight: "500",
                             }}
@@ -460,10 +457,10 @@ export function StudentProgressView({
                           </div>
                           <div className="flex items-center gap-2">
                             <span
-                              className="text-sm text-gray-700"
+                              className="text-base md:text-sm lg:text-2xl"
                               style={{
                                 color: "#626262",
-                                fontSize: "20px",
+                                // fontSize: "20px",
                                 fontFamily: "tajawal",
                                 fontWeight: "500",
                               }}
@@ -477,14 +474,12 @@ export function StudentProgressView({
                         <div
                           className="w-full bg-gray-200 rounded-full h-4 overflow-hidden"
                           dir="ltr"
-                          
                         >
                           <div
                             className="h-full rounded-full transition-all"
                             style={{
                               width: `${Math.min(percentage, 100)}%`,
                               backgroundColor: getActivityColor(activityType),
-                            
                             }}
                           />
                         </div>
@@ -511,14 +506,14 @@ export function StudentProgressView({
       <div className="flex justify-center items-center">
         <div
           className="bg-white p-4 rounded-2xl shadow-lg border-2 border-gray-200"
-          style={{ width: "90%",marginBottom:"50px" }}
+          style={{ width: "90%", marginBottom: "50px" }}
         >
-          <div className="flex items-center justify-center gap-2 mb-4" >
+          <div className="flex items-center justify-center gap-2 mb-4">
             <h3
-              className="text-base flex justify-center"
+              className="text-base md:text-xl lg:text-2xl flex justify-center"
               style={{
                 color: "#000000",
-                fontSize: "25px",
+                // fontSize: "25px",
                 fontFamily: "tajawal",
                 fontWeight: "500",
               }}
@@ -546,7 +541,10 @@ export function StudentProgressView({
                 );
                 return (
                   <div key={index} className="p-3 rounded-xl border-2">
-                    <div className="flex items-center gap-3" style={{justifyContent:"space-between"}}>
+                    <div
+                      className="flex items-center gap-3"
+                      style={{ justifyContent: "space-between" }}
+                    >
                       {/* معلومات النشاط */}
                       <div className="w-full">
                         <div className="flex items-center gap-2 mb-1">
@@ -559,10 +557,10 @@ export function StudentProgressView({
                           </span>
 
                           <span
-                            className="text-base"
+                            className="text-base md:text-xl lg:text-2xl"
                             style={{
                               color: "#272626",
-                              fontSize: "20px",
+                              // fontSize: "20px",
                               fontFamily: "tajawal",
                               fontWeight: "500",
                             }}
@@ -572,26 +570,26 @@ export function StudentProgressView({
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <span
-                            className="flex items-center gap-1"
+                            className="flex items-center gap-1 text-base md:text-xl lg:text-2xl"
                             style={{
                               color: "#7B7B7B",
-                              fontSize: "20px",
+                              // fontSize: "20px",
                               fontFamily: "tajawal",
                               fontWeight: "400",
                             }}
                           >
                             {formatDate(activity.completedAt)}
                           </span>
-                          <span className="flex items-center gap-1"  style={{
-                                color: "#7B7B7B",
-                                fontSize: "20px",
-                                fontFamily: "tajawal",
-                                fontWeight: "400",
-                              }}>
-                            <Clock
-                              className="w-3 h-3"
-                             
-                            />
+                          <span
+                            className="flex items-center gap-1 text-base md:text-xl lg:text-2xl"
+                            style={{
+                              color: "#7B7B7B",
+                              // fontSize: "20px",
+                              fontFamily: "tajawal",
+                              fontWeight: "400",
+                            }}
+                          >
+                            <Clock className="w-3 h-3" />
                             {Math.ceil(activity.timeSpent / 60)} دقيقة
                           </span>
                         </div>
@@ -613,10 +611,10 @@ export function StudentProgressView({
                           />
                         </div>
                         <div
-                          className="text-lg"
+                          className="text-base md:text-xl lg:text-2xl"
                           style={{
                             color: getScoreColor(percentage),
-                            fontSize: "30px",
+                            // fontSize: "30px",
                             fontFamily: "tajawal",
                             fontWeight: "500",
                           }}
@@ -635,32 +633,40 @@ export function StudentProgressView({
       {/* الحروف المكتملة */}
       {stats.completedLetters.length > 0 && (
         <div className="flex justify-center items-center">
-        <div
-          className="bg-white p-4 rounded-2xl shadow-lg border-2"
-          style={{ width: "90%",marginBottom:"50px" }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-          
-            <h3 className="text-base" style={{ color: "#272626" ,
-                              fontSize: "25px",
-                              fontFamily: "tajawal",
-                              fontWeight: "500",}}>
-              الحروف المدروسة {stats.completedLetters.length} حرف
-            </h3>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {stats.completedLetters.map((letter: any) => (
-              <div
-                key={letter}
-                className="w-12 h-12 rounded-xl shadow-md flex items-center justify-center text-xl text-white"
-                style={{ backgroundColor: "#ACDAA9",color:"#272626" ,fontFamily:"tajawal"}}
+          <div
+            className="bg-white p-4 rounded-2xl shadow-lg border-2"
+            style={{ width: "90%", marginBottom: "50px" }}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <h3
+                className="text-base md:text-xl lg:text-2xl"
+                style={{
+                  color: "#272626",
+                  // fontSize: "25px",
+                  fontFamily: "tajawal",
+                  fontWeight: "500",
+                }}
               >
-                {letter}
-              </div>
-            ))}
+                الحروف المدروسة {stats.completedLetters.length} حرف
+              </h3>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {stats.completedLetters.map((letter: any) => (
+                <div
+                  key={letter}
+                  className="w-12 h-12 rounded-xl shadow-md flex items-center justify-center text-xl text-white"
+                  style={{
+                    backgroundColor: "#ACDAA9",
+                    color: "#272626",
+                    fontFamily: "tajawal",
+                  }}
+                >
+                  {letter}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
         </div>
       )}
     </div>
