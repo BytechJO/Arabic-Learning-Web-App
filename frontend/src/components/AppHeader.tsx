@@ -116,7 +116,7 @@ export function AppHeader({
                     </motion.button>
                   )}
                   <p
-                    className="text-base md:text-sm lg:text-2xl"
+                    className="text-base md:text-lg lg:text-3xl"
                     style={{
                       color: "#652b82",
                       fontFamily: "poppins",
@@ -188,7 +188,7 @@ export function AppHeader({
           >
             <div className="text-center" style={{ color: "#652b82" }}>
               <span
-                className="text-base md:text-xl lg:text-2xl text-center"
+                className="text-base md:text-2xl lg:text-3xl text-center"
                 style={{
                   fontFamily: "tajawal",
                   // fontSize: "25px",

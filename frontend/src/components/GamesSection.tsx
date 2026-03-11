@@ -136,10 +136,11 @@ export function GamesSection() {
     checkGamesCompletion();
   }, [letterId, user?.type]);
 
+
   const handleGoToNextLetter = async () => {
     try {
       // الانتقال للحرف التالي
-      navigate("/letters");
+      navigate("/letters", { state: { unlockedLetter: letters[letterId].name } });
       // أو لو عندك ترتيب:
       // navigate(`/letters/${nextLetterSymbol}`);
     } catch (error) {

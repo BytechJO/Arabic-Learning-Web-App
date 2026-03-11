@@ -18,6 +18,8 @@ import location from "../assets/location_alphabet.svg";
 import videos from "../assets/videos_alphabet.svg";
 import games from "../assets/games_alphabet.svg";
 import alphabet_svg from "../assets/alphabet_svg.svg";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 const sections = [
   {
     id: "learn",
@@ -66,9 +68,11 @@ const sections = [
 export function LetterDetails() {
   const { letter } = useParams<{ letter: string }>();
   const navigate = useNavigate();
-  const letterName = letter === "أ" ? "ألف" : "";
-  console.log(letter);
-
+  
+  const { letters } = useSelector((state: RootState) => state.letters);
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
+  console.log(currentLetterFromRedux?.name);
+  
   return (
     <div className="h-screen relative" dir="rtl">
       {/* خلفية متدرجة */}
@@ -181,7 +185,7 @@ export function LetterDetails() {
                     fontWeight: "400",
                   }}
                 >
-                  حرف {letterName}
+                  حرف ال{currentLetterFromRedux?.name}
                 </h1>
               </div>
             </motion.div>

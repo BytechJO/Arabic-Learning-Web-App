@@ -15,6 +15,8 @@ import homeIcon from "../assets/Home.svg";
 import { logout } from "../redux/reducers/auth";
 import { clearMyClass } from "../redux/reducers/classSlice";
 import { SuccessJoin } from "./SuccessJoin";
+import "./JoinClassroom.css"
+
 interface JoinClassroomProps {
   // student: User;
   onClose: () => void;
@@ -138,7 +140,7 @@ JoinClassroomProps) {
         <div className="flex">
           {/*النمر الموجود بالهيدر */}
           <motion.div
-            className="hidden md:flex"
+            className="tiger-join-success flex"
             style={{ justifyContent: "flex-end" ,width:"50%" }}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -147,7 +149,7 @@ JoinClassroomProps) {
             <motion.img
               src={tiger}
               alt="نمر"
-              className="tiger-choose-page w-64 md:w-96 lg:w-20 object-contain drop-shadow-2xl"
+              className="w-64 md:w-96 lg:w-20 object-contain drop-shadow-2xl"
               // style={{ width: "65%" }}
               animate={{ y: [0, -6, 0] }}
               transition={{

@@ -525,22 +525,22 @@ export function LearnLetters2() {
 
             {/* بطاقة الفيديو */}
             <motion.div
-              className="w-full max-w-[52rem] mx-auto"
+              className="w-full max-w-[52rem] mx-auto px-0 sm:px-2"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="relative bg-white rounded-3xl shadow-2xl border-4 p-6">
-                <img
-                  className="absolute top-0"
-                  src={background_video}
-                  style={{ width: "91%" }}
-                />
+              <div
+                className="relative bg-white rounded-3xl shadow-2xl py-9 md:py-9 w-full"
+                style={{
+                  backgroundImage: `url(${background_video})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+              >
                 {/* إطار الفيديو الداخلي */}
-                <div
-                  className="bg-white overflow-hidden shadow-xl"
-                  style={{ position: "relative", left: "24px", width: "106%" }}
-                >
+                <div className="bg-white overflow-hidden shadow-xl w-full">
                   {/* الفيديو */}
                   <div
                     className="relative w-full"

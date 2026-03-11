@@ -19,17 +19,18 @@ import alphabet from "../assets/alphabet login.svg";
 import userIcon from "../assets/Users.svg";
 import waves from "../assets/waves_login.svg";
 import homeIcon from "../assets/Home.svg";
-import drops from "../assets/drops_login.svg"
+import drops from "../assets/drops_login.svg";
 import { useAppDispatch } from "../redux/hooks";
 import { loginSuccess } from "../redux/reducers/auth";
 import { RootState, AppDispatch } from "../redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { getMyClass, getMyClassApi } from "../API/classes";
 import { AppHeader } from "./AppHeader";
+import "./JoinClassroom.css"
 interface LoginPageProps {
   userType: "teacher" | "student";
   onBack: () => void;
-  onLogout: ()=>void
+  onLogout: () => void;
 }
 const mapRoleNumberToType = (role: number): "teacher" | "student" => {
   if (role === 3) return "teacher";
@@ -116,7 +117,7 @@ const loginApi = async (email: string, password: string) => {
 //   return data;
 // };
 
-export function LoginPage({ userType, onBack ,onLogout}: LoginPageProps) {
+export function LoginPage({ userType, onBack, onLogout }: LoginPageProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
   // const [activationCode, setActivationCode] = useState("");
   const dispatch = useAppDispatch();
@@ -265,7 +266,7 @@ export function LoginPage({ userType, onBack ,onLogout}: LoginPageProps) {
         linear-gradient(#652b82c7, #ececed80),
         url(${backGroundImg})
       `,
-            backgroundSize: "1540px auto",
+            backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
             opacity: "0.8",
@@ -282,14 +283,17 @@ export function LoginPage({ userType, onBack ,onLogout}: LoginPageProps) {
 
       {/* خلفية الهيدر */}
       <div className="absolute w-full overflow-hidden">
-        <div className="relative bg-white-200 z-50" style={{ backgroundColor: "white",marginTop:"-20px"}}>
+        <div
+          className="relative bg-white-200 z-50"
+          style={{ backgroundColor: "white", marginTop: "-20px" }}
+        >
           <AppHeader
             showUserInfo={false}
             onLogout={onLogout}
             showBackButton={false}
             onBack={onBack}
-          showLogout={true}
-            title={"لغتي مراتي"}
+            showLogout={true}
+            title={"مرآتي لغتي"}
           />
         </div>
 
@@ -300,10 +304,10 @@ export function LoginPage({ userType, onBack ,onLogout}: LoginPageProps) {
 
       <div
         className="relative z-10 min-h-screen flex justify-center p-4 md:p-6"
-        style={{ alignItems: "flex-end" }}
+        style={{ alignItems: "center" }}
       >
         <motion.div
-          // className="w-96"
+          className="container-div-login mt-0 md:mt-20"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}

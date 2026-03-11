@@ -51,7 +51,7 @@ interface LettersDashboardProps {
 export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
   const user = useAppSelector((state) => state.auth.user);
   const [lettersStatus, setLettersStatus] = useState<any[]>([]);
-    const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const [showLockedMessage, setShowLockedMessage] = useState(false);
   const dispatch = useAppDispatch();
   const { letters, loading } = useAppSelector((state) => state.letters);
@@ -79,7 +79,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
   }, []);
 
   if (loading) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />; ;
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   return (
@@ -108,7 +108,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
       </div>
 
       {/* المحتوى الرئيسي */}
-      <div className="relative -top-30 md:-top-26 z-10">
+      <div className="relative -top-12 md:-top-26 lg:-top-26 z-10">
         {/* العنوان الرئيسي */}
         <motion.div
           className="text-center py-8 md:py-10 px-6"
@@ -202,9 +202,15 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                           {!isTeacher && (isCompleted || isLocked) && (
                             <div className="absolute top-0 left-0 z-20 flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full bg-white/90 shadow text-[10px] md:text-xl leading-none">
                               {isCompleted ? (
-                                <img src={checkIcon}  className="w-5 h-5 md:w-8 md:h-8" />
+                                <img
+                                  src={checkIcon}
+                                  className="w-5 h-5 md:w-8 md:h-8"
+                                />
                               ) : (
-                                <img src={lock} className="w-5 h-5 md:w-8 md:h-8"/>
+                                <img
+                                  src={lock}
+                                  className="w-5 h-5 md:w-8 md:h-8"
+                                />
                               )}
                             </div>
                           )}
@@ -275,7 +281,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
             </motion.h2>
             {/* النص */}
             {/* الرسالة */}
-            <motion.p
+            <motion.div
               className="text-sm md:text-base text-gray-600 mb-6 leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -287,22 +293,12 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                 fontWeight: "500",
               }}
             >
-              <p
-                style={{
-                  color: "#28345F",
-                  fontFamily: "tajawal",
-                  fontSize: "18px",
-                  fontWeight: "500",
-                }}
-              >
-                لا يمكنك فتح هذا الحرف الآن 😊
-                <br />
-                أكمل الحرف الحالي وتعلّم كتابته
-                <br />
-                ثم ستُفتح لك باقي الحروف 🎉
-              </p>
-            </motion.p>
-
+              لا يمكنك فتح هذا الحرف الآن 😊
+              <br />
+              أكمل الحرف الحالي وتعلّم كتابته
+              <br />
+              ثم ستُفتح لك باقي الحروف 🎉
+            </motion.div>
             {/* زر */}
             <div
               className="flex gap-4 justify-center"

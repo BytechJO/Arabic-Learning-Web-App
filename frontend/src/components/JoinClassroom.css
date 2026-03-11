@@ -1,0 +1,15 @@
+.tiger-join-success {
+  display: flex;
+}
+
+.container-div-login{
+    margin-top: 90px;
+}
+@media (max-width: 700px) {
+  .tiger-join-success {
+    display: none;
+  }
+  .container-div-login{
+    margin-top: 0px;
+}
+}

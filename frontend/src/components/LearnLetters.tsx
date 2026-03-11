@@ -231,30 +231,30 @@ export function LearnLetters() {
 
             {/* بطاقة الفيديو */}
             <motion.div
-              className="w-full max-w-[52rem] mx-auto"
+              className="w-full max-w-[52rem] mx-auto px-0 sm:px-2"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5 }}
             >
               {/* البطاقة الكبيرة */}
-              <div className="relative bg-white rounded-3xl shadow-2xl border-4 p-6">
-                <img
-                  className="absolute top-0"
-                  src={background_video}
-                  style={{ width: "91%" }}
-                />
+              <div
+                className="relative bg-white rounded-3xl shadow-2xl py-9 md:py-9 w-full"
+                style={{
+                  backgroundImage: `url(${background_video})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+              >
                 {/* إطار الفيديو الداخلي */}
-                <div
-                  className="bg-white overflow-hidden shadow-xl"
-                  style={{ position: "relative", left: "24px", width: "106%" }}
-                >
+                <div className="bg-white overflow-hidden shadow-xl w-full">
                   <div
-                    className="relative w-full h-full"
+                    className="relative w-full"
                     style={{ paddingBottom: "56.25%" }}
                   >
                     <div
                       id="youtube-player"
-                      className="absolute top-0 left-0 w-full h-full"
+                      className="absolute inset-0 w-full h-full"
                     ></div>
                   </div>
                 </div>
@@ -342,7 +342,8 @@ export function LearnLetters() {
                 initial={{ opacity: 1, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <p className="text-base md:text-xl lg:text-2xl"
+                <p
+                  className="text-base md:text-xl lg:text-2xl"
                   style={{
                     color: "#FDFDFD",
                     fontFamily: "tajawal",
