@@ -196,7 +196,12 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                           </div>
 
                           {/* الاسم */}
-                          <div className="text-[9px] md:text-[11px] text-gray-600 group-hover:text-white transition-colors mt-1">
+                          <div
+                            className="text-[12px] md:text-[15px] group-hover:text-white transition-colors mt-2"
+                            style={{
+                              color: "#652b82",
+                            }}
+                          >
                             {item.name}
                           </div>
                           {!isTeacher && (isCompleted || isLocked) && (
