@@ -119,8 +119,10 @@ function DroppableZone({
     <div className="flex flex-col min-h-[200px]">
       <h3
         className="text-center text-base md:text-xl lg:text-2xl mb-4 text-center font-bold"
-        style={{ color: TEXT_DARK, fontFamily: "tajawal"
-          // , fontSize: "25px" 
+        style={{
+          color: TEXT_DARK,
+          fontFamily: "tajawal",
+          // , fontSize: "25px"
         }}
       >
         {title}
@@ -167,6 +169,7 @@ export function SortingGame() {
 
   const { letters } = useSelector((state: RootState) => state.letters);
   const dispatch = useDispatch<any>();
+  const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
 
   const activeItem = useMemo(
     () => (activeId !== null ? items.find((i) => i.id === activeId) : null),
@@ -398,7 +401,10 @@ export function SortingGame() {
                   borderRadius: "15px",
                 }}
               >
-                <Star className="w-4 md:w-5 h-4 md:h-5" style={{ color: TEXT_DARK }} />
+                <Star
+                  className="w-4 md:w-5 h-4 md:h-5"
+                  style={{ color: TEXT_DARK }}
+                />
                 <span className="text-center text-xs md:text-xl lg:text-2xl">
                   {config.items.length * config.scorePerCorrect}
                 </span>
@@ -435,8 +441,11 @@ export function SortingGame() {
 
             {/* Drop Zones - جدول فاضي بدون خطوط */}
             <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
-              <DroppableZone id="other" title="حروف أخرى">
-                {otherItems.map((item) => (
+              <DroppableZone
+                id="alif"
+                title={`حرف ال${currentLetterFromRedux?.name}`}
+              >
+                {alifItems.map((item) => (
                   <div
                     key={item.id}
                     className="px-6 py-3 rounded-xl border-2 text-xl shrink-0"
@@ -453,9 +462,8 @@ export function SortingGame() {
                   </div>
                 ))}
               </DroppableZone>
-
-              <DroppableZone id="alif" title={`حرف ${letter}`}>
-                {alifItems.map((item) => (
+              <DroppableZone id="other" title="حروف أخرى">
+                {otherItems.map((item) => (
                   <div
                     key={item.id}
                     className="px-6 py-3 rounded-xl border-2 text-xl shrink-0"

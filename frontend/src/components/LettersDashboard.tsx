@@ -200,6 +200,7 @@ export function LettersDashboard({ onLogout, onBack }: LettersDashboardProps) {
                             className="text-[12px] md:text-[15px] group-hover:text-white transition-colors mt-2"
                             style={{
                               color: "#652b82",
+                              fontFamily:"amiriQuran"
                             }}
                           >
                             {item.name}
