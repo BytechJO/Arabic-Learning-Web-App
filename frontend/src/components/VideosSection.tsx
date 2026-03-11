@@ -21,6 +21,7 @@ import { fetchLetters } from "../redux/reducers/lettersSlice";
 import { upsertUserProgress } from "../API/userProgress";
 import youtubeIcon from "../assets/youtoub_icon.svg";
 import videoVector from "../assets/vector_video.svg";
+import { SplashScreen } from "./SplashScreen";
 
 // فيديوهات خاصة بحرف الألف
 // const alifVideos = [
@@ -78,7 +79,7 @@ export function VideosSection() {
   const [currentPage, setCurrentPage] = useState(0);
   // const [progressSaved, setProgressSaved] = useState(false);
   const [videosPerPage, setVideosPerPage] = useState(3);
-
+  const [showSplash, setShowSplash] = useState(true);
   const { letter } = useParams();
   const navigate = useNavigate();
   const progressSavedRef = useRef(false);
@@ -145,17 +146,7 @@ export function VideosSection() {
   }, [video, letterId, dispatch]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-xl" style={{ color: "#652b82" }}>
-          جاري تحميل الفيديو...
-        </p>
-        <ActivityFooter
-          currentLetter={propLetter}
-          letterName={currentLetterFromRedux?.name}
-        />
-      </div>
-    );
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
   if (!video || video.length === 0) {
     return (
@@ -311,12 +302,14 @@ export function VideosSection() {
                             </div>
 
                             {/* الخط الفاصل */}
-                            <div className="border-t border-gray-300" style={{color:"#0000001C"}}></div>
+                            <div
+                              className="border-t border-gray-300"
+                              style={{ color: "#0000001C" }}
+                            ></div>
 
                             {/* القسم السفلي */}
                             <div className="p-4 text-start">
                               <h3
-                                
                                 style={{
                                   color: "#28345F",
                                   fontFamily: "tajawal",
@@ -327,12 +320,14 @@ export function VideosSection() {
                                 {video.video_title}
                               </h3>
 
-                              <p   style={{
+                              <p
+                                style={{
                                   color: "#28345F9E",
                                   fontFamily: "tajawal",
                                   fontSize: "14px",
                                   fontWeight: "500",
-                                }}>
+                                }}
+                              >
                                 {video.description}
                               </p>
                             </div>

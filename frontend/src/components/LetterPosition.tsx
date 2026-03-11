@@ -16,6 +16,7 @@ import vector from "../assets/vector_background.png";
 import vectorEnd from "../assets/vector_end.svg";
 import badegEnd from "../assets/badeg_end.svg";
 import { useRef } from "react";
+import { SplashScreen } from "./SplashScreen";
 export function LetterPosition() {
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
@@ -35,7 +36,7 @@ export function LetterPosition() {
   const { letters } = useSelector((state: RootState) => state.letters);
   const [selectedOption, setSelectedOption] = useState<any>(null);
   const currentLetterFromRedux = letters.find((l) => l.symbol === symbol);
-
+  const [showSplash, setShowSplash] = useState(true);
   const letterId = currentLetterFromRedux?.id;
 
   const dispatch = useDispatch<any>();
@@ -93,15 +94,7 @@ export function LetterPosition() {
   }, [letterId]);
   // const questions = getQuestionsForLetter(propLetter);
   if (!questions.length || !questions[currentQuestion]) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">جاري تحميل الأسئلة...</p>
-        <ActivityFooter
-          currentLetter={propLetter}
-          letterName={currentLetterFromRedux?.name}
-        />
-      </div>
-    );
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   const question = questions[currentQuestion];
@@ -220,8 +213,9 @@ export function LetterPosition() {
                       }}
                     >
                       النقاط
-                    </p> 
-                    <p className="text-base md:text-xl lg:text-2xl"
+                    </p>
+                    <p
+                      className="text-base md:text-xl lg:text-2xl"
                       style={{
                         color: "#28345F",
                         fontFamily: "tajawal",
@@ -245,7 +239,8 @@ export function LetterPosition() {
                   >
                     السؤال
                   </p>
-                  <p className="text-center text-base md:text-xl lg:text-2xl"
+                  <p
+                    className="text-center text-base md:text-xl lg:text-2xl"
                     style={{
                       color: "#28345F",
                       fontFamily: "tajawal",
@@ -421,80 +416,95 @@ export function LetterPosition() {
       </div>
       <AnimatePresence>
         {showFinishModal && (
-        <motion.div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setShowFinishModal(false)}
-        >
           <motion.div
-            className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
-            initial={{ scale: 0.7, y: 80 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.7, y: 80 }}
-            transition={{ type: "spring", stiffness: 250, damping: 20 }}
-            onClick={(e) => e.stopPropagation()}
-            style={{ borderRadius: "20px" }}
-            dir="rtl"
+            className="fixed inset-0 flex items-center justify-center z-50"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowFinishModal(false)}
           >
-            {/* الزخرفة الصفراء */}
-            <img className="absolute top-0 left-0" src={vectorEnd} />
+            <motion.div
+              className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
+              initial={{ scale: 0.7, y: 80 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.7, y: 80 }}
+              transition={{ type: "spring", stiffness: 250, damping: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ borderRadius: "20px" }}
+              dir="rtl"
+            >
+              {/* الزخرفة الصفراء */}
+              <img className="absolute top-0 left-0" src={vectorEnd} />
 
-            {/* أيقونة الوسام */}
-            <div className="relative z-10 flex justify-center mb-4">
-              <div className="text-[#FDC333] text-5xl">
-                <img  src={badegEnd} />
+              {/* أيقونة الوسام */}
+              <div className="relative z-10 flex justify-center mb-4">
+                <div className="text-[#FDC333] text-5xl">
+                  <img src={badegEnd} />
+                </div>
               </div>
-            </div>
 
-            {/* العنوان */}
-            <h2 style={{
+              {/* العنوان */}
+              <h2
+                style={{
                   color: "#28345F",
                   fontFamily: "tajawal",
                   fontSize: "30px",
                   fontWeight: "500",
-                }}>ممتاز!</h2>
-
-            {/* التفاصيل */}
-            <p className="text-[#28345F] text-base mb-1" style={{
-                  color: "#28345F",
-                  fontFamily: "tajawal",
-                  fontSize: "20px",
-                  fontWeight: "500",
-                }}>
-              نقاطك: <span className="font-semibold" style={{
-                  color: "#28345F",
-                  fontFamily: "tajawal",
-                  fontSize: "20px",
-                  fontWeight: "500",
-                }}>{score} - 4</span>
-            </p>
-            {/* الأزرار */}
-            <div className="flex gap-4 justify-center" style={{marginTop:"20px"}}>
-
-              <button
-                onClick={() => {
-                  setShowFinishModal(false);
-                  navigate(`/letter/${propLetter}/tashkeel`);
                 }}
-                style={{backgroundColor:"#652B82"}}
-                className="px-6 py-2.5 rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
               >
-                التالي 
-              </button>
-              {/* <button
+                ممتاز!
+              </h2>
+
+              {/* التفاصيل */}
+              <p
+                className="text-[#28345F] text-base mb-1"
+                style={{
+                  color: "#28345F",
+                  fontFamily: "tajawal",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                }}
+              >
+                نقاطك:{" "}
+                <span
+                  className="font-semibold"
+                  style={{
+                    color: "#28345F",
+                    fontFamily: "tajawal",
+                    fontSize: "20px",
+                    fontWeight: "500",
+                  }}
+                >
+                  {score} - 4
+                </span>
+              </p>
+              {/* الأزرار */}
+              <div
+                className="flex gap-4 justify-center"
+                style={{ marginTop: "20px" }}
+              >
+                <button
+                  onClick={() => {
+                    setShowFinishModal(false);
+                    navigate(`/letter/${propLetter}/tashkeel`);
+                  }}
+                  style={{ backgroundColor: "#652B82" }}
+                  className="px-6 py-2.5 rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
+                >
+                  التالي
+                </button>
+                {/* <button
                  style={{backgroundColor:"#FDC333",color:"#652B82"}}
                 onClick={() => setShowFinishModal(false)}
                 className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
               >
                 رجوع
               </button> */}
-            </div>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-        )} 
+        )}
       </AnimatePresence>
       {/* Footer للأنشطة */}
 

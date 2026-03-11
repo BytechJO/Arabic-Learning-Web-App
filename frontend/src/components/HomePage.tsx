@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { getMyClassApi } from "../API/classes";
+import { SplashScreen } from "./SplashScreen";
 
 export function HomePage({ user }: any) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-
+  const [showSplash, setShowSplash] = useState(true);
   useEffect(() => {
     const checkClass = async () => {
       if (user?.type !== "student") return;
@@ -31,7 +32,7 @@ export function HomePage({ user }: any) {
 
   if (!user) return <Navigate to="/" />;
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <SplashScreen onComplete={() => setShowSplash(false)} />;
 
   return null;
 }

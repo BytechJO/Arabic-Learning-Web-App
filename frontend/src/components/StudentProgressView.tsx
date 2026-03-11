@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { getClassById } from "../API/classrooms";
 import userIcon from "../assets/user_gray.svg";
 import { motion } from "framer-motion";
+import { SplashScreen } from "./SplashScreen";
 interface StudentProgressViewProps {
   classroomId: number;
   studentId?: number;
@@ -40,6 +41,7 @@ export function StudentProgressView({
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
     studentId ?? null,
   );
+    const [showSplash, setShowSplash] = useState(true);
   const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [students, setStudents] = useState<User[]>([]);
   const [studentData, setStudentData] = useState<any>(null);
@@ -265,7 +267,7 @@ export function StudentProgressView({
   const recentActivities = studentData?.recentActivities || [];
 
   if (loading) {
-    return <div>جاري التحميل...</div>;
+ return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   if (!studentData) {

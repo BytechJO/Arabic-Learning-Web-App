@@ -13,11 +13,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { RootState } from "../redux/store";
 import { fetchLetters } from "../redux/reducers/lettersSlice";
 import { useDispatch, useSelector } from "react-redux";
+
 import {
   fetchVideoLesson,
   clearVideo,
 } from "../redux/reducers/videoLessonsSlice";
 import background_video from "../assets/Vector_sidebar.png";
+import { SplashScreen } from "./SplashScreen";
 // تعريف نوع YouTube Player
 declare global {
   interface Window {
@@ -32,6 +34,7 @@ export function LearnLetters() {
   const playerRef = useRef<any>(null);
   const { letter } = useParams<{ letter: string }>();
   const navigate = useNavigate();
+  const [showSplash, setShowSplash] = useState(true);
   const user = useSelector((state: RootState) => state.auth.user);
   const dispatch = useDispatch<any>();
   const { video, loading } = useSelector(
@@ -168,15 +171,7 @@ export function LearnLetters() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">جاري تحميل الفيديو...</p>
-        <ActivityFooter
-          currentLetter={letter}
-          letterName={currentLetterFromRedux?.name}
-        />
-      </div>
-    );
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   return (

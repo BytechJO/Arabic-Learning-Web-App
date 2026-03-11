@@ -18,6 +18,7 @@ import { fetchLetters } from "../redux/reducers/lettersSlice";
 import background_video from "../assets/Vector_sidebar.png";
 import vectorEnd from "../assets/vector_end.svg";
 import badegEnd from "../assets/badeg_end.svg";
+import { SplashScreen } from "./SplashScreen";
 // تعريف نوع YouTube Player
 declare global {
   interface Window {
@@ -35,6 +36,7 @@ export function LearnLetters2() {
   const [isComplete, setIsComplete] = useState(false);
   const playerRef = useRef<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [showSplash, setShowSplash] = useState(true);
   const letterMaskRef = useRef<ImageData | null>(null);
   const { letter } = useParams<{ letter: string }>();
   const user = useSelector((state: RootState) => state.auth.user);
@@ -463,13 +465,7 @@ export function LearnLetters2() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">جاري تحميل الفيديو...</p>
-        <ActivityFooter
-          currentLetter={letter}
-          letterName={currentLetterFromRedux?.name}
-        />
-      </div>
+       <SplashScreen onComplete={() => setShowSplash(false)} />
     );
   }
 
