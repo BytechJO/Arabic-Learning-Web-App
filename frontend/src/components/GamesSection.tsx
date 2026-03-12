@@ -323,7 +323,7 @@ export function GamesSection() {
                       </div>
                       {/* الأيقونة */}
                       <motion.div
-                        className="relative w-full h-40 rounded-2xl flex items-center justify-center shadow-lg"
+                        className="relative w-full h-32 rounded-2xl flex items-center justify-center shadow-lg"
                         style={{ backgroundColor: "#FDC333" }}
                       >
                         <img

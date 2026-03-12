@@ -494,13 +494,6 @@ export function LetterPosition() {
                 >
                   التالي
                 </button>
-                {/* <button
-                 style={{backgroundColor:"#FDC333",color:"#652B82"}}
-                onClick={() => setShowFinishModal(false)}
-                className="px-6 py-2.5 rounded-xl text-[#28345F] font-medium shadow-md hover:scale-105 transition"
-              >
-                رجوع
-              </button> */}
               </div>
             </motion.div>
           </motion.div>

@@ -254,13 +254,13 @@ export function TeacherResources() {
     
       </div>
       {/* المحتوى الرئيسي */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-10">
+      <div className="flex-1 px-4 md:px-6 pb-10 mb-12 gap-2">
         {/* عرض المكتبات أو الموارد */}
         <div className="px-4 md:px-6 pb-8 md:pb-10">
           <div className="max-w-2xl mx-auto">
             {!selectedLibrary ? (
               // عرض أزرار المكتبات
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto gap-2">
                 {/* مكتبة الرواد */}
                 <motion.button
                   onClick={() => setSelectedLibrary("rawad")}

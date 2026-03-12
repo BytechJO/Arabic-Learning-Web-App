@@ -172,7 +172,16 @@ export function ActivityFooter({
             />
 
             {/* قائمة الأنشطة */}
-            <nav className="flex flex-col" style={{ backgroundColor: "#ffffff" }}>
+            <nav
+              className="flex flex-col"
+              style={{
+                backgroundColor: "#ffffff",
+                position: "absolute",
+                top: "160px",
+                width: "100%",
+                zIndex:"999"
+              }}
+            >
               {activities.map((activity) => {
                 const isActive = currentActivity === activity.id;
 
@@ -220,4 +229,4 @@ export function ActivityFooter({
       </aside>
     </>
   );
-} 
+}

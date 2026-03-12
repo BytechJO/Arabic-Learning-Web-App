@@ -388,7 +388,7 @@ export function LetterTashkeel() {
                     // بعد 1.5 ثانية يرجع طبيعي
                     setTimeout(() => {
                       setSelectedOption(null);
-                    }, 1000);
+                    }, 800);
                   }}
                   disabled={showFeedback !== null}
                   className="rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 transition-all py-6"

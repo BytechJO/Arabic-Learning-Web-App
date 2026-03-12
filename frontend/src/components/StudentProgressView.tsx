@@ -41,7 +41,7 @@ export function StudentProgressView({
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
     studentId ?? null,
   );
-    const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [students, setStudents] = useState<User[]>([]);
   const [studentData, setStudentData] = useState<any>(null);
@@ -266,8 +266,10 @@ export function StudentProgressView({
   const stats = studentData?.stats;
   const recentActivities = studentData?.recentActivities || [];
 
+  console.log(recentActivities);
+  
   if (loading) {
- return <SplashScreen onComplete={() => setShowSplash(false)} />;
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   if (!studentData) {
@@ -432,10 +434,16 @@ export function StudentProgressView({
           </div>
 
           {/* الأداء حسب النشاط */}
-          <div className="p-4 rounded-2xl w-full flex justify-center items-center">
+          <div
+            className="p-4 rounded-2xl w-full flex justify-center items-center"
+            // style={{ height: "350px" }}
+          >
             {stats.activityScores &&
             Object.keys(stats.activityScores).length > 0 ? (
-              <div className="flex flex-col gap-3" style={{ width: "85%" }}>
+              <div
+                className="flex flex-col gap-3"
+                style={{ width: "85%"}}
+              >
                 {Object.entries(stats.activityScores).map(
                   ([activityType, score]) => {
                     const percentage = getActivityPercentage(
@@ -492,8 +500,8 @@ export function StudentProgressView({
               </div>
             ) : (
               <div
-                className="text-center py-8 rounded-xl w-full"
-                style={{ backgroundColor: "#ECEEEF" }}
+                className="text-center py-8 rounded-xl w-full flex flex-col justify-center items-center"
+                style={{ backgroundColor: "#ECEEEF" ,height:"350px" }}
               >
                 <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center bg-white">
                   <Target className="w-6 h-6 text-gray-400" />

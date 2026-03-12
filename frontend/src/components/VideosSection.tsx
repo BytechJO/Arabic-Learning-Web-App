@@ -102,6 +102,7 @@ export function VideosSection() {
       }
     };
 
+
     handleResize(); // تشغيل أول مرة
     window.addEventListener("resize", handleResize);
 
@@ -280,14 +281,15 @@ export function VideosSection() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         whileHover={{ scale: 1.02 }}
+                        className="h-full"
                       >
                         <a
                           href={`https://www.youtube.com/watch?v=${videoId}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block"
+                          className="block h-full"
                         >
-                          <div className="relative bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all">
+                          <div className="relative bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl h-full transition-all">
                             {/* الزاوية الصفراء */}
 
                             <img

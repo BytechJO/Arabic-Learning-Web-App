@@ -343,7 +343,7 @@ export function ClassroomStudent() {
                 {students.map((student, index) => (
                   <div
                     key={index}
-                    className={`flex items-center py-2 hover:shadow-lg transition-all ${
+                    className={`flex items-center hover:shadow-lg transition-all ${
                       index % 2 === 0 ? "bg-gray-200/60" : "bg-gray-100"
                     }`}
                     style={{ justifyContent: "space-between" }}
@@ -367,7 +367,7 @@ export function ClassroomStudent() {
                           />
                         </div>{" "}
                         <span
-                          className="text-gray-700 text-sm md:text-base"
+                          className="text-gray-700 text-sm md:text-xl lg:text-2xl"
                           style={{
                             // fontSize: "20px",
                             color: "#7B7B7B",

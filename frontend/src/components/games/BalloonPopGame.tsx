@@ -16,7 +16,8 @@ import { saveGameResult } from "../../API/gameResult";
 import { RootState } from "../../redux/store";
 import { fetchLetters } from "../../redux/reducers/lettersSlice";
 import { GameLoadingScreen } from "./WordCatchWelcom";
-import "./BalloonPopGame.css"
+import balloon_burst from "../../assets/balloon pop.mp3";
+import "./BalloonPopGame.css";
 /* ===================== Types ===================== */
 
 interface Balloon {
@@ -59,35 +60,11 @@ interface BalloonPopConfig {
 const BALLOON_IMAGES = [redBalloon, pinkBalloon, yellowBalloon, blueBalloon];
 const POP_DISAPPEAR_DELAY_MS = 0;
 
-function playPopSound() {
-  try {
-    const audioContext = new (
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext?: typeof AudioContext })
-        .webkitAudioContext
-    )();
-    const bufferSize = Math.min(2 * audioContext.sampleRate, 44100);
-    const buffer = audioContext.createBuffer(
-      1,
-      bufferSize,
-      audioContext.sampleRate,
-    );
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
-    }
-    const noise = audioContext.createBufferSource();
-    noise.buffer = buffer;
-    const filter = audioContext.createBiquadFilter();
-    filter.type = "highpass";
-    filter.frequency.value = 1000;
-    noise.connect(filter);
-    filter.connect(audioContext.destination);
-    noise.start(0);
-  } catch {
-    // ignore if audio fails
-  }
-}
+const playPopSound = () => {
+  const audio = new Audio(balloon_burst);
+  audio.volume = 0.5;
+  audio.play();
+};
 
 /* ===================== Toast ===================== */
 
@@ -261,6 +238,18 @@ export function BalloonPopGame() {
     if (balloon.startsWithAlef) {
       setCorrectCount((c) => c + 1);
       setScore((s) => s + config.scorePerCorrect);
+
+      // تشغيل الانفجار
+      setBalloons((prev) =>
+        prev.map((b) =>
+          b.id === balloon.id ? { ...b, popped: true, handled: true } : b,
+        ),
+      );
+
+      // حذف بعد الانيميشن
+      setTimeout(() => {
+        setBalloons((prev) => prev.filter((b) => b.id !== balloon.id));
+      }, 1500);
     } else {
       setLives((prev) => {
         const next = prev - 1;
@@ -268,16 +257,6 @@ export function BalloonPopGame() {
         return next;
       });
     }
-
-    setBalloons((prev) =>
-      prev.map((b) =>
-        b.id === balloon.id ? { ...b, handled: true, popped: true } : b,
-      ),
-    );
-
-    setTimeout(() => {
-      setBalloons((prev) => prev.filter((b) => b.id !== balloon.id));
-    }, POP_DISAPPEAR_DELAY_MS);
   };
 
   const handleBalloonEscape = (balloonId: number) => {
@@ -415,10 +394,24 @@ export function BalloonPopGame() {
             {balloons.map((balloon) => (
               <motion.button
                 key={balloon.id}
-                initial={{ y: "100vh" }}
-                animate={{ y: "-90vh" }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ duration: 14 - level * 0.3, ease: "linear" }}
+                initial={{ y: "100vh", scale: 1 }}
+                animate={
+                  balloon.popped
+                    ? { y: 0, scale: [1, 1.3, 0], opacity: [1, 1, 0] }
+                    : { y: "-90vh" }
+                }
+                transition={
+                  balloon.popped
+                    ? {
+                        duration: 1.4,
+                        times: [0, 0.5, 1],
+                        ease: "easeOut",
+                      }
+                    : {
+                        duration: 14 - level * 0.3,
+                        ease: "linear",
+                      }
+                }
                 onAnimationComplete={() => handleBalloonEscape(balloon.id)}
                 onClick={() => handleBalloonClick(balloon)}
                 className="absolute bottom-0 cursor-pointer z-0"
@@ -437,6 +430,32 @@ export function BalloonPopGame() {
                       className="object-contain pointer-events-none select-none"
                       style={{ height: "150px", width: "150px" }}
                     />
+                    {balloon.popped && (
+                      <div className="absolute inset-0 pointer-events-none">
+                        {[...Array(10)].map((_, i) => (
+                          <motion.span
+                            key={i}
+                            className="absolute w-2 h-2 rounded-full"
+                            style={{
+                              backgroundColor: [
+                                "#ffffff",
+                                "#FFD93D",
+                                "#FF6B6B",
+                                "#6BCB77",
+                              ][i % 4],
+                            }}
+                            initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+                            animate={{
+                              x: (Math.random() - 0.5) * 120,
+                              y: (Math.random() - 0.5) * 120,
+                              opacity: 0,
+                              scale: 0.5,
+                            }}
+                            transition={{ duration: 1 }}
+                          />
+                        ))}
+                      </div>
+                    )}
                     <div
                       className="absolute inset-0 flex justify-center"
                       style={{
