@@ -21,18 +21,12 @@ import {
 import background_video from "../assets/Vector_sidebar.png";
 import { SplashScreen } from "./SplashScreen";
 // تعريف نوع YouTube Player
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
-}
+
 
 export function LearnLetters() {
   const [currentSlide, setCurrentSlide] = useState(0); // 0 = فيديو، 1 = محتوى الحرف
   const [videoEnded, setVideoEnded] = useState(false);
-  const playerRef = useRef<any>(null);
-  const { letter } = useParams<{ letter: string }>();
+const videoRef = useRef<HTMLVideoElement | null>(null);  const { letter } = useParams<{ letter: string }>();
   const navigate = useNavigate();
   const [showSplash, setShowSplash] = useState(true);
   const user = useSelector((state: RootState) => state.auth.user);
@@ -40,6 +34,7 @@ export function LearnLetters() {
   const { video, loading } = useSelector(
     (state: RootState) => state.videoLessons,
   );
+console.log(video);
 
   const { letters } = useSelector((state: RootState) => state.letters);
   const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
@@ -75,45 +70,26 @@ export function LearnLetters() {
     );
   }, [letterId, dispatch]);
 
-  const getVideoId = (url: string) => {
-    const match = url.match(/embed\/([^?]+)/);
-    return match ? match[1] : null;
-  };
-  useEffect(() => {
-    if (window.YT && window.YT.Player) return;
 
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.body.appendChild(tag);
-  }, []);
+useEffect(() => {
+  if (!letterId) return;
 
-  useEffect(() => {
-    if (!video.length) return;
-    if (!window.YT || !window.YT.Player) return;
+  dispatch(clearVideo());
 
-    const videoId = getVideoId(video[0].youtube_url);
-    if (!videoId) return;
+  dispatch(
+    fetchVideoLesson({
+      letterId,
+      lessonId: 1,
+    }),
+  );
+}, [letterId, dispatch]);
+useEffect(() => {
+  setVideoEnded(false);
 
-    if (playerRef.current) {
-      playerRef.current.destroy();
-    }
-
-    playerRef.current = new window.YT.Player("youtube-player", {
-      videoId,
-      events: {
-        onStateChange: onPlayerStateChange,
-      },
-    });
-
-    setVideoEnded(false);
-  }, [video]);
-
-  const onPlayerStateChange = (event: any) => {
-    if (event.data === window.YT.PlayerState.ENDED) {
-      setVideoEnded(true);
-    }
-  };
-
+  if (videoRef.current) {
+    videoRef.current.load();
+  }
+}, [video]);
   const lettersComp = [
     {
       arabic: "أ",
@@ -243,15 +219,25 @@ export function LearnLetters() {
               >
                 {/* إطار الفيديو الداخلي */}
                 <div className="bg-white overflow-hidden shadow-xl w-full">
-                  <div
-                    className="relative w-full"
-                    style={{ paddingBottom: "56.25%" }}
-                  >
-                    <div
-                      id="youtube-player"
-                      className="absolute inset-0 w-full h-full"
-                    ></div>
-                  </div>
+                 <div
+  className="relative w-full"
+  style={{ paddingBottom: "56.25%" }}
+>
+  {video.length > 0 && (
+    <video
+      ref={videoRef}
+      className="absolute inset-0 w-full h-full object-contain"
+      controls
+      playsInline
+      preload="metadata"
+      controlsList="nodownload"
+      onEnded={() => setVideoEnded(true)}
+    >
+      <source src={video[0].youtube_url} type="video/mp4" />
+      المتصفح لا يدعم تشغيل الفيديو.
+    </video>
+  )}
+</div>
                 </div>
               </div>
 

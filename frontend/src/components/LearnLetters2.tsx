@@ -20,12 +20,6 @@ import vectorEnd from "../assets/vector_end.svg";
 import badegEnd from "../assets/badeg_end.svg";
 import { SplashScreen } from "./SplashScreen";
 // تعريف نوع YouTube Player
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
-}
 
 export function LearnLetters2() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -34,7 +28,7 @@ export function LearnLetters2() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [coloringData, setColoringData] = useState<ImageData | null>(null);
   const [isComplete, setIsComplete] = useState(false);
-  const playerRef = useRef<any>(null);
+const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
     const [showSplash, setShowSplash] = useState(true);
   const letterMaskRef = useRef<ImageData | null>(null);
@@ -78,24 +72,23 @@ export function LearnLetters2() {
     );
   }, [letterId, dispatch]);
 
-  // تحميل YouTube IFrame API
-  useEffect(() => {
-    if (!video.length) return;
-    if (!window.YT || !window.YT.Player) return;
+useEffect(() => {
+  if (!letterId) return;
 
-    playerRef.current = new window.YT.Player("youtube-player-2", {
-      events: {
-        onStateChange: onPlayerStateChange,
-      },
-    });
-  }, [video]);
+  dispatch(
+    fetchVideoLesson({
+      letterId,
+      lessonId: 2,
+    }),
+  );
+}, [letterId, dispatch]);
+useEffect(() => {
+  setVideoEnded(false);
 
-  const onPlayerStateChange = (event: any) => {
-    if (event.data === 0) {
-      setVideoEnded(true);
-    }
-  };
-
+  if (videoRef.current) {
+    videoRef.current.load();
+  }
+}, [video]);
   const lettersComp = [
     {
       arabic: "أ",
@@ -542,19 +535,20 @@ export function LearnLetters2() {
                     className="relative w-full"
                     style={{ paddingBottom: "56.25%" }}
                   >
-                    <iframe
-                      id="youtube-player-2"
-                      className="absolute top-0 left-0 w-full h-full"
-                      src={
-                        video.length > 0 && video[0]?.youtube_url
-                          ? `${video[0].youtube_url}?enablejsapi=1`
-                          : ""
-                      }
-                      title="فيديو تعليمي للحروف العربية"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
+                 {video.length > 0 && (
+  <video
+    ref={videoRef}
+    className="absolute inset-0 w-full h-full object-contain"
+    controls
+    playsInline
+    preload="metadata"
+    controlsList="nodownload"
+    onEnded={() => setVideoEnded(true)}
+  >
+    <source src={video[0].youtube_url} type="video/mp4" />
+    المتصفح لا يدعم تشغيل الفيديو.
+  </video>
+)}
                     {loading && (
                       <p className="text-center py-6">جاري تحميل الفيديو...</p>
                     )}
