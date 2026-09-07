@@ -12,7 +12,7 @@ import { upsertUserProgress } from "../API/userProgress";
 import wordCatch from "../assets/wordCatch.svg";
 import wordMatch from "../assets/wordMatch.svg";
 import sortWord from "../assets/sorting.svg";
-import balloon from "../assets/balloon.svg";
+import balloon from "../assets/balloon2.svg";
 import vectorEnd from "../assets/vector_end.svg";
 import badegEnd from "../assets/badeg_end.svg";
 export function GamesSection() {

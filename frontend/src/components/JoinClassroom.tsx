@@ -46,9 +46,9 @@ JoinClassroomProps) {
   const handleJoin = async () => {
     try {
       await joinClassroomByCode(classCode);
-
       // 🔥 رجّعي الصف من الباك إند
       dispatch(fetchMyClass());
+      navigate(`/my-classroom/${classCode}`);
 
       setSuccess(true);
     } catch (err: any) {
@@ -57,8 +57,8 @@ JoinClassroomProps) {
   };
   const handleLogout = () => {
     dispatch(logout());
-    dispatch(clearMyClass());
     navigate("/");
+    // dispatch(clearMyClass());
   };
 
   return (
@@ -89,7 +89,7 @@ JoinClassroomProps) {
         </div>
         <motion.button
           onClick={() => {
-            navigate("/");
+           handleLogout()
           }}
           className="fixed top-8 left-16 z-30 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all hover:scale-110"
           whileHover={{ scale: 1.1, rotate: 5 }}

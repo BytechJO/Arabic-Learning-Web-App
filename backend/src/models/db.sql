@@ -90,15 +90,23 @@ CREATE TABLE video_lessons (
 );
 
 CREATE TABLE games_lessons (
-  id SERIAL PRIMARY KEY,
-  letter_id INTEGER,
-  lesson_id INTEGER,
-  game_type VARCHAR, 
-  order_index INTEGER
-  CONSTRAINT fk_games_lessons_letter
-    FOREIGN KEY (letter_id) REFERENCES letters(id),
-  CONSTRAINT fk_games_lessons_lesson
-    FOREIGN KEY (lesson_id) REFERENCES letter_lessons(id)
+    id SERIAL PRIMARY KEY,
+
+    letter_id INTEGER,
+    lesson_id INTEGER,
+    game_type VARCHAR,
+    order_index INTEGER,
+
+    CONSTRAINT fk_games_lessons_letter
+        FOREIGN KEY (letter_id)
+        REFERENCES letters(id),
+
+    CONSTRAINT fk_games_lessons_lesson
+        FOREIGN KEY (lesson_id)
+        REFERENCES letter_lessons(id),
+
+    CONSTRAINT unique_letter_game
+        UNIQUE (letter_id, game_type)
 );
 
 
@@ -142,20 +150,30 @@ CREATE TABLE questions_lessons (
 );
 
 CREATE TABLE user_progress (
-  id SERIAL PRIMARY KEY,
-  letter_id INTEGER,
-  user_id INTEGER,
-  lesson_type VARCHAR,
-  lesson_id INTEGER,
-  score INTEGER,
-  completed BOOLEAN,
-  updated_at TIMESTAMP,
-  CONSTRAINT fk_user_progress_user
-    FOREIGN KEY (user_id) REFERENCES users(id),
-     CONSTRAINT fk_user_progress_lessons
-    FOREIGN KEY (lesson_id) REFERENCES letter_lessons(id),
-  CONSTRAINT fk_user_progress_letter
-    FOREIGN KEY (letter_id) REFERENCES letters(id)
+    id SERIAL PRIMARY KEY,
+
+    letter_id INTEGER,
+    user_id INTEGER,
+    lesson_type VARCHAR,
+    lesson_id INTEGER,
+    score INTEGER,
+    completed BOOLEAN,
+    updated_at TIMESTAMP,
+
+    CONSTRAINT fk_user_progress_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id),
+
+    CONSTRAINT fk_user_progress_lessons
+        FOREIGN KEY (lesson_id)
+        REFERENCES letter_lessons(id),
+
+    CONSTRAINT fk_user_progress_letter
+        FOREIGN KEY (letter_id)
+        REFERENCES letters(id),
+
+    CONSTRAINT user_progress_user_letter_lesson_unique
+        UNIQUE (user_id, letter_id, lesson_id)
 );
 
 CREATE TABLE student_answers (
@@ -187,3 +205,6 @@ CREATE TABLE student_lesson_result (
   CONSTRAINT fk_student_lesson_result_lesson
     FOREIGN KEY (lessons_id) REFERENCES letter_lessons(id)
 );
+
+
+

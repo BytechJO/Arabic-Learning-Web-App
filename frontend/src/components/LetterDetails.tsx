@@ -147,7 +147,7 @@ export function LetterDetails() {
       <div className="relative z-10 h-full flex flex-col pt-6">
         {/* العنوان والحرف */}
         <motion.div
-          className="text-center mb-6"
+          className="text-center mb-1"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -195,7 +195,7 @@ export function LetterDetails() {
         </motion.div>
 
         {/* شبكة الأقسام */}
-        <div className="flex-1 px-6 flex items-start justify-center pb-24">
+        <div className="flex-1 px-6 flex items-start justify-center pb-0">
           <div className="w-full max-w-5xl mx-auto">
             {/* البطاقات */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
