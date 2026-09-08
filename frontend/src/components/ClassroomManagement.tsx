@@ -436,7 +436,7 @@ export function ClassroomManagement() {
                     onChange={(e) => setNewClassName(e.target.value)}
                     placeholder="اسم الصف (مثال: الصف الأول - أ)"
                     className="w-full px-4 py-3 border-2 border-gray-200 focus:border-[#fad656] outline-none mb-4"
-                    style={{ backgroundColor: "#f5f3f7" }}
+                    style={{ backgroundColor: "#f5f3f7" ,color:"black"}}
                   />
                 </div>
                 <div
