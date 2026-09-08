@@ -371,7 +371,7 @@ export function LoginPage({ userType, onBack, onLogout }: LoginPageProps) {
                 </motion.div>
               </div>
               {/* النموذج */}
-              <div className="p-5 md:p-6 bg-white rounded-3xl">
+              <div className="p-5 md:p-6 bg-white rounded-3xl" style={{height:"300px"}}>
                 <form onSubmit={handleLogin} className="space-y-4">
                   <motion.div
                     initial={{ x: -20, opacity: 0 }}
@@ -447,15 +447,6 @@ export function LoginPage({ userType, onBack, onLogout }: LoginPageProps) {
                     </div>
                   </motion.div>
 
-                  {error && (
-                    <motion.div
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="bg-red-50 border-2 border-red-300 text-red-700 px-3 py-2.5 rounded-xl text-center text-sm"
-                    >
-                      {error}
-                    </motion.div>
-                  )}
 
                   <motion.button
                     type="submit"
@@ -465,7 +456,7 @@ export function LoginPage({ userType, onBack, onLogout }: LoginPageProps) {
                     }}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                  >
+                    >
                     {"دخول"}
                   </motion.button>
                   <div className="text-center space-y-2">
@@ -476,13 +467,22 @@ export function LoginPage({ userType, onBack, onLogout }: LoginPageProps) {
                           navigate("/");
                         }}
                         className="text-gray-600 hover:text-purple-600 transition-colors text-sm md:text-base flex items-center justify-center gap-1.5 mx-auto"
-                      >
+                        >
                         <Home className="w-4 h-4" />
                         <span>الصفحة الرئيسية</span>
                       </button>
                     </div>
                   </div>
                 </form>
+                        {error && (
+                          <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="bg-red-50 border-2 border-red-300 text-red-700 px-3 py-2.5 rounded-xl text-center text-sm"
+                          >
+                            {error}
+                          </motion.div>
+                        )}
               </div>
             </div>
             <div

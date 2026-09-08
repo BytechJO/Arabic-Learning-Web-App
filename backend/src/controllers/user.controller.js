@@ -80,7 +80,8 @@ const register = async (req, res) => {
   if (!veryStrongPasswordRegex.test(password)) {
     return res.status(400).json({
       success: false,
-      message: "كلمة المرور يجب أن تحتوي على 8 أحرف على الاقل، حروف، ارقام، ورمز خاص",
+      message:
+        "كلمة المرور يجب أن تحتوي على 8 أحرف على الاقل، حروف، ارقام، ورمز خاص",
     });
   }
 
@@ -230,7 +231,7 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(403).json({
         success: false,
-        message: "Invalid email or password",
+        message: "البريد الاكتروني او كلمة السر غير صحيحة ",
       });
     }
 
