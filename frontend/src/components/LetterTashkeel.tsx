@@ -349,7 +349,7 @@ export function LetterTashkeel() {
                   fontWeight: "500",
                 }}
               >
-                ما هو تشكيل حرف ال{currentLetterFromRedux?.name}
+                ما هو تشكيل حرف ال {currentLetterFromRedux?.name}
                 في هذه الكلمة؟
               </p>
 

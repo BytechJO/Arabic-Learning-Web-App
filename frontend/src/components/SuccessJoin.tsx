@@ -100,7 +100,7 @@ export function SuccessJoin({ onLogout, onBack }: SuccessJoinProps) {
             </h1>
             <img src={girl_img} />
             <button
-              onClick={() => navigate("/welcome-page")}
+              onClick={() => navigate("/letters")}
               className="w-80 md:w-full text-white py-2 md:py-2 flex items-center justify-center gap-2 shadow-lg transition-all hover:shadow-xl hover:scale-105"
               style={{
                 backgroundColor: "#FDC333",

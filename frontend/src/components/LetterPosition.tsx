@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { Award, ArrowRight, RotateCcw, Check, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowRight, ArrowLeft, Check, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ActivityFooter } from "./ActivityFooter";
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import { submitAnswer, calculateLessonResult } from "../API/result";
 import { getLetterPositionQuestions } from "../API/questions";
 import { upsertUserProgress } from "../API/userProgress";
@@ -15,8 +14,8 @@ import restart from "../assets/Icon.svg";
 import vector from "../assets/vector_background.png";
 import vectorEnd from "../assets/vector_end.svg";
 import badegEnd from "../assets/badeg_end.svg";
-import { useRef } from "react";
 import { SplashScreen } from "./SplashScreen";
+
 export function LetterPosition() {
   const [score, setScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
@@ -24,7 +23,7 @@ export function LetterPosition() {
   const [showFeedback, setShowFeedback] = useState<"correct" | "wrong" | null>(
     null,
   );
-
+  
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { symbol } = useParams();
@@ -32,8 +31,8 @@ export function LetterPosition() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFinishModal, setShowFinishModal] = useState(false);
-  const user = useSelector((state: RootState) => state.auth.user);
   const { letters } = useSelector((state: RootState) => state.letters);
+   const user = useSelector((state: RootState) => state.auth.user);
   const [selectedOption, setSelectedOption] = useState<any>(null);
   const currentLetterFromRedux = letters.find((l) => l.symbol === symbol);
   const [showSplash, setShowSplash] = useState(true);
@@ -42,27 +41,19 @@ export function LetterPosition() {
   const dispatch = useDispatch<any>();
   const propLetter = symbol;
 
-  if (!propLetter) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50 flex items-center justify-center p-6">
-        <div className="text-center">
-          <p className="text-base text-gray-400">اختر حرفاً من صفحة الحروف</p>
-        </div>
-        <ActivityFooter
-          currentLetter={propLetter}
-          letterName={currentLetterFromRedux?.name}
-        />
-      </div>
-    );
-  }
-
+  // ✅ وضع الأستاذ: تنقل فقط بين الكلمات، بدون لعب أو إجابات أو حفظ تقدم
+  // عدّل الشرط حسب اسم الحقل/القيمة الفعلية عندك في الـ user
+  const isTeacher = user?.roleId === 3;
+console.log("isTeacher", isTeacher);
   useEffect(() => {
     if (!letters.length) {
       dispatch(fetchLetters());
     }
   }, [dispatch, letters.length]);
+
   const saveLearnProgress = async () => {
     if (!user || !symbol) return;
+    if (isTeacher) return; // الأستاذ ما بيتسجل له تقدم
 
     await upsertUserProgress({
       letter_id: letterId,
@@ -92,14 +83,33 @@ export function LetterPosition() {
 
     fetchQuestions();
   }, [letterId]);
-  // const questions = getQuestionsForLetter(propLetter);
+
+  // (نقلت هاد الشرط لبعد كل الـ hooks عشان ما نكسر قواعد React hooks)
+  if (!propLetter) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-yellow-50 to-purple-50 flex items-center justify-center p-6">
+        <div className="text-center">
+          <p className="text-base text-gray-400">اختر حرفاً من صفحة الحروف</p>
+        </div>
+        <ActivityFooter
+          currentLetter={propLetter}
+          letterName={currentLetterFromRedux?.name}
+        />
+      </div>
+    );
+  }
+
   if (!questions.length || !questions[currentQuestion]) {
     return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   const question = questions[currentQuestion];
   const parsedQuestionText = JSON.parse(question.question_text);
+
   const handleAnswer = async (position: string) => {
+    // ✅ الأستاذ ما بيقدر يجاوب
+    if (isTeacher) return;
+
     // 🔴 امنع أي ضغط إضافي
     if (showFeedback !== null) return;
 
@@ -137,6 +147,14 @@ export function LetterPosition() {
     setShowFeedback(null);
   };
 
+  // ✅ تنقل الأستاذ بين الكلمات
+  const goNext = () =>
+    setCurrentQuestion((prev) => Math.min(prev + 1, questions.length - 1));
+  const goPrev = () => setCurrentQuestion((prev) => Math.max(prev - 1, 0));
+
+  const isFirst = currentQuestion === 0;
+  const isLast = currentQuestion === questions.length - 1;
+
   return (
     <div className="h-screen relative overflow-hidden pb-24" dir="rtl">
       {/* خلفية متدرجة */}
@@ -162,7 +180,6 @@ export function LetterPosition() {
                 style={{
                   color: "#F9F9F9",
                   fontFamily: "tajawal",
-                  // fontSize: "30px",
                   fontWeight: "700",
                 }}
               >
@@ -180,14 +197,14 @@ export function LetterPosition() {
                 style={{
                   color: "#FDFDFD",
                   fontFamily: "tajawal",
-                  // fontSize: "20px",
                   fontWeight: "500",
                 }}
               >
                 اختر المكان الصحيح للحرف في الكلمة
               </p>
             </motion.div>
-            {/* لوحة النقاط */}
+
+            {/* لوحة النقاط / لوحة تنقل الأستاذ */}
             <motion.div
               className="bg-white rounded-2xl p-4 shadow-lg"
               style={{ backgroundColor: "#FDC333" }}
@@ -195,45 +212,74 @@ export function LetterPosition() {
               animate={{ scale: 1, opacity: 1 }}
             >
               <div className="flex items-center justify-between">
-                <div className="flex flex-col items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: "#FFFFFF" }}
-                  >
-                    <img src={point} style={{ width: "20px" }} />
-                  </div>
-                  <div className="flex items-center gap-2">
+                {/* يمين: النقاط (طالب) / السابق (أستاذ) */}
+                {isTeacher ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <motion.button
+                      onClick={goPrev}
+                      disabled={isFirst}
+                      aria-label="السابق"
+                      className="flex items-center justify-center rounded-xl shadow-lg disabled:opacity-40"
+                      style={{
+                        backgroundColor: "#FFFFFF",
+                        height: "40px",
+                        width: "40px",
+                      }}
+                      whileHover={!isFirst ? { scale: 1.05 } : undefined}
+                      whileTap={!isFirst ? { scale: 0.95 } : undefined}
+                    >
+                      <ArrowRight size={20} color="#28345F" />
+                    </motion.button>
                     <p
-                      className="text-base md:text-xl lg:text-2xl"
+                      className="text-base md:text-sm lg:text-xl"
                       style={{
                         color: "#28345F",
                         fontFamily: "tajawal",
-                        // fontSize: "14",
                         fontWeight: "500",
                       }}
                     >
-                      النقاط
-                    </p>
-                    <p
-                      className="text-base md:text-xl lg:text-2xl"
-                      style={{
-                        color: "#28345F",
-                        fontFamily: "tajawal",
-                        // fontSize: "14",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {score}
+                      السابق
                     </p>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: "#FFFFFF" }}
+                    >
+                      <img src={point} style={{ width: "20px" }} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <p
+                        className="text-base md:text-xl lg:text-2xl"
+                        style={{
+                          color: "#28345F",
+                          fontFamily: "tajawal",
+                          fontWeight: "500",
+                        }}
+                      >
+                        النقاط
+                      </p>
+                      <p
+                        className="text-base md:text-xl lg:text-2xl"
+                        style={{
+                          color: "#28345F",
+                          fontFamily: "tajawal",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {score}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
+                {/* الوسط: رقم السؤال */}
                 <div className="text-center text-base md:text-xl lg:text-2xl">
                   <p
                     style={{
                       color: "#28345F",
                       fontFamily: "tajawal",
-                      // fontSize: "20px",
                       fontWeight: "500",
                     }}
                   >
@@ -244,41 +290,71 @@ export function LetterPosition() {
                     style={{
                       color: "#28345F",
                       fontFamily: "tajawal",
-                      // fontSize: "20px",
                       fontWeight: "500",
                     }}
                   >
                     {currentQuestion + 1} / {questions.length}
                   </p>
                 </div>
-                <div className="flex flex-col items-center gap-3">
-                  <motion.button
-                    onClick={resetGame}
-                    className="flex items-center gap-2 px-2 py-2 rounded-xl shadow-lg text-white"
-                    style={{
-                      backgroundColor: "#FFFFFF",
-                      height: "40px",
-                      width: "40px",
-                    }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <img src={restart} style={{ width: "20px" }} />
-                  </motion.button>
-                  <div className="flex items-center gap-2">
+
+                {/* يسار: إعادة (طالب) / التالي (أستاذ) */}
+                {isTeacher ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <motion.button
+                      onClick={goNext}
+                      disabled={isLast}
+                      aria-label="التالي"
+                      className="flex items-center justify-center rounded-xl shadow-lg disabled:opacity-40"
+                      style={{
+                        backgroundColor: "#FFFFFF",
+                        height: "40px",
+                        width: "40px",
+                      }}
+                      whileHover={!isLast ? { scale: 1.05 } : undefined}
+                      whileTap={!isLast ? { scale: 0.95 } : undefined}
+                    >
+                      <ArrowLeft size={20} color="#28345F" />
+                    </motion.button>
                     <p
                       className="text-base md:text-sm lg:text-xl"
                       style={{
                         color: "#28345F",
                         fontFamily: "tajawal",
-                        // fontSize: "16px",
                         fontWeight: "500",
                       }}
                     >
-                      إعادة
+                      التالي
                     </p>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <motion.button
+                      onClick={resetGame}
+                      className="flex items-center gap-2 px-2 py-2 rounded-xl shadow-lg text-white"
+                      style={{
+                        backgroundColor: "#FFFFFF",
+                        height: "40px",
+                        width: "40px",
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <img src={restart} style={{ width: "20px" }} />
+                    </motion.button>
+                    <div className="flex items-center gap-2">
+                      <p
+                        className="text-base md:text-sm lg:text-xl"
+                        style={{
+                          color: "#28345F",
+                          fontFamily: "tajawal",
+                          fontWeight: "500",
+                        }}
+                      >
+                        إعادة
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
 
@@ -347,12 +423,11 @@ export function LetterPosition() {
                 style={{
                   color: "#28345F",
                   fontFamily: "tajawal",
-                  // fontSize: "22px",
                   fontWeight: "500",
                 }}
               >
                 أين يقع حرف ال{currentLetterFromRedux?.name}
-                 في هذه الكلمة؟
+                 في هذه الكلمة؟
               </p>
 
               <motion.div
@@ -384,23 +459,35 @@ export function LetterPosition() {
                 <motion.button
                   key={option.id}
                   onClick={() => {
+                    if (isTeacher) return;
                     setSelectedOption(option.id);
                     handleAnswer(option.id);
-                    // بعد 1.5 ثانية يرجع طبيعي
+                    // بعد ثانية يرجع طبيعي
                     setTimeout(() => {
                       setSelectedOption(null);
                     }, 1000);
                   }}
-                  disabled={showFeedback !== null}
-                  className="rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 transition-all py-6"
+                  // ✅ الأستاذ: الأزرار معطلة دايماً
+                  disabled={isTeacher || showFeedback !== null}
+                  className={`rounded-2xl shadow-lg transition-all py-6 ${
+                    isTeacher
+                      ? "cursor-not-allowed opacity-60"
+                      : "hover:shadow-xl disabled:opacity-50"
+                  }`}
                   style={{
                     backgroundColor:
                       selectedOption === option.id ? "#FDC333" : "#EAE4ED",
                   }}
                   initial={{ y: 30, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  whileHover={{ scale: 1.05, y: -3 }}
-                  whileTap={{ scale: 0.98, backgroundColor: "#FDC333" }}
+                  whileHover={
+                    isTeacher ? undefined : { scale: 1.05, y: -3 }
+                  }
+                  whileTap={
+                    isTeacher
+                      ? undefined
+                      : { scale: 0.98, backgroundColor: "#FDC333" }
+                  }
                 >
                   <h3
                     className="text-xl md:text-2xl"
@@ -414,8 +501,9 @@ export function LetterPosition() {
           </div>
         </div>
       </div>
+
       <AnimatePresence>
-        {showFinishModal && (
+        {showFinishModal && !isTeacher && (
           <motion.div
             className="fixed inset-0 flex items-center justify-center z-50"
             style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
@@ -499,8 +587,8 @@ export function LetterPosition() {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Footer للأنشطة */}
 
+      {/* Footer للأنشطة */}
       <ActivityFooter
         currentLetter={propLetter}
         letterName={currentLetterFromRedux?.name}

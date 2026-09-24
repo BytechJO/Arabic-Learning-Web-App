@@ -33,7 +33,7 @@ export function ActivityFooter({
   const routerLocation = useLocation();
   const currentActivity = routerLocation.pathname.split("/").pop();
 
-  const [collapsed, setCollapsed] = React.useState(true);
+  const [collapsed, setCollapsed] = React.useState(false);
 
   const SIDEBAR_W = 230;
   const HANDLE_W = 34;
