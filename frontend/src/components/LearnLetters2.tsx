@@ -1,6 +1,6 @@
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, RotateCcw, Palette } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import alifImage from "figma:asset/2e7ac05d32688660f5c4551a39ee876244594961.png";
 import arnabImage from "figma:asset/03193b4780b6c1663c2c79169f20584caf8b5a9c.png";
 import ibraImage from "figma:asset/3a14b59d48036b9bebd2f5231af70a8fbdaea519.png";
@@ -8,7 +8,6 @@ import ustadImage from "figma:asset/216a220785407a2bc8628b1a0d3bf85089f190e1.png
 import rasImage from "figma:asset/46c822ef74d9cc21028b51d1aa52c350af43ad74.png";
 import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
 import { ActivityFooter } from "./ActivityFooter";
-import { User } from "../types";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
@@ -16,10 +15,10 @@ import { fetchVideoLesson } from "../redux/reducers/videoLessonsSlice";
 import { upsertUserProgress } from "../API/userProgress";
 import { fetchLetters } from "../redux/reducers/lettersSlice";
 import background_video from "../assets/Vector_sidebar.png";
-import vectorEnd from "../assets/vector_end.svg";
-import badegEnd from "../assets/badeg_end.svg";
 import { SplashScreen } from "./SplashScreen";
-// تعريف نوع YouTube Player
+
+// نسبة التلوين المطلوبة لتفعيل زر المتابعة
+const COMPLETION_THRESHOLD = 98;
 
 export function LearnLetters2() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -28,9 +27,9 @@ export function LearnLetters2() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [coloringData, setColoringData] = useState<ImageData | null>(null);
   const [isComplete, setIsComplete] = useState(false);
-const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const letterMaskRef = useRef<ImageData | null>(null);
   const { letter } = useParams<{ letter: string }>();
   const user = useSelector((state: RootState) => state.auth.user);
@@ -50,6 +49,7 @@ const videoRef = useRef<HTMLVideoElement | null>(null);
       dispatch(fetchLetters());
     }
   }, [dispatch, letters.length]);
+
   const saveLearnProgress = async () => {
     if (!user || !letter) return;
 
@@ -67,28 +67,19 @@ const videoRef = useRef<HTMLVideoElement | null>(null);
     dispatch(
       fetchVideoLesson({
         letterId,
-        lessonId: 2, // ⭐ هذا الفرق الوحيد
+        lessonId: 2,
       }),
     );
   }, [letterId, dispatch]);
 
-useEffect(() => {
-  if (!letterId) return;
+  useEffect(() => {
+    setVideoEnded(false);
 
-  dispatch(
-    fetchVideoLesson({
-      letterId,
-      lessonId: 2,
-    }),
-  );
-}, [letterId, dispatch]);
-useEffect(() => {
-  setVideoEnded(false);
+    if (videoRef.current) {
+      videoRef.current.load();
+    }
+  }, [video]);
 
-  if (videoRef.current) {
-    videoRef.current.load();
-  }
-}, [video]);
   const lettersComp = [
     {
       arabic: "أ",
@@ -136,44 +127,7 @@ useEffect(() => {
   const currentLetter =
     lettersComp.find((l) => l.arabic === letter) || lettersComp[0];
 
-  // تهيئة Canvas عند الدخول لسلايد التلوين
-  // useEffect(() => {
-  //   if (currentSlide === 1 && canvasRef.current) {
-  //     const canvas = canvasRef.current;
-  //     const ctx = canvas.getContext("2d");
-  //     if (!ctx) return;
-
-  //     // تعيين الأبعاد
-  //     const width = canvas.offsetWidth;
-  //     const height = canvas.offsetHeight;
-  //     canvas.width = width;
-  //     canvas.height = height;
-
-  //     // إنشاء canvas مؤقت لرسم الحرف
-  //     const tempCanvas = document.createElement("canvas");
-  //     tempCanvas.width = width;
-  //     tempCanvas.height = height;
-  //     const tempCtx = tempCanvas.getContext("2d");
-  //     if (!tempCtx) return;
-
-  //     // رسم الحرف على Canvas المؤقت
-  //     tempCtx.font = `bold ${Math.min(width, height) * 0.7}px Arial`;
-  //     tempCtx.textAlign = "center";
-  //     tempCtx.textBaseline = "middle";
-  //     tempCtx.fillStyle = "#000000";
-  //     tempCtx.fillText(currentLetter.arabic, width / 2, height / 2);
-
-  //     // حفظ mask الحرف
-  //     letterMaskRef.current = tempCtx.getImageData(0, 0, width, height);
-
-  //     // إنشاء ImageData فارغة للتلوين
-  //     setColoringData(ctx.createImageData(width, height));
-
-  //     // رسم الحرف الأولي
-  //     redrawCanvas();
-  //   }
-  // }, [currentSlide, currentLetter.arabic]);
-
+  // تهيئة الكانفاس عند الدخول لسلايد التلوين
   useEffect(() => {
     if (currentSlide !== 1) return;
 
@@ -183,7 +137,6 @@ useEffect(() => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // ✅ هاي هي init
     const init = () => {
       const rect = canvas.getBoundingClientRect();
       const width = Math.floor(rect.width);
@@ -191,7 +144,6 @@ useEffect(() => {
 
       if (width === 0 || height === 0) return;
 
-      // ✅ خلي أبعاد الكانفاس مساوية لـ CSS pixels (بدون dpr)
       canvas.width = width;
       canvas.height = height;
 
@@ -223,14 +175,17 @@ useEffect(() => {
 
       tempCtx.fillText(text, x, y);
 
-      // ✅ mask
+      // mask
       letterMaskRef.current = tempCtx.getImageData(0, 0, width, height);
 
-      // ✅ coloringData
+      // coloringData
       const fresh = ctx.createImageData(width, height);
       setColoringData(fresh);
 
-      // ✅ ارسم فوراً (بدون انتظار state)
+      // تغيّر الحجم بيمسح التلوين، فلازم نرجّع الزر disabled
+      setIsComplete(false);
+
+      // ارسم فوراً (بدون انتظار state)
       redrawCanvas(fresh, width, height);
     };
 
@@ -263,7 +218,7 @@ useEffect(() => {
     if (toDraw) ctx.putImageData(toDraw, 0, 0);
 
     const isPhone = width < 768; // نفس breakpoint تبع md في Tailwind
-    const scale = isPhone ? 0.95 : 0.7; // كبّر على الموبايل
+    const scale = isPhone ? 0.95 : 0.7;
     ctx.font = `bold ${Math.min(width, height) * scale}px Arial`;
 
     ctx.textAlign = "center";
@@ -396,7 +351,7 @@ useEffect(() => {
         coloringPixels[index] = color.r;
         coloringPixels[index + 1] = color.g;
         coloringPixels[index + 2] = color.b;
-        coloringPixels[index + 3] = 255; // solid تماماً
+        coloringPixels[index + 3] = 255;
       }
     }
 
@@ -417,7 +372,6 @@ useEffect(() => {
     let totalPixels = 0;
     let coloredPixels = 0;
 
-    // حساب البكسلات الملونة
     for (let i = 0; i < maskPixels.length; i += 4) {
       // إذا كانت النقطة داخل الحرف
       if (maskPixels[i + 3] > 0) {
@@ -429,10 +383,12 @@ useEffect(() => {
       }
     }
 
+    if (totalPixels === 0) return;
+
     const percentage = (coloredPixels / totalPixels) * 100;
 
-    // إذا تم تلوين 85% أو أكثر، عرض الـ feedback
-    if (percentage > 99 && !isComplete) {
+    // لما توصل النسبة للحد المطلوب، بيتفعّل زر المتابعة
+    if (percentage >= COMPLETION_THRESHOLD) {
       setIsComplete(true);
     }
   };
@@ -441,6 +397,7 @@ useEffect(() => {
   const stopDrawing = () => {
     setIsDrawing(false);
   };
+
   useEffect(() => {
     redrawCanvas();
   }, [coloringData]);
@@ -453,13 +410,17 @@ useEffect(() => {
     if (!ctx) return;
 
     setColoringData(ctx.createImageData(canvas.width, canvas.height));
-    setIsComplete(false);
+    setIsComplete(false); // بيرجع الزر disabled
+  };
+
+  // الانتقال للنشاط التالي (بس لما يكون الزر enabled)
+  const handleContinue = () => {
+    if (!isComplete) return;
+    navigate(`/letter/${letter}/position`);
   };
 
   if (loading) {
-    return (
-       <SplashScreen onComplete={() => setShowSplash(false)} />
-    );
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
   }
 
   return (
@@ -504,7 +465,6 @@ useEffect(() => {
                 style={{
                   color: "#F9F9F9",
                   fontFamily: "tajawal",
-                  // fontSize: "35",
                   fontWeight: "700",
                 }}
               >
@@ -535,20 +495,20 @@ useEffect(() => {
                     className="relative w-full"
                     style={{ paddingBottom: "56.25%" }}
                   >
-                 {video.length > 0 && (
-  <video
-    ref={videoRef}
-    className="absolute inset-0 w-full h-full object-contain"
-    controls
-    playsInline
-    preload="metadata"
-    controlsList="nodownload"
-    onEnded={() => setVideoEnded(true)}
-  >
-    <source src={video[0].youtube_url} type="video/mp4" />
-    المتصفح لا يدعم تشغيل الفيديو.
-  </video>
-)}
+                    {video.length > 0 && (
+                      <video
+                        ref={videoRef}
+                        className="absolute inset-0 w-full h-full object-contain"
+                        controls
+                        playsInline
+                        preload="metadata"
+                        controlsList="nodownload"
+                        onEnded={() => setVideoEnded(true)}
+                      >
+                        <source src={video[0].youtube_url} type="video/mp4" />
+                        المتصفح لا يدعم تشغيل الفيديو.
+                      </video>
+                    )}
                     {loading && (
                       <p className="text-center py-6">جاري تحميل الفيديو...</p>
                     )}
@@ -567,14 +527,12 @@ useEffect(() => {
                   <motion.button
                     onClick={async () => {
                       if (!videoEnded) return;
-                      await saveLearnProgress(); // ✅ هون المكان الصح
-
+                      await saveLearnProgress();
                       setCurrentSlide(1);
                     }}
                     onTouchEnd={async () => {
                       if (!videoEnded) return;
-                      await saveLearnProgress(); // ✅ هون المكان الصح
-
+                      await saveLearnProgress();
                       setCurrentSlide(1);
                     }}
                     disabled={!videoEnded}
@@ -622,7 +580,6 @@ useEffect(() => {
                       style={{
                         color: "#652B82",
                         fontFamily: "tajawal",
-                        // fontSize: "20",
                         fontWeight: "400",
                       }}
                     >
@@ -645,7 +602,6 @@ useEffect(() => {
                   style={{
                     color: "#FDFDFD",
                     fontFamily: "tajawal",
-                    // fontSize: "25px",
                     fontWeight: "500",
                   }}
                 >
@@ -723,7 +679,7 @@ useEffect(() => {
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
                 <div className="grid h-full gap-4 md:gap-6 grid-rows-[1fr_auto] md:grid-rows-1 md:grid-cols-4">
-                  {/* ✅ لوحة التلوين فوق على الموبايل / يمين على الديسكتوب */}
+                  {/* لوحة التلوين فوق على الموبايل / يمين على الديسكتوب */}
                   <div className="md:col-span-3 flex flex-col order-1 md:order-2 min-h-[55vh] md:min-h-0">
                     <div
                       className="flex-1 relative rounded-3xl overflow-hidden border-2 border-gray-200"
@@ -744,7 +700,7 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  {/* ✅ الباليت تحت على الموبايل / يسار على الديسكتوب */}
+                  {/* الباليت تحت على الموبايل / يسار على الديسكتوب */}
                   <div className="flex flex-col items-stretch justify-start gap-4 order-2 md:order-1">
                     <h3 className="text-lg text-gray-600 mb-2">اختر لونك</h3>
 
@@ -798,6 +754,45 @@ useEffect(() => {
                       <RotateCcw className="w-5 h-5" />
                       <span>مسح الكل</span>
                     </motion.button>
+
+                    {/* زر المتابعة: disabled لحد ما يخلص التلوين */}
+                    <motion.button
+                      onClick={handleContinue}
+                      disabled={!isComplete}
+                      className="w-full px-4 py-3 rounded-2xl text-white font-medium shadow-md transition-all"
+                      style={{
+                        background: isComplete
+                          ? "linear-gradient(135deg, #652b82, #7d3ba0)"
+                          : "linear-gradient(135deg, #d1d5db, #9ca3af)",
+                        cursor: isComplete ? "pointer" : "not-allowed",
+                        opacity: isComplete ? 1 : 0.6,
+                      }}
+                      whileHover={isComplete ? { scale: 1.04 } : {}}
+                      whileTap={isComplete ? { scale: 0.96 } : {}}
+                      animate={
+                        isComplete
+                          ? {
+                              scale: [1, 1.05, 1],
+                              boxShadow: [
+                                "0 10px 30px rgba(101, 43, 130, 0.3)",
+                                "0 14px 40px rgba(101, 43, 130, 0.5)",
+                                "0 10px 30px rgba(101, 43, 130, 0.3)",
+                              ],
+                            }
+                          : { scale: 1, boxShadow: "none" }
+                      }
+                      transition={
+                        isComplete
+                          ? {
+                              duration: 1.5,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }
+                          : {}
+                      }
+                    >
+                      <span>{isComplete ? "أحسنت! متابعة" : "متابعة"}</span>
+                    </motion.button>
                   </div>
                 </div>
               </motion.div>
@@ -835,94 +830,10 @@ useEffect(() => {
       )}
 
       {/* Footer للأنشطة */}
-
       <ActivityFooter
         currentLetter={currentLetter.arabic}
         letterName={currentLetter.name}
       />
-
-      {/* رسالة التهنئة عند اكتمال التلوين */}
-      <AnimatePresence>
-        {isComplete && (
-          <motion.div
-            className="fixed inset-0 flex items-center justify-center z-50"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsComplete(false)}
-          >
-            <motion.div
-              className="bg-white rounded-[28px] p-8 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.25)] text-center max-w-md w-full mx-4 relative overflow-hidden"
-              initial={{ scale: 0.7, y: 80 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.7, y: 80 }}
-              transition={{ type: "spring", stiffness: 250, damping: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{ borderRadius: "20px" }}
-              dir="rtl"
-            >
-              {/* الزخرفة الصفراء */}
-              <img className="absolute top-0 left-0" src={vectorEnd} />
-
-              {/* أيقونة الوسام */}
-              <div className="relative z-10 flex justify-center mb-4">
-                <div className="text-[#FDC333] text-5xl">
-                  <img src={badegEnd} />
-                </div>
-              </div>
-              {/* العنوان */}
-              <motion.h2
-                className="text-2xl md:text-3xl mb-2"
-                style={{
-                  color: "#28345F",
-                  fontFamily: "tajawal",
-                  // fontSize: "30px",
-                  fontWeight: "500",
-                }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                أحسنت!
-              </motion.h2>
-
-              {/* الرسالة */}
-              <motion.p
-                className="text-sm md:text-base text-gray-600 mb-5"
-                style={{
-                  color: "#28345F",
-                  fontFamily: "tajawal",
-                  // fontSize: "20px",
-                  fontWeight: "500",
-                }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                لقد أتممت كتابة حرف {currentLetter.name} بنجاح
-              </motion.p>
-
-              {/* زر الإغلاق */}
-              <motion.button
-                onClick={() => {
-                  setIsComplete(false);
-                  navigate(`/letter/${letter}/position`);
-                }}
-                style={{ backgroundColor: "#652B82" }}
-                className="px-6 py-2.5 rounded-xl text-white font-medium shadow-md hover:scale-105 transition"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                متابعة
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
