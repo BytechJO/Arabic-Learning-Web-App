@@ -115,8 +115,10 @@ export function BalloonPopGame() {
   const dispatch = useDispatch<any>();
 
   const { letters } = useSelector((state: RootState) => state.letters);
+console.log("letters", letters);
   const currentLetter = letters.find((l) => l.symbol === letter);
   const letterId = currentLetter?.id;
+  const letterName = currentLetter?.name;
 
   /* ---------- Helpers ---------- */
   const getDuration = () => Math.floor((Date.now() - startTime) / 1000);
@@ -331,7 +333,7 @@ export function BalloonPopGame() {
               // fontSize: "20px",
             }}
           >
-            افرقع البالونات التي تحتوي على كلمات تبدأ بحرف الألف
+         افرقع البالونات التي تحتوي على كلمات تبدأ بحرف ال{letterName}
           </h2>
           <div className="flex items-center gap-6">
             <div

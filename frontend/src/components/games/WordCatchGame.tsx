@@ -138,6 +138,7 @@ export function WordCatchGame() {
   const { letters } = useSelector((state: RootState) => state.letters);
   const currentLetter = letters.find((l) => l.symbol === letter);
   const letterId = currentLetter?.id;
+  const letterName = currentLetter?.name;
 
   /* ---------- Helpers ---------- */
 

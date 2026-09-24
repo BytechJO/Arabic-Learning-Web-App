@@ -170,7 +170,7 @@ export function SortingGame() {
   const { letters } = useSelector((state: RootState) => state.letters);
   const dispatch = useDispatch<any>();
   const currentLetterFromRedux = letters.find((l) => l.symbol === letter);
-
+const letterName = currentLetterFromRedux?.name;
   const activeItem = useMemo(
     () => (activeId !== null ? items.find((i) => i.id === activeId) : null),
     [activeId, items],

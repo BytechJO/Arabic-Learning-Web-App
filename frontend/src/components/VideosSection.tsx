@@ -1,16 +1,9 @@
-import {
-  Play,
-  Clock,
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import { motion } from "motion/react";
+import { Play, X } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { ActivityFooter } from "./ActivityFooter";
-import { useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import tigerImg from "figma:asset/d844153878e904df36a1b42e94cd19505b2fa01b.png";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchVideoLesson,
@@ -19,69 +12,143 @@ import {
 import type { RootState, AppDispatch } from "../redux/store";
 import { fetchLetters } from "../redux/reducers/lettersSlice";
 import { upsertUserProgress } from "../API/userProgress";
-import youtubeIcon from "../assets/youtoub_icon.svg";
 import videoVector from "../assets/vector_video.svg";
 import { SplashScreen } from "./SplashScreen";
 
-// فيديوهات خاصة بحرف الألف
-// const alifVideos = [
-//   {
-//     id: 1,
-//     title: 'تعلم حرف الألف',
-//     description: 'تعلم نطق وكتابة حرف الألف بطريقة ممتعة',
-//     thumbnail: 'https://img.youtube.com/vi/9JJLkch42kY/maxresdefault.jpg',
-//     videoId: '9JJLkch42kY',
-//     duration: '5:30',
-//   },
-//   {
-//     id: 2,
-//     title: 'أغنية حرف الألف',
-//     description: 'أغنية تعليمية لحفظ حرف الألف',
-//     thumbnail: 'https://img.youtube.com/vi/JLOxiLFUlX4/maxresdefault.jpg',
-//     videoId: 'JLOxiLFUlX4',
-//     duration: '3:15',
-//   },
-//   {
-//     id: 3,
-//     title: 'قصة حرف الألف',
-//     description: 'قصة ممتعة عن حرف الألف',
-//     thumbnail: 'https://img.youtube.com/vi/stJeoh3ty1E/maxresdefault.jpg',
-//     videoId: 'stJeoh3ty1E',
-//     duration: '8:20',
-//   },
-//   {
-//     id: 4,
-//     title: 'كلمات تبدأ بحرف الألف',
-//     description: 'تعلم كلمات مثل: أسد، أرنب، أحمد',
-//     thumbnail: 'https://img.youtube.com/vi/kW5pm41Ya5I/maxresdefault.jpg',
-//     videoId: 'kW5pm41Ya5I',
-//     duration: '6:45',
-//   },
-//   {
-//     id: 5,
-//     title: 'تدريبات على حرف الألف',
-//     description: 'تمارين ممتعة لتعلم كتابة حرف الألف',
-//     thumbnail: 'https://img.youtube.com/vi/YKQVzelXmsQ/maxresdefault.jpg',
-//     videoId: 'YKQVzelXmsQ',
-//     duration: '7:10',
-//   },
-//   {
-//     id: 6,
-//     title: 'حرف الألف مع الحركات',
-//     description: 'تعلم حرف الألف مع الفتحة والضمة والكسرة',
-//     thumbnail: 'https://img.youtube.com/vi/vPKp29Luryc/maxresdefault.jpg',
-//     videoId: 'vPKp29Luryc',
-//     duration: '4:50',
-//   },
-// ];
+// ---------- Helpers ----------
+
+// لينك الفيديو: إذا الباك اند بعت حقل جديد (مثلاً video_url) بياخده،
+// وإلا بيرجع لـ youtube_url القديم
+const getVideoSrc = (v: any): string => v?.video_url || v?.youtube_url || "";
+
+// هل اللينك يوتيوب؟ (عشان لو كان في فيديوهات قديمة على يوتيوب تضل تشتغل)
+const isYouTube = (url: string) => /youtube\.com|youtu\.be/.test(url);
+
+const getYouTubeEmbedUrl = (url: string): string => {
+  let id = "";
+  if (url.includes("/embed/")) {
+    id = url.split("/embed/")[1];
+  } else if (url.includes("youtu.be/")) {
+    id = url.split("youtu.be/")[1];
+  } else if (url.includes("v=")) {
+    id = url.split("v=")[1];
+  }
+  id = id.split(/[?&#]/)[0];
+  return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+};
+
+// ---------- Video Modal ----------
+
+interface VideoModalProps {
+  src: string;
+  title?: string;
+  onClose: () => void;
+}
+
+function VideoModal({ src, title, onClose }: VideoModalProps) {
+  // إغلاق بزر Escape + منع سكرول الصفحة خلف البوب اب
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      onClick={onClose} // الضغط على الخلفية يسكّر
+      role="dialog"
+      aria-modal="true"
+      aria-label={title || "فيديو"}
+      dir="rtl"
+    >
+      <motion.div
+        className="relative w-full max-w-4xl"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        onClick={(e) => e.stopPropagation()} // الضغط داخل البوب اب ما يسكّر
+      >
+        {/* زر الإغلاق */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="إغلاق"
+          className="absolute -top-12 left-0 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg transition-transform hover:scale-110"
+          style={{ color: "#28345F" }}
+        >
+          <X size={22} />
+        </button>
+
+        {title && (
+          <h3
+            className="mb-3 text-base md:text-xl"
+            style={{
+              color: "#F9F9F9",
+              fontFamily: "tajawal",
+              fontWeight: 700,
+            }}
+          >
+            {title}
+          </h3>
+        )}
+
+        <div className="aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-2xl">
+          {isYouTube(src) ? (
+            <iframe
+              key={src}
+              src={getYouTubeEmbedUrl(src)}
+              title={title || "video"}
+              className="h-full w-full"
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+            />
+          ) : (
+            <video
+              key={src}
+              src={src}
+              className="h-full w-full"
+              controls
+              autoPlay
+              playsInline
+              controlsList="nodownload"
+            >
+              متصفحك لا يدعم تشغيل الفيديو
+            </video>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>,
+    document.body,
+  );
+}
+
+// ---------- Main Component ----------
 
 export function VideosSection() {
   const [currentPage, setCurrentPage] = useState(0);
-  // const [progressSaved, setProgressSaved] = useState(false);
   const [videosPerPage, setVideosPerPage] = useState(3);
-  const [showSplash, setShowSplash] = useState(true);
+  const [activeVideo, setActiveVideo] = useState<{
+    src: string;
+    title?: string;
+  } | null>(null);
+
   const { letter } = useParams();
-  const navigate = useNavigate();
   const progressSavedRef = useRef(false);
   const dispatch = useDispatch<AppDispatch>();
   const { letters } = useSelector((state: RootState) => state.letters);
@@ -91,6 +158,7 @@ export function VideosSection() {
     (state: RootState) => state.videoLessons,
   );
   const propLetter = letter;
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 640) {
@@ -101,7 +169,6 @@ export function VideosSection() {
         setVideosPerPage(3); // ديسكتوب
       }
     };
-
 
     handleResize(); // تشغيل أول مرة
     window.addEventListener("resize", handleResize);
@@ -146,8 +213,10 @@ export function VideosSection() {
     saveProgress();
   }, [video, letterId, dispatch]);
 
+  const closeModal = () => setActiveVideo(null);
+
   if (loading) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+    return <SplashScreen onComplete={() => {}} />;
   }
   if (!video || video.length === 0) {
     return (
@@ -163,7 +232,6 @@ export function VideosSection() {
 
   const currentLetter = letter;
   const letterName = currentLetterFromRedux?.name;
-  // const videosPerPage = 3;
   const totalPages = Math.ceil(video.length / videosPerPage);
   const currentVideos = video.slice(
     currentPage * videosPerPage,
@@ -226,7 +294,6 @@ export function VideosSection() {
                 style={{
                   color: "#F9F9F9",
                   fontFamily: "tajawal",
-                  // fontSize: "30px",
                   fontWeight: "700",
                 }}
               >
@@ -244,7 +311,6 @@ export function VideosSection() {
                   style={{
                     color: "#FDFDFD",
                     fontFamily: "tajawal",
-                    // fontSize: "25px",
                     fontWeight: "500",
                   }}
                 >
@@ -267,39 +333,45 @@ export function VideosSection() {
                         : "grid-cols-1 md:grid-cols-3"
                   }`}
                 >
-                  {currentVideos.map((video, index) => {
-                    const videoId = video.youtube_url.includes("embed")
-                      ? video.youtube_url.split("/embed/")[1]
-                      : video.youtube_url.split("v=")[1];
-
-                    const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                  {currentVideos.map((item, index) => {
+                    const src = getVideoSrc(item);
 
                     return (
                       <motion.div
-                        key={video.id}
+                        key={item.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         whileHover={{ scale: 1.02 }}
                         className="h-full"
                       >
-                        <a
-                          href={`https://www.youtube.com/watch?v=${videoId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block h-full"
+                        {/* بدل <a> صار button يفتح البوب اب */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setActiveVideo({ src, title: item.video_title })
+                          }
+                          className="block h-full w-full cursor-pointer text-start"
                         >
                           <div className="relative bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl h-full transition-all">
                             {/* الزاوية الصفراء */}
-
                             <img
                               src={videoVector}
                               className="absolute top-0 left-0"
+                              alt=""
                             />
-                            {/* القسم العلوي */}
+                            {/* القسم العلوي: زر التشغيل */}
                             <div className="flex items-center justify-center h-56">
-                              <div className="bg-red-600 rounded-xl p-4">
-                                <img src={youtubeIcon} />
+                              <div
+                                className="flex h-20 w-20 items-center justify-center rounded-full shadow-lg"
+                                style={{ backgroundColor: "#652b82" }}
+                              >
+                                <Play
+                                  size={36}
+                                  color="#FFFFFF"
+                                  fill="#FFFFFF"
+                                  style={{ marginInlineStart: "4px" }}
+                                />
                               </div>
                             </div>
 
@@ -319,7 +391,7 @@ export function VideosSection() {
                                   fontWeight: "500",
                                 }}
                               >
-                                {video.video_title}
+                                {item.video_title}
                               </h3>
 
                               <p
@@ -330,11 +402,11 @@ export function VideosSection() {
                                   fontWeight: "500",
                                 }}
                               >
-                                {video.description}
+                                {item.description}
                               </p>
                             </div>
                           </div>
-                        </a>
+                        </button>
                       </motion.div>
                     );
                   })}
@@ -347,15 +419,13 @@ export function VideosSection() {
                       <button
                         key={index}
                         onClick={() => setCurrentPage(index)}
+                        aria-label={`الصفحة ${index + 1}`}
                         className={`rounded-full transition-all duration-300 ${
                           currentPage === index
                             ? "w-4 h-4"
                             : "w-3 h-3 opacity-60"
                         }`}
-                        style={{
-                          backgroundColor:
-                            currentPage === index ? "#FAD656" : "#FAD656",
-                        }}
+                        style={{ backgroundColor: "#FAD656" }}
                       />
                     ))}
                   </div>
@@ -366,8 +436,18 @@ export function VideosSection() {
         </div>
       </div>
 
-      {/* Footer للأنشطة */}
+      {/* البوب اب */}
+      <AnimatePresence>
+        {activeVideo && (
+          <VideoModal
+            src={activeVideo.src}
+            title={activeVideo.title}
+            onClose={closeModal}
+          />
+        )}
+      </AnimatePresence>
 
+      {/* Footer للأنشطة */}
       <ActivityFooter currentLetter={currentLetter} letterName={letterName} />
     </div>
   );

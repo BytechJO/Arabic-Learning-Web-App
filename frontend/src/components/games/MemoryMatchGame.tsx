@@ -155,6 +155,7 @@ export function MemoryMatchGame() {
   const { letters } = useSelector((state: RootState) => state.letters);
   const currentLetter = letters.find((l) => l.symbol === letter);
   const letterId = currentLetter?.id;
+  const letterName = currentLetter?.name;
 
   /* ---------- Helpers ---------- */
 
@@ -376,7 +377,7 @@ export function MemoryMatchGame() {
               // fontSize: "20px",
             }}
           >
-            اقلب البطاقات وطابق الألف مع الكلمات
+            اقلب البطاقات وطابق ال{letterName} مع الكلمات
           </h2>
 
           <div className="flex items-center gap-4 shrink-0">
