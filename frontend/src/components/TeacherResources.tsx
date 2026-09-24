@@ -408,7 +408,7 @@ export function TeacherResources() {
                             <div className="flex flex-col justify-center items-center">
                               <img
                                 src={resource.icon}
-                                style={{ height: "200px" }}
+                                style={{ height: "150px" }}
                               />
                               <p
                                 style={{

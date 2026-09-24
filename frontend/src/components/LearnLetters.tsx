@@ -139,6 +139,7 @@ useEffect(() => {
 
   const speak = (text: string) => {
     if ("speechSynthesis" in window) {
+      console.log("Speaking:", new SpeechSynthesisUtterance(text));
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = "ar-SA";
       utterance.rate = 0.7;

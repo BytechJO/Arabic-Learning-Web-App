@@ -1,12 +1,4 @@
-import {
-  BookOpen,
-  Target,
-  FileText,
-  Video,
-  Gamepad2,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+
 import { useNavigate, useLocation } from "react-router-dom";
 import * as React from "react";
 
@@ -121,7 +113,7 @@ export function ActivityFooter({
             <div
               style={{
                 position: "absolute",
-                padding: "32px 18px 28px",
+                padding: "32px 8px 28px",
                 left: "63px",
               }}
             >
